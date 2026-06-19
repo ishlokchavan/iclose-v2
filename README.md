@@ -30,26 +30,34 @@ the web app ships), so the app reads the DB out of the box with no setup.
 
 ## What's built (mirrors the web `/experience`)
 
+- **First-run onboarding** — the brand **intro story** (3 slides) then the
+  **taste picker** (intent · budget · love a few homes) that seeds the recommender
+- **Apple-style liquid-glass tab bar** — floating frosted pill, icons-only, the
+  active tab a filled ink circle
 - **Home** — full-screen, recommender-ranked discovery feed: swipeable photo/video
-  gallery, Save / Share / Pass / Info rail, instant "Why this fits you", haptics
+  gallery, Save / Share / Pass / Info rail, instant "Why this fits you", haptics,
+  swipe-up hint, and an end cap (Review saved / Start over)
 - **Behavioural recommender** — per-facet affinity (ported from the web) ranks the
   feed; views/dwell/save/skip/share log to `discovery_events` (DB)
-- **Trending** — listings ranked by credits-back, with a New-launches shortcut
+- **Trending** — off-plan launches with a stories rail + project cards
+- **Launches** — auto-advancing, Instagram-style **stories viewer** (tap zones,
+  hold to pause, save, view home)
 - **Search** — instant substring search + chips, upgraded by on-device
   natural-language parsing ("2-bed near the marina under 2M with a pool")
-- **Map** — native map with live listing pins (`react-native-maps`)
-- **Profile** — Supabase email + native Google OAuth, saved count, list-your-property
+- **Map** — native map with live price-pin markers, filter chips, bottom card carousel
+- **Profile** — Supabase email + native Google OAuth, credits balance, saved/explored
+  stats, reset activity, list-your-property
 - **Property detail** — photo/video gallery, credits panel, off-plan payment plan,
   amenities, map link, agent card, "more like this", and the high-intent action bar
   (WhatsApp / Call / Book a viewing) — all tracked, exactly like the web
-- **Saved** — view and manage saved homes (kept on-device, same as web)
-- **Launches** modal + **Sell** — commission-free listing-create form → `/api/listing`
+- **Saved** — shortlist with total credits, remove, empty state (on-device, same as web)
+- **Sell** — commission-free listing-create form → `/api/listing`
 - Design tokens, types, data layer, recommender, explain, tracking — all ported from web
 
 ## Roadmap (next passes)
 
-Inline video playback (currently opens in the system player), the taste-picker
-cold-start, developer profile pages, push notifications.
+Inline video playback (currently opens in the system player), developer profile
+pages (`/experience/developer/[slug]`), push notifications.
 
 ## Prerequisites
 

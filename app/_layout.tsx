@@ -8,6 +8,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { ExperienceProvider } from '@/store/experience';
 import { SavedProvider } from '@/store/saved';
 import { SignalStoreProvider } from '@/store/signals';
+import { IntroStory } from '@/components/IntroStory';
+import { TastePicker } from '@/components/TastePicker';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -31,6 +33,9 @@ export default function RootLayout() {
                 <Stack.Screen name="sell" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="saved" options={{ presentation: 'modal' }} />
               </Stack>
+              {/* First-run onboarding — cover the whole app incl. the tab bar */}
+              <TastePicker />
+              <IntroStory />
             </SignalStoreProvider>
           </SavedProvider>
         </ExperienceProvider>
