@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, FlatList, Dimensions, Pressable, type ViewToken } from 'react-native';
+import { View, Text, FlatList, Dimensions, Pressable, RefreshControl, type ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Search, Heart } from 'lucide-react-native';
@@ -8,6 +8,7 @@ import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
 import { PropertyFeedCard } from '@/components/PropertyFeedCard';
 import { Loading } from '@/components/Loading';
+import { usePullRefresh } from '@/lib/use-refresh';
 import { colors } from '@/theme/tokens';
 import type { ExperienceListing } from '@/types/listing';
 
@@ -21,6 +22,7 @@ export default function FeedScreen() {
   const { listings, loading } = useExperience();
   const { saved } = useSaved();
   const { rank, track, seedVersion } = useSignals();
+  const { refreshing, onRefresh } = usePullRefresh();
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<Row>>(null);
 
@@ -98,6 +100,7 @@ export default function FeedScreen() {
         onViewableItemsChanged={onViewable}
         viewabilityConfig={{ itemVisiblePercentThreshold: 80 }}
         getItemLayout={(_, i) => ({ length: height, offset: height * i, index: i })}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ffffff" />}
       />
 
       {/* Header — wordmark + search (mirrors the web deck header) */}

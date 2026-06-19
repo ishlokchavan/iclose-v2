@@ -1,10 +1,11 @@
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { X, Heart, MapPin, BedDouble, Maximize, Trash2, Coins } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
 import { useSaved } from '@/store/saved';
+import { usePullRefresh } from '@/lib/use-refresh';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { bedLabel } from '@/lib/format';
 import { colors } from '@/theme/tokens';
@@ -14,6 +15,7 @@ export default function SavedScreen() {
   const insets = useSafeAreaInsets();
   const { listings } = useExperience();
   const { decisions, toggle } = useSaved();
+  const { refreshing, onRefresh } = usePullRefresh();
   const saved = listings.filter((l) => decisions[l.reference] === 'saved');
   const totalCredits = saved.reduce((s, l) => s + l.credit.credits, 0);
 
@@ -29,7 +31,10 @@ export default function SavedScreen() {
         <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-paper"><X size={20} color={colors.ink} /></Pressable>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}>
+      <ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+      >
         {saved.length ? (
           <View className="mb-4 flex-row items-center justify-between rounded-apple bg-ink px-5 py-4">
             <View className="flex-row items-center gap-3">

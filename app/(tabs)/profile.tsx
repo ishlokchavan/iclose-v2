@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Alert, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
 import { useExperience } from '@/store/experience';
+import { usePullRefresh } from '@/lib/use-refresh';
 import { formatCredits } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
 import type { Session } from '@supabase/supabase-js';
@@ -20,6 +21,7 @@ export default function ProfileScreen() {
   const { listings } = useExperience();
   const { decisions, savedRefs, reset } = useSaved();
   const { reset: resetSignals } = useSignals();
+  const { refreshing, onRefresh } = usePullRefresh();
   const [session, setSession] = useState<Session | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -67,7 +69,11 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-mist" contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 110 }}>
+    <ScrollView
+      className="flex-1 bg-mist"
+      contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 110 }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+    >
       {/* Identity */}
       <View className="mb-5 mt-2 flex-row items-center gap-4">
         <View className="h-16 w-16 items-center justify-center rounded-full bg-ink"><Text className="text-[22px] font-semibold text-white">{name.charAt(0).toUpperCase()}</Text></View>

@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { View, Text, TextInput, FlatList, Pressable, ScrollView } from 'react-native';
+import { View, Text, TextInput, FlatList, Pressable, ScrollView, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Search as SearchIcon, X, Sparkles, Heart, Coins } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
 import { useSaved } from '@/store/saved';
+import { usePullRefresh } from '@/lib/use-refresh';
 import { parseSearch, type ParsedFilters } from '@/lib/search-parse';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
@@ -18,6 +19,7 @@ const BED_CHIPS = ['Studio', '1', '2', '3', '4+'];
 export default function SearchScreen() {
   const { listings } = useExperience();
   const { isSaved, toggle } = useSaved();
+  const { refreshing, onRefresh } = usePullRefresh();
   const insets = useSafeAreaInsets();
 
   const [q, setQ] = useState('');
@@ -145,6 +147,7 @@ export default function SearchScreen() {
         numColumns={2}
         columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
         contentContainerStyle={{ gap: 12, paddingBottom: insets.bottom + 110, paddingTop: 4 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         ListHeaderComponent={<Text className="px-4 pb-1 text-[13px] text-graphite">{results.length} {results.length === 1 ? 'home' : 'homes'}</Text>}
         renderItem={({ item }) => (
           <GridCard listing={item} saved={isSaved(item.reference)} onToggle={() => toggle(item.reference)} />

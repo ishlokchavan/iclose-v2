@@ -1,10 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
-import { View, Text, Platform, Pressable, ScrollView, Dimensions, FlatList } from 'react-native';
+import { View, Text, Platform, Pressable, ScrollView, Dimensions, FlatList, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { MapPin } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
+import { usePullRefresh } from '@/lib/use-refresh';
 import { formatAed } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
 import type { ExperienceListing } from '@/types/listing';
@@ -41,6 +42,7 @@ function pricePin(n: number): string {
 
 export default function MapScreen() {
   const { listings } = useExperience();
+  const { refreshing, onRefresh } = usePullRefresh();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<any>(null);
   const cardsRef = useRef<FlatList<ExperienceListing>>(null);
@@ -88,6 +90,7 @@ export default function MapScreen() {
           numColumns={2}
           columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
           contentContainerStyle={{ gap: 12, paddingBottom: insets.bottom + 110 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
           ListHeaderComponent={
             <View className="px-1 pb-2">
               <View className="flex-row items-center gap-1.5 rounded-2xl bg-paper px-3 py-2">

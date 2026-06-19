@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { View, Text, FlatList, Pressable } from 'react-native';
+import { View, Text, FlatList, Pressable, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ChevronLeft, BadgeCheck, Building2, MapPin, Coins } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
+import { usePullRefresh } from '@/lib/use-refresh';
 import { slugifyDeveloper } from '@/lib/slug';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
@@ -15,6 +16,7 @@ export default function DeveloperScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
   const { listings } = useExperience();
+  const { refreshing, onRefresh } = usePullRefresh();
 
   const devListings = useMemo(
     () => listings.filter((l) => l.developerName && slugifyDeveloper(l.developerName) === slug),
@@ -35,6 +37,7 @@ export default function DeveloperScreen() {
         numColumns={2}
         columnWrapperStyle={{ gap: 12, paddingHorizontal: 16 }}
         contentContainerStyle={{ gap: 12, paddingBottom: insets.bottom + 24 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         ListHeaderComponent={
           <View className="mb-1 bg-paper px-4 pb-5" style={{ paddingTop: insets.top + 8 }}>
             <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-mist"><ChevronLeft size={24} color={colors.ink} /></Pressable>

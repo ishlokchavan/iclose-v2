@@ -1,20 +1,26 @@
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Flame, CalendarClock, Wallet, Coins, ArrowUpRight } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
+import { usePullRefresh } from '@/lib/use-refresh';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
 
 /** Trending — latest off-plan launches, with a stories rail (mirrors the web). */
 export default function TrendingScreen() {
   const { launches } = useExperience();
+  const { refreshing, onRefresh } = usePullRefresh();
   const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView className="flex-1 bg-mist" contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}>
+    <ScrollView
+      className="flex-1 bg-mist"
+      contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+    >
       {/* Header */}
       <View style={{ paddingTop: insets.top + 12 }} className="bg-paper px-4 pb-3">
         <View className="flex-row items-center gap-2">
