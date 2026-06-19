@@ -1,91 +1,171 @@
-import { View, Text, Pressable, Dimensions } from 'react-native';
-import { Image } from 'expo-image';
+import { memo, useState } from 'react';
+import { View, Text, Pressable, Share, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, BedDouble, Bath, Maximize, BadgeCheck } from 'lucide-react-native';
+import {
+  Heart, Share2, X, Info, MapPin, BedDouble, Bath, Maximize, BadgeCheck, Coins, Sparkles,
+} from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
-import { CreditBadge } from './CreditBadge';
-import { aed, bedLabel } from '@/lib/format';
+import { SwipeGallery } from './SwipeGallery';
+import { formatAed, formatCredits } from '@/data/experience-data';
+import { deterministicReason } from '@/lib/explain';
 import { useSaved } from '@/store/saved';
+import { useSignals } from '@/store/signals';
 import type { ExperienceListing } from '@/types/listing';
 
 const { height } = Dimensions.get('window');
 
 /**
- * Full-bleed, full-screen property card — the Instagram/TikTok-style feed
- * unit. Snap-pages vertically in the Home feed. Tap to open the detail.
+ * Full-screen vertical feed card — a React-Native port of the web DiscoveryCard.
+ * Swipeable photo/video gallery, hook + verified chips, a TikTok-style right
+ * action rail (Save / Share / Pass / Info), and an instant "why this fits you".
  */
-export function PropertyFeedCard({ listing, tabBarSpace = 96 }: { listing: ExperienceListing; tabBarSpace?: number }) {
-  const { isSaved, toggle } = useSaved();
+function PropertyFeedCardImpl({
+  listing,
+  active,
+  tabBarSpace = 96,
+  topInset = 0,
+  onPass,
+}: {
+  listing: ExperienceListing;
+  active: boolean;
+  tabBarSpace?: number;
+  topInset?: number;
+  onPass?: () => void;
+}) {
+  const { isSaved, toggle, pass } = useSaved();
+  const { track, getAffinity } = useSignals();
   const saved = isSaved(listing.reference);
+  const [whyOpen, setWhyOpen] = useState(false);
+
+  function toggleSave() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!saved) track('save', listing);
+    toggle(listing.reference);
+  }
+
+  function openDetails() {
+    track('details', listing);
+    router.push(`/property/${listing.reference}`);
+  }
+
+  function onShare() {
+    track('share', listing);
+    Share.share({
+      message: `${listing.title} — ${formatAed(listing.priceAed)} on iClose (${listing.reference})`,
+    }).catch(() => {});
+  }
+
+  function onDislike() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    track('dislike', listing);
+    pass(listing.reference);
+    onPass?.();
+  }
 
   return (
-    <Pressable
-      style={{ height }}
-      onPress={() => router.push(`/property/${listing.reference}`)}
-      className="relative w-full bg-ink"
-    >
-      <Image
-        source={{ uri: listing.cover }}
-        style={{ position: 'absolute', width: '100%', height: '100%' }}
-        contentFit="cover"
-        transition={250}
+    <View style={{ height }} className="relative w-full bg-ink">
+      <SwipeGallery
+        images={listing.images}
+        videos={listing.videos}
+        height={height}
+        onDoubleTap={() => { if (!saved) toggleSave(); }}
       />
+
       <LinearGradient
-        colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0.78)']}
-        locations={[0, 0.45, 1]}
+        pointerEvents="none"
+        colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0.82)']}
+        locations={[0, 0.22, 0.5, 1]}
         style={{ position: 'absolute', width: '100%', height: '100%' }}
       />
 
-      {/* Save */}
-      <Pressable
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          toggle(listing.reference);
-        }}
-        className="absolute right-4 top-16 h-12 w-12 items-center justify-center rounded-full bg-black/30"
-        hitSlop={10}
-      >
-        <Heart size={24} color="#ffffff" fill={saved ? '#ff4d6d' : 'transparent'} />
-      </Pressable>
-
-      {/* Content */}
-      <View className="absolute inset-x-0 bottom-0 gap-3 px-5" style={{ paddingBottom: tabBarSpace }}>
-        <CreditBadge award={listing.credit} />
-
-        <Text className="text-2xl font-semibold leading-tight text-white" numberOfLines={2}>
-          {listing.title}
-        </Text>
-
-        <View className="flex-row items-center gap-2">
-          <Text className="text-base text-white/90">{listing.community}</Text>
-          {listing.isVerified ? <BadgeCheck size={16} color="#9effe0" /> : null}
-          {listing.completion === 'off_plan' ? (
-            <View className="rounded-full bg-journey-offplan/90 px-2 py-0.5">
-              <Text className="text-[11px] font-semibold text-ink">Off-plan</Text>
-            </View>
-          ) : null}
+      {/* Top chips */}
+      <View pointerEvents="none" style={{ position: 'absolute', top: topInset + 44, left: 16, right: 16 }} className="flex-row items-center gap-2">
+        <View className="rounded-full bg-black/45 px-2.5 py-1">
+          <Text className="text-[11.5px] font-medium text-white">{listing.hook}</Text>
         </View>
-
-        <Text className="text-3xl font-bold text-white">{aed(listing.priceAed)}</Text>
-
-        <Text className="text-sm text-white/80" numberOfLines={1}>{listing.hook}</Text>
-
-        <View className="mt-1 flex-row items-center gap-5">
-          <Spec icon={<BedDouble size={16} color="#ffffff" />} label={bedLabel(listing.bedrooms)} />
-          <Spec icon={<Bath size={16} color="#ffffff" />} label={`${listing.bathrooms ?? '—'}`} />
-          <Spec icon={<Maximize size={16} color="#ffffff" />} label={`${listing.areaSqft ?? '—'} sqft`} />
-        </View>
+        {listing.isVerified ? (
+          <View className="flex-row items-center gap-1 rounded-full bg-black/45 px-2 py-1">
+            <BadgeCheck size={13} color="#9effe0" />
+            <Text className="text-[11.5px] font-medium text-white">Verified</Text>
+          </View>
+        ) : null}
       </View>
+
+      {/* Right action rail */}
+      <View style={{ position: 'absolute', right: 12, bottom: tabBarSpace + 24 }} className="items-center gap-4">
+        <Rail label={saved ? 'Saved' : 'Save'} active={saved} onPress={toggleSave}>
+          <Heart size={24} color="#fff" fill={saved ? '#fff' : 'transparent'} />
+        </Rail>
+        <Rail label="Share" onPress={onShare}><Share2 size={22} color="#fff" /></Rail>
+        <Rail label="Pass" onPress={onDislike}><X size={24} color="#fff" /></Rail>
+        <Rail label="Info" onPress={openDetails}><Info size={22} color="#fff" /></Rail>
+      </View>
+
+      {/* Info sheet */}
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingBottom: tabBarSpace }} className="gap-2 px-5">
+        <Pressable onPress={openDetails}>
+          <View className="flex-row items-center gap-2.5">
+            <Text className="text-3xl font-bold text-white">{formatAed(listing.priceAed)}</Text>
+            <View className="flex-row items-center gap-1 rounded-full bg-accent/90 px-2.5 py-1">
+              <Coins size={13} color="#fff" />
+              <Text className="text-xs font-semibold text-white">{formatCredits(listing.credit.credits)} credits</Text>
+            </View>
+          </View>
+          <Text className="mt-1.5 text-[15px] font-medium text-white" numberOfLines={1}>{listing.title}</Text>
+          <View className="mt-0.5 flex-row items-center gap-1">
+            <MapPin size={13} color="rgba(255,255,255,0.8)" />
+            <Text className="text-[13px] text-white/80" numberOfLines={1}>
+              {[listing.building, listing.community, listing.city].filter(Boolean).join(', ')}
+            </Text>
+          </View>
+          <View className="mt-2 flex-row items-center gap-5">
+            {listing.bedrooms !== null ? (
+              <Spec icon={<BedDouble size={15} color="#fff" />} label={listing.bedrooms === 0 ? 'Studio' : `${listing.bedrooms}`} />
+            ) : null}
+            {listing.bathrooms !== null ? (
+              <Spec icon={<Bath size={15} color="#fff" />} label={`${listing.bathrooms}`} />
+            ) : null}
+            {listing.areaSqft !== null ? (
+              <Spec icon={<Maximize size={15} color="#fff" />} label={`${listing.areaSqft.toLocaleString('en-US')} sqft`} />
+            ) : null}
+          </View>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setWhyOpen((o) => !o)}
+          className="mt-1 flex-row items-center gap-1.5 self-start rounded-full bg-white/15 px-3 py-1.5"
+        >
+          <Sparkles size={13} color="#9effe0" />
+          <Text className="text-[12.5px] font-medium text-white">Why this fits you</Text>
+        </Pressable>
+        {whyOpen ? (
+          <View className="rounded-2xl bg-white/15 px-3 py-2">
+            <Text className="text-[13px] leading-snug text-white">
+              {deterministicReason(getAffinity(), listing)}
+            </Text>
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+export const PropertyFeedCard = memo(PropertyFeedCardImpl);
+
+function Rail({ label, active, onPress, children }: { label: string; active?: boolean; onPress: () => void; children: React.ReactNode }) {
+  return (
+    <Pressable onPress={onPress} hitSlop={8} className="items-center gap-1">
+      <View className={`h-11 w-11 items-center justify-center rounded-full ${active ? 'bg-rose-500' : 'bg-black/40'}`}>
+        {children}
+      </View>
+      <Text className="text-[11px] font-medium text-white">{label}</Text>
     </Pressable>
   );
 }
 
 function Spec({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <View className="flex-row items-center gap-1.5">
-      {icon}
-      <Text className="text-sm font-medium text-white">{label}</Text>
-    </View>
+    <View className="flex-row items-center gap-1.5">{icon}<Text className="text-sm font-medium text-white">{label}</Text></View>
   );
 }

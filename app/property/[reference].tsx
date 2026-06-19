@@ -1,133 +1,260 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Dimensions, FlatList } from 'react-native';
+import { View, Text, ScrollView, Pressable, Dimensions, Linking } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { ChevronLeft, Heart, BedDouble, Bath, Maximize, MapPin, BadgeCheck, Sparkles } from 'lucide-react-native';
+import {
+  ChevronLeft, Heart, Share2, BedDouble, Bath, Maximize, MapPin, BadgeCheck,
+  CalendarClock, Wallet, Building2, Navigation, Coins, Phone, MessageCircle, CalendarCheck, Check, Sparkles,
+} from 'lucide-react-native';
+import { Share } from 'react-native';
 import { useExperience } from '@/store/experience';
 import { useSaved } from '@/store/saved';
-import { useEnquiries } from '@/store/enquiries';
-import { CreditBadge } from '@/components/CreditBadge';
+import { useSignals } from '@/store/signals';
+import { SwipeGallery } from '@/components/SwipeGallery';
 import { Loading } from '@/components/Loading';
-import { aed, bedLabel } from '@/lib/format';
-import { api } from '@/lib/api';
+import { formatAed, formatCredits } from '@/data/experience-data';
+import { facetsOf } from '@/lib/recommender';
+import { deterministicReason } from '@/lib/explain';
+import { bedLabel } from '@/lib/format';
+import { CONTACT_WHATSAPP, CONTACT_PHONE } from '@/lib/config';
 import { colors } from '@/theme/tokens';
 
 const { width } = Dimensions.get('window');
 
 export default function PropertyScreen() {
   const { reference } = useLocalSearchParams<{ reference: string }>();
-  const { byRef } = useExperience();
+  const { byRef, listings } = useExperience();
   const { isSaved, toggle } = useSaved();
-  const { hasEnquired } = useEnquiries();
+  const { track, getAffinity } = useSignals();
   const insets = useSafeAreaInsets();
-  const [why, setWhy] = useState<string | null>(null);
-  const [whyBusy, setWhyBusy] = useState(false);
+  const [requested, setRequested] = useState(false);
+  const [whyOpen, setWhyOpen] = useState(false);
 
   const listing = byRef(String(reference));
   if (!listing) return <Loading />;
-  const gallery = listing.images?.length ? listing.images : [listing.cover];
   const saved = isSaved(listing.reference);
-  const enquired = hasEnquired(listing.reference);
 
-  async function explain() {
-    setWhyBusy(true);
-    try {
-      const { reason } = await api.why(listing!.reference);
-      setWhy(reason);
-    } catch {
-      setWhy('This home matches your budget and the communities you’ve been exploring.');
-    } finally {
-      setWhyBusy(false);
-    }
+  // "More like this" — facet overlap with the current listing.
+  const currentFacets = new Set(facetsOf(listing));
+  const similar = listings
+    .filter((l) => l.reference !== listing.reference)
+    .map((l) => ({ l, score: facetsOf(l).filter((f) => currentFacets.has(f)).length }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8)
+    .map((x) => x.l);
+
+  function toggleSave() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (!saved) track('save', listing!);
+    toggle(listing!.reference);
+  }
+
+  function openWhatsApp() {
+    track('whatsapp', listing!);
+    const text = encodeURIComponent(`Hi, I'm interested in ${listing!.title} (${listing!.reference}) on iClose.`);
+    Linking.openURL(`https://wa.me/${CONTACT_WHATSAPP.replace(/[^0-9]/g, '')}?text=${text}`).catch(() => {});
+  }
+  function call() {
+    track('call', listing!);
+    Linking.openURL(`tel:${CONTACT_PHONE.replace(/\s/g, '')}`).catch(() => {});
+  }
+  function openMaps() {
+    const q = listing!.latitude && listing!.longitude
+      ? `${listing!.latitude},${listing!.longitude}`
+      : encodeURIComponent(`${listing!.community}, ${listing!.city}`);
+    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${q}`).catch(() => {});
   }
 
   return (
     <View className="flex-1 bg-paper">
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 100 }} showsVerticalScrollIndicator={false}>
-        <View>
-          <FlatList
-            data={gallery}
-            keyExtractor={(u, i) => `${i}`}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={{ width, height: width * 1.1 }} contentFit="cover" transition={200} />
-            )}
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 96 }} showsVerticalScrollIndicator={false}>
+        {/* Hero gallery */}
+        <View style={{ height: width * 1.05 }} className="bg-mist">
+          <SwipeGallery
+            images={listing.images}
+            videos={listing.videos}
+            height={width * 1.05}
+            indicator="dots"
+            onDoubleTap={() => { if (!saved) toggleSave(); }}
           />
           <Pressable onPress={() => router.back()} style={{ top: insets.top + 8 }}
             className="absolute left-4 h-11 w-11 items-center justify-center rounded-full bg-black/35">
             <ChevronLeft size={26} color="#fff" />
           </Pressable>
-          <Pressable
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); toggle(listing.reference); }}
-            style={{ top: insets.top + 8 }} className="absolute right-4 h-11 w-11 items-center justify-center rounded-full bg-black/35">
-            <Heart size={22} color="#fff" fill={saved ? '#ff4d6d' : 'transparent'} />
-          </Pressable>
+          <View style={{ top: insets.top + 8 }} className="absolute right-4 flex-row gap-2">
+            <Pressable
+              onPress={() => { track('share', listing); Share.share({ message: `${listing.title} — ${formatAed(listing.priceAed)} on iClose (${listing.reference})` }).catch(() => {}); }}
+              className="h-11 w-11 items-center justify-center rounded-full bg-black/35">
+              <Share2 size={20} color="#fff" />
+            </Pressable>
+            <Pressable onPress={toggleSave} className={`h-11 w-11 items-center justify-center rounded-full ${saved ? 'bg-ink' : 'bg-black/35'}`}>
+              <Heart size={20} color="#fff" fill={saved ? '#fff' : 'transparent'} />
+            </Pressable>
+          </View>
         </View>
 
         <View className="gap-4 px-5 pt-5">
-          <CreditBadge award={listing.credit} large />
-          <Text className="text-2xl font-bold text-ink">{listing.title}</Text>
-
-          <View className="flex-row items-center gap-1.5">
-            <MapPin size={16} color={colors.graphite} />
-            <Text className="text-base text-graphite">{listing.community}, {listing.city}</Text>
-            {listing.isVerified ? <BadgeCheck size={16} color={colors.accent} /> : null}
+          {/* Hook + verified */}
+          <View className="flex-row items-center gap-2">
+            <View className="rounded-full bg-mist px-2.5 py-1"><Text className="text-xs font-medium text-graphite">{listing.hook}</Text></View>
+            {listing.isVerified ? (
+              <View className="flex-row items-center gap-1 rounded-full bg-mist px-2.5 py-1">
+                <BadgeCheck size={13} color={colors.journey.listing} /><Text className="text-xs font-medium text-graphite">Verified</Text>
+              </View>
+            ) : null}
           </View>
 
-          <Text className="text-3xl font-bold text-ink">{aed(listing.priceAed)}</Text>
-
-          <View className="flex-row justify-between rounded-apple bg-fog p-4">
-            <Fact icon={<BedDouble size={20} color={colors.ink} />} label={bedLabel(listing.bedrooms)} />
-            <Fact icon={<Bath size={20} color={colors.ink} />} label={`${listing.bathrooms ?? '—'} Bath`} />
-            <Fact icon={<Maximize size={20} color={colors.ink} />} label={`${listing.areaSqft ?? '—'} sqft`} />
+          <Text className="text-3xl font-bold text-ink">{formatAed(listing.priceAed)}</Text>
+          <Text className="-mt-2 text-lg font-semibold text-ink">{listing.title}</Text>
+          <View className="-mt-2 flex-row items-center gap-1.5">
+            <MapPin size={15} color={colors.graphite} />
+            <Text className="text-sm text-graphite">{listing.building ? `${listing.building}, ` : ''}{listing.community}, {listing.city}</Text>
           </View>
 
-          {/* AI "why this fits" — calls /api/glass/why */}
-          <Pressable onPress={explain} disabled={whyBusy} className="flex-row items-center gap-2 rounded-apple border border-accent/30 bg-accent/5 p-4">
-            <Sparkles size={18} color={colors.accent} />
-            <Text className="flex-1 text-accent">{why ?? (whyBusy ? 'Thinking…' : 'Why does this fit me?')}</Text>
+          {/* Credits panel */}
+          <View className="overflow-hidden rounded-apple border border-accent/20 bg-accent/5">
+            <View className="flex-row items-center gap-2.5 px-4 py-3.5">
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-accent/15"><Coins size={20} color={colors.accent} /></View>
+              <View className="flex-1">
+                <Text className="text-xs text-graphite">Buy this home and get</Text>
+                <Text className="text-xl font-bold text-accent">{formatCredits(listing.credit.credits)} iClose credits</Text>
+              </View>
+            </View>
+            <Text className="border-t border-accent/15 px-4 py-2.5 text-xs text-graphite">
+              Credits are yours to keep and spend on iClose — that's the commission you'd normally lose.
+            </Text>
+          </View>
+
+          {/* Spec grid */}
+          <View className="flex-row gap-2.5">
+            <SpecTile icon={<BedDouble size={20} color={colors.ink} />} label="Bedrooms" value={bedLabel(listing.bedrooms)} />
+            <SpecTile icon={<Bath size={20} color={colors.ink} />} label="Bathrooms" value={`${listing.bathrooms ?? '—'}`} />
+            <SpecTile icon={<Maximize size={20} color={colors.ink} />} label="Area" value={listing.areaSqft ? `${(listing.areaSqft / 1000).toFixed(1)}k` : '—'} />
+          </View>
+
+          {/* Why this fits you */}
+          <Pressable onPress={() => setWhyOpen((o) => !o)} className="flex-row items-center gap-2 self-start rounded-full bg-mist px-3 py-2">
+            <Sparkles size={15} color={colors.accent} /><Text className="text-[13px] font-medium text-graphite">Why this fits you</Text>
           </Pressable>
-
-          {listing.developerName ? (
-            <Text className="text-sm text-graphite">Developer · {listing.developerName}{listing.completion === 'off_plan' ? ' · Off-plan' : ''}</Text>
+          {whyOpen ? (
+            <View className="-mt-2 rounded-2xl border border-accent/15 bg-accent/5 px-3 py-2">
+              <Text className="text-[13px] leading-snug text-ink">{deterministicReason(getAffinity(), listing)}</Text>
+            </View>
           ) : null}
 
-          {listing.description ? <Text className="text-base leading-6 text-ink700">{listing.description}</Text> : null}
+          {/* Off-plan payment plan */}
+          {listing.completion === 'off_plan' ? (
+            <View className="gap-3 rounded-apple border border-hairline/70 p-4">
+              <View className="flex-row items-center gap-2">
+                <Building2 size={18} color={colors.journey.offplan} />
+                <Text className="text-base font-semibold text-ink">{listing.developerName ?? 'New release'}</Text>
+              </View>
+              <View className="flex-row gap-2.5">
+                {listing.paymentPlan ? <InfoRow icon={<Wallet size={15} color={colors.graphite} />} label="Payment plan" value={listing.paymentPlan} /> : null}
+                {listing.handoverBy ? <InfoRow icon={<CalendarClock size={15} color={colors.graphite} />} label="Handover" value={listing.handoverBy} /> : null}
+              </View>
+            </View>
+          ) : null}
 
+          {/* Description */}
+          {listing.description ? (
+            <View className="rounded-apple border border-hairline/70 p-4">
+              <Text className="mb-2 text-base font-semibold text-ink">About this home</Text>
+              <Text className="text-sm leading-relaxed text-graphite">{listing.description}</Text>
+            </View>
+          ) : null}
+
+          {/* Amenities */}
           {listing.amenities?.length ? (
-            <View className="flex-row flex-wrap gap-2 pt-1">
-              {listing.amenities.map((a) => (
-                <View key={a} className="rounded-full bg-mist px-3 py-1.5"><Text className="text-sm text-ink700">{a}</Text></View>
-              ))}
+            <View>
+              <Text className="mb-2 text-base font-semibold text-ink">Amenities</Text>
+              <View className="flex-row flex-wrap gap-2">
+                {listing.amenities.map((a) => (
+                  <View key={a} className="rounded-full border border-hairline/70 px-3 py-1.5"><Text className="text-[13px] text-graphite">{a}</Text></View>
+                ))}
+              </View>
+            </View>
+          ) : null}
+
+          {/* Map */}
+          <Pressable onPress={openMaps} className="flex-row items-center justify-between rounded-apple border border-hairline/70 p-4">
+            <View className="flex-row items-center gap-2"><Navigation size={16} color={colors.accent} /><Text className="text-sm text-ink">{listing.community}, {listing.city}</Text></View>
+            <Text className="text-[13px] text-accent">Open in Maps</Text>
+          </Pressable>
+
+          {/* Agent / source */}
+          <View className="flex-row items-center gap-3 rounded-apple border border-hairline/70 p-3.5">
+            <View className="h-12 w-12 items-center justify-center rounded-full bg-mist">
+              <Text className="text-base font-semibold text-ink">
+                {(listing.agentName ?? listing.developerName ?? 'iC').split(' ').map((w) => w[0]).slice(0, 2).join('')}
+              </Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-[15px] font-medium text-ink" numberOfLines={1}>{listing.agentName ?? listing.developerName ?? 'iClose listing'}</Text>
+              <Text className="text-[13px] text-graphite" numberOfLines={1}>
+                {listing.agencyName ?? (listing.source === 'owner' ? 'Listed by owner · commission-free' : 'Developer direct')}
+              </Text>
+            </View>
+            <View className="rounded-full bg-mist px-3 py-1"><Text className="text-xs text-graphite">{listing.reference}</Text></View>
+          </View>
+
+          {/* More like this */}
+          {similar.length ? (
+            <View>
+              <Text className="mb-2 text-base font-semibold text-ink">More like this</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                {similar.map((l) => (
+                  <Pressable key={l.reference} onPress={() => router.push(`/property/${l.reference}`)} className="w-36 overflow-hidden rounded-2xl border border-hairline/60">
+                    <Image source={{ uri: l.cover }} style={{ width: '100%', height: 150 }} contentFit="cover" />
+                    <View className="p-2.5">
+                      <Text className="text-sm font-semibold text-ink">{formatAed(l.priceAed)}</Text>
+                      <Text className="mt-1 text-xs text-graphite" numberOfLines={1}>{l.community}, {l.city}</Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </ScrollView>
             </View>
           ) : null}
         </View>
       </ScrollView>
 
-      {/* Sticky CTA */}
-      <View style={{ paddingBottom: insets.bottom + 12 }} className="absolute inset-x-0 bottom-0 border-t border-hairline bg-paper/95 px-5 pt-3">
+      {/* Sticky action bar — high-intent actions */}
+      <View style={{ paddingBottom: insets.bottom + 10 }} className="absolute inset-x-0 bottom-0 flex-row items-center gap-2 border-t border-hairline bg-paper/95 px-4 pt-3">
+        <Pressable onPress={openWhatsApp} className="h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: '#25D366' }}>
+          <MessageCircle size={20} color="#fff" />
+        </Pressable>
+        <Pressable onPress={call} className="h-12 w-12 items-center justify-center rounded-full bg-mist">
+          <Phone size={20} color={colors.ink} />
+        </Pressable>
         <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            router.push(`/enquire?reference=${listing.reference}`);
-          }}
-          className="rounded-apple bg-ink py-4"
+          onPress={() => { setRequested(true); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); track('viewing', listing); }}
+          className={`h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full ${requested ? 'bg-journey-listing' : 'bg-ink'}`}
         >
-          <Text className="text-center text-base font-semibold text-white">
-            {enquired
-              ? 'Enquiry sent — ask again'
-              : `Enquire — claim ${listing.credit.credits.toLocaleString()} credits`}
-          </Text>
+          {requested ? <Check size={20} color={colors.ink} /> : <CalendarCheck size={20} color="#fff" />}
+          <Text className={`text-[15px] font-semibold ${requested ? 'text-ink' : 'text-white'}`}>{requested ? 'Viewing requested' : 'Book a viewing'}</Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-function Fact({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return <View className="items-center gap-1">{icon}<Text className="text-sm font-medium text-ink">{label}</Text></View>;
+function SpecTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <View className="flex-1 items-center gap-1 rounded-apple border border-hairline/70 py-3.5">
+      {icon}
+      <Text className="text-lg font-semibold text-ink">{value}</Text>
+      <Text className="text-[11px] text-graphite">{label}</Text>
+    </View>
+  );
+}
+
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <View className="flex-1 rounded-2xl bg-mist p-3">
+      <View className="flex-row items-center gap-1.5">{icon}<Text className="text-xs text-graphite">{label}</Text></View>
+      <Text className="mt-1 text-[15px] font-semibold text-ink">{value}</Text>
+    </View>
+  );
 }

@@ -4,10 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { router } from 'expo-router';
-import { Heart, LogOut, MessageSquare, Home, ChevronRight } from 'lucide-react-native';
+import { Heart, LogOut, Home, ChevronRight } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useSaved } from '@/store/saved';
-import { useEnquiries } from '@/store/enquiries';
 import { colors } from '@/theme/tokens';
 import type { Session } from '@supabase/supabase-js';
 
@@ -16,7 +15,6 @@ WebBrowser.maybeCompleteAuthSession();
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { saved } = useSaved();
-  const { enquired } = useEnquiries();
   const [session, setSession] = useState<Session | null>(null);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
@@ -75,10 +73,6 @@ export default function ProfileScreen() {
             icon={<Heart size={20} color={colors.accent} />}
             label={`${saved.size} saved ${saved.size === 1 ? 'home' : 'homes'}`}
             onPress={() => router.push('/saved')}
-          />
-          <Row
-            icon={<MessageSquare size={20} color={colors.accent} />}
-            label={`${enquired.size} ${enquired.size === 1 ? 'enquiry' : 'enquiries'} sent`}
           />
           <Row
             icon={<Home size={20} color={colors.accent} />}
