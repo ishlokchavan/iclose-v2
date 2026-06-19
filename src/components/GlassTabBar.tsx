@@ -12,8 +12,9 @@ const ICONS: Record<string, typeof House> = {
 // Icons that read well as a solid glyph when active (Instagram fills the active tab).
 const FILLABLE: Record<string, boolean> = { index: true, trending: false, search: false, map: true };
 
-const INK = '#000000';
-const HAIRLINE = '#dbdbdb';
+const ICON = '#ffffff';
+const BG = '#000000';
+const HAIRLINE = '#262626';
 
 /**
  * Instagram-style bottom tab bar: a solid full-width bar with a hairline top
@@ -48,7 +49,7 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
       style={{
         position: 'absolute', left: 0, right: 0, bottom: 0,
         paddingBottom: insets.bottom,
-        backgroundColor: '#ffffff',
+        backgroundColor: BG,
         borderTopWidth: 0.5,
         borderTopColor: HAIRLINE,
       }}
@@ -70,25 +71,25 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
                   style={{
                     height: 27, width: 27, borderRadius: 14, overflow: 'hidden',
                     alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: '#efefef',
+                    backgroundColor: '#262626',
                     borderWidth: focused ? 2 : 1,
-                    borderColor: focused ? INK : '#c7c7c7',
+                    borderColor: focused ? ICON : '#555555',
                   }}
                 >
                   {avatar ? (
                     <RNImage source={{ uri: avatar }} style={{ height: '100%', width: '100%' }} />
                   ) : initial ? (
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: INK }}>{initial}</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: ICON }}>{initial}</Text>
                   ) : (
-                    <User size={16} color={INK} strokeWidth={2} />
+                    <User size={16} color={ICON} strokeWidth={2} />
                   )}
                 </View>
               ) : (
                 <Icon
                   size={27}
-                  color={INK}
+                  color={ICON}
                   strokeWidth={focused ? 2.4 : 1.8}
-                  fill={focused && FILLABLE[route.name] ? INK : 'transparent'}
+                  fill={focused && FILLABLE[route.name] ? ICON : 'transparent'}
                 />
               )}
             </Pressable>
