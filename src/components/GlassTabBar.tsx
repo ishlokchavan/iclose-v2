@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
-import { GlassView, GlassContainer, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { BlurView } from 'expo-blur';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, runOnJS } from 'react-native-reanimated';
@@ -10,26 +9,46 @@ import * as Haptics from 'expo-haptics';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { colors } from '@/theme/tokens';
 
+/**
+ * Optional iOS 26 Liquid Glass module. It ships only in a dev/standalone build
+ * on iOS 26+, so we load it defensively — in Expo Go or on Android/older iOS the
+ * require/availability check fails and we fall back to a frosted BlurView pill.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let GlassViewComp: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let GlassContainerComp: any = null;
+let liquid = false;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const g = require('expo-glass-effect');
+  if (g?.isLiquidGlassAvailable?.()) {
+    GlassViewComp = g.GlassView;
+    GlassContainerComp = g.GlassContainer;
+    liquid = Boolean(GlassViewComp && GlassContainerComp);
+  }
+} catch {
+  liquid = false;
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AnimatedGlass: any = GlassViewComp ? Animated.createAnimatedComponent(GlassViewComp) : null;
+
 const ICONS: Record<string, typeof Home> = {
   index: Home, trending: Flame, search: Search, map: Map, profile: User,
 };
 
-const ITEM = 60;     // width per tab
-const CAP_W = 48;     // selection capsule width
+const ITEM = 60;
+const CAP_W = 48;
 const CAP_H = 44;
 const PAD = 6;
 const BAR_H = 56;
 const SPRING = { damping: 18, stiffness: 220, mass: 0.6 };
 
-const AnimatedGlass = Animated.createAnimatedComponent(GlassView);
-let liquid = false;
-try { liquid = isLiquidGlassAvailable(); } catch { liquid = false; }
-
 /**
- * Apple Liquid-Glass tab bar. Renders the genuine iOS 26 glass material
- * (expo-glass-effect) with a selection highlight that springs between tabs and a
- * press-and-drag-across-to-select gesture (haptic on each change). Falls back to
- * a frosted BlurView pill on Android / pre-iOS 26.
+ * Apple-style tab bar. Renders the genuine iOS 26 Liquid Glass material when
+ * available, otherwise a frosted BlurView pill. The selection capsule springs
+ * between tabs, and you can press-and-drag across the bar to select (haptic on
+ * each change); tapping works too.
  */
 export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -40,7 +59,6 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const dragIdx = useSharedValue(state.index);
   const [preview, setPreview] = useState(state.index);
 
-  // Follow route changes (e.g. deep links) with a spring.
   useEffect(() => {
     tx.value = withSpring(posFor(state.index), SPRING);
     dragIdx.value = state.index;
@@ -81,7 +99,6 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
     });
 
   const capStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
-
   const barWidth = count * ITEM + PAD * 2;
 
   const items = (
@@ -105,13 +122,8 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
     </GestureDetector>
   );
 
-  // Selection capsule — a clear glass lozenge that melds with the bar on iOS 26.
-  const capsule = liquid ? (
-    <AnimatedGlass
-      glassEffectStyle="clear"
-      tintColor="rgba(255,255,255,0.45)"
-      style={[styles.capsule, capStyle]}
-    />
+  const capsule = liquid && AnimatedGlass ? (
+    <AnimatedGlass glassEffectStyle="clear" tintColor="rgba(255,255,255,0.45)" style={[styles.capsule, capStyle]} />
   ) : (
     <Animated.View style={[styles.capsule, styles.capsuleFallback, capStyle]} />
   );
@@ -122,14 +134,18 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
       style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(insets.bottom, 14), alignItems: 'center' }}
     >
       <View style={[styles.shadow, { width: barWidth, height: BAR_H, borderRadius: BAR_H / 2 }]}>
-        {liquid ? (
-          <GlassContainer spacing={22} style={[styles.fill, { borderRadius: BAR_H / 2 }]}>
-            <GlassView glassEffectStyle="regular" style={[styles.fill, { borderRadius: BAR_H / 2 }]} />
+        {liquid && GlassViewComp && GlassContainerComp ? (
+          <GlassContainerComp spacing={22} style={[styles.fill, { borderRadius: BAR_H / 2 }]}>
+            <GlassViewComp glassEffectStyle="regular" style={[styles.fill, { borderRadius: BAR_H / 2 }]} />
             {capsule}
             {items}
-          </GlassContainer>
+          </GlassContainerComp>
         ) : (
-          <BlurView intensity={Platform.OS === 'android' ? 90 : 70} tint="systemChromeMaterialLight" style={[styles.fill, styles.glassBorder, { borderRadius: BAR_H / 2, overflow: 'hidden' }]}>
+          <BlurView
+            intensity={Platform.OS === 'android' ? 90 : 70}
+            tint="systemChromeMaterialLight"
+            style={[styles.fill, styles.glassBorder, { borderRadius: BAR_H / 2, overflow: 'hidden' }]}
+          >
             {capsule}
             {items}
           </BlurView>
