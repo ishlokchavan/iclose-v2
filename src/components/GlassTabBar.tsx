@@ -1,36 +1,72 @@
 import { useEffect, useState } from 'react';
-import { View, Pressable, Image as RNImage, Text } from 'react-native';
+import { View, Image as RNImage, Text, Platform, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { House, Compass, Search, MapPin, User } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { supabase } from '@/lib/supabase';
+import { colors } from '@/theme/tokens';
+
+/**
+ * Optional iOS 26 Liquid Glass module — ships only in a dev/standalone build on
+ * iOS 26+. Loaded defensively so Expo Go / Android / older iOS fall back to a
+ * frosted BlurView pill.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let GlassViewComp: any = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let GlassContainerComp: any = null;
+let liquid = false;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const g = require('expo-glass-effect');
+  if (g?.isLiquidGlassAvailable?.()) {
+    GlassViewComp = g.GlassView;
+    GlassContainerComp = g.GlassContainer;
+    liquid = Boolean(GlassViewComp && GlassContainerComp);
+  }
+} catch {
+  liquid = false;
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AnimatedGlass: any = GlassViewComp ? Animated.createAnimatedComponent(GlassViewComp) : null;
 
 const ICONS: Record<string, typeof House> = {
   index: House, trending: Compass, search: Search, map: MapPin,
 };
-// Icons that read well as a solid glyph when active (Instagram fills the active tab).
 const FILLABLE: Record<string, boolean> = { index: true, trending: false, search: false, map: true };
 
-const ICON = '#ffffff';
-const BG = '#000000';
-const HAIRLINE = '#262626';
+const ITEM = 60;
+const CAP_W = 48;
+const CAP_H = 44;
+const PAD = 6;
+const BAR_H = 56;
+const SPRING = { damping: 18, stiffness: 220, mass: 0.6 };
 
 /**
- * Instagram-style bottom tab bar: a solid full-width bar with a hairline top
- * border, evenly-spaced black icons (outline when inactive, filled/bold when
- * active), no labels, and the Profile tab as a circular avatar with a ring when
- * active. Tap to navigate.
+ * Apple liquid-glass tab bar: a floating frosted pill (genuine iOS 26 Liquid
+ * Glass when available, BlurView otherwise) with a selection capsule that springs
+ * between tabs. Tap a tab, or press-and-drag across the bar to select (haptic on
+ * each change). The Profile tab is a circular avatar.
  */
 export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const count = state.routes.length;
+  const posFor = (i: number) => PAD + i * ITEM + (ITEM - CAP_W) / 2;
+
+  const tx = useSharedValue(posFor(state.index));
+  const dragIdx = useSharedValue(state.index);
+  const [preview, setPreview] = useState(state.index);
+
+  // Profile avatar (Instagram-style).
   const [avatar, setAvatar] = useState<string | null>(null);
   const [initial, setInitial] = useState<string | null>(null);
-
   useEffect(() => {
     const apply = (u: { email?: string | null; user_metadata?: Record<string, unknown> } | undefined | null) => {
-      const url = (u?.user_metadata?.avatar_url as string | undefined) ?? (u?.user_metadata?.picture as string | undefined) ?? null;
-      setAvatar(url);
+      setAvatar(((u?.user_metadata?.avatar_url as string | undefined) ?? (u?.user_metadata?.picture as string | undefined)) ?? null);
       setInitial(u?.email ? u.email[0].toUpperCase() : null);
     };
     supabase.auth.getSession().then(({ data }) => apply(data.session?.user));
@@ -38,64 +74,126 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  function go(routeName: string, key: string, focused: boolean) {
-    Haptics.selectionAsync();
-    const e = navigation.emit({ type: 'tabPress', target: key, canPreventDefault: true });
-    if (!focused && !e.defaultPrevented) navigation.navigate(routeName);
-  }
+  useEffect(() => {
+    tx.value = withSpring(posFor(state.index), SPRING);
+    dragIdx.value = state.index;
+    setPreview(state.index);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.index]);
 
-  return (
-    <View
-      style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0,
-        paddingBottom: insets.bottom,
-        backgroundColor: BG,
-        borderTopWidth: 0.5,
-        borderTopColor: HAIRLINE,
-      }}
-    >
-      <View style={{ flexDirection: 'row', height: 49, alignItems: 'center' }}>
+  function navigateTo(i: number) {
+    const route = state.routes[i];
+    const focused = state.index === i;
+    const e = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+    if (!focused && !e.defaultPrevented) navigation.navigate(route.name);
+  }
+  const buzz = () => Haptics.selectionAsync();
+
+  const pan = Gesture.Pan()
+    .minDistance(8)
+    .onBegin((e) => {
+      'worklet';
+      const i = Math.min(count - 1, Math.max(0, Math.floor((e.x - PAD) / ITEM)));
+      tx.value = withSpring(PAD + i * ITEM + (ITEM - CAP_W) / 2, SPRING);
+      if (i !== dragIdx.value) { dragIdx.value = i; runOnJS(buzz)(); runOnJS(setPreview)(i); }
+    })
+    .onUpdate((e) => {
+      'worklet';
+      const i = Math.min(count - 1, Math.max(0, Math.floor((e.x - PAD) / ITEM)));
+      if (i !== dragIdx.value) {
+        dragIdx.value = i;
+        tx.value = withSpring(PAD + i * ITEM + (ITEM - CAP_W) / 2, SPRING);
+        runOnJS(buzz)(); runOnJS(setPreview)(i);
+      }
+    })
+    .onEnd((e) => {
+      'worklet';
+      const i = Math.min(count - 1, Math.max(0, Math.floor((e.x - PAD) / ITEM)));
+      runOnJS(navigateTo)(i);
+    });
+
+  const tap = Gesture.Tap().onEnd((e) => {
+    'worklet';
+    const i = Math.min(count - 1, Math.max(0, Math.floor((e.x - PAD) / ITEM)));
+    tx.value = withSpring(PAD + i * ITEM + (ITEM - CAP_W) / 2, SPRING);
+    if (i !== dragIdx.value) { dragIdx.value = i; runOnJS(setPreview)(i); }
+    runOnJS(buzz)(); runOnJS(navigateTo)(i);
+  });
+
+  const gesture = Gesture.Race(pan, tap);
+  const capStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
+  const barWidth = count * ITEM + PAD * 2;
+
+  const items = (
+    <GestureDetector gesture={gesture}>
+      <View style={{ flexDirection: 'row', height: BAR_H, paddingHorizontal: PAD }}>
         {state.routes.map((route, i) => {
-          const focused = state.index === i;
-          const isProfile = route.name === 'profile';
-          const Icon = ICONS[route.name] ?? House;
-          return (
-            <Pressable
-              key={route.key}
-              onPress={() => go(route.name, route.key, focused)}
-              style={{ flex: 1, alignItems: 'center', justifyContent: 'center', height: '100%' }}
-              hitSlop={6}
-            >
-              {isProfile ? (
-                <View
-                  style={{
-                    height: 27, width: 27, borderRadius: 14, overflow: 'hidden',
-                    alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: '#262626',
-                    borderWidth: focused ? 2 : 1,
-                    borderColor: focused ? ICON : '#555555',
-                  }}
-                >
+          const active = preview === i;
+          if (route.name === 'profile') {
+            return (
+              <View key={route.key} style={{ width: ITEM, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{
+                  height: 28, width: 28, borderRadius: 14, overflow: 'hidden',
+                  alignItems: 'center', justifyContent: 'center', backgroundColor: '#e5e5ea',
+                  borderWidth: active ? 2 : 1, borderColor: active ? colors.ink : '#bcbcc0',
+                }}>
                   {avatar ? (
                     <RNImage source={{ uri: avatar }} style={{ height: '100%', width: '100%' }} />
                   ) : initial ? (
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: ICON }}>{initial}</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: colors.ink }}>{initial}</Text>
                   ) : (
-                    <User size={16} color={ICON} strokeWidth={2} />
+                    <User size={16} color={colors.ink} strokeWidth={2} />
                   )}
                 </View>
-              ) : (
-                <Icon
-                  size={27}
-                  color={ICON}
-                  strokeWidth={focused ? 2.4 : 1.8}
-                  fill={focused && FILLABLE[route.name] ? ICON : 'transparent'}
-                />
-              )}
-            </Pressable>
+              </View>
+            );
+          }
+          const Icon = ICONS[route.name] ?? House;
+          return (
+            <View key={route.key} style={{ width: ITEM, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon
+                size={25}
+                color={active ? colors.ink : colors.graphiteDark}
+                strokeWidth={active ? 2.4 : 1.9}
+                fill={active && FILLABLE[route.name] ? colors.ink : 'transparent'}
+              />
+            </View>
           );
         })}
+      </View>
+    </GestureDetector>
+  );
+
+  const capsule = liquid && AnimatedGlass ? (
+    <AnimatedGlass glassEffectStyle="clear" tintColor="rgba(255,255,255,0.5)" style={[styles.capsule, capStyle]} />
+  ) : (
+    <Animated.View style={[styles.capsule, styles.capsuleFallback, capStyle]} />
+  );
+
+  return (
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(insets.bottom, 14), alignItems: 'center' }}>
+      <View style={[styles.shadow, { width: barWidth, height: BAR_H, borderRadius: BAR_H / 2 }]}>
+        {liquid && GlassViewComp && GlassContainerComp ? (
+          <GlassContainerComp spacing={22} style={[styles.fill, { borderRadius: BAR_H / 2 }]}>
+            <GlassViewComp glassEffectStyle="regular" style={[styles.fill, { borderRadius: BAR_H / 2 }]} />
+            {capsule}
+            {items}
+          </GlassContainerComp>
+        ) : (
+          <BlurView intensity={Platform.OS === 'android' ? 95 : 60} tint="systemChromeMaterialLight" style={[styles.fill, styles.glassBorder, { borderRadius: BAR_H / 2, overflow: 'hidden' }]}>
+            {capsule}
+            {items}
+          </BlurView>
+        )}
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: { ...StyleSheet.absoluteFillObject },
+  shadow: { shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 14 },
+  glassBorder: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', backgroundColor: 'rgba(255,255,255,0.4)' },
+  capsule: { position: 'absolute', top: (BAR_H - CAP_H) / 2, left: 0, width: CAP_W, height: CAP_H, borderRadius: CAP_H / 2 },
+  capsuleFallback: { backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' },
+});
