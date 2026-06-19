@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
-  ChevronLeft, Heart, Share2, BedDouble, Bath, Maximize, MapPin, BadgeCheck,
+  ChevronLeft, ChevronRight, Heart, Share2, BedDouble, Bath, Maximize, MapPin, BadgeCheck,
   CalendarClock, Wallet, Building2, Navigation, Coins, Phone, MessageCircle, CalendarCheck, Check, Sparkles,
 } from 'lucide-react-native';
 import { Share } from 'react-native';
@@ -17,6 +17,7 @@ import { Loading } from '@/components/Loading';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { facetsOf } from '@/lib/recommender';
 import { deterministicReason } from '@/lib/explain';
+import { slugifyDeveloper } from '@/lib/slug';
 import { bedLabel } from '@/lib/format';
 import { CONTACT_WHATSAPP, CONTACT_PHONE } from '@/lib/config';
 import { colors } from '@/theme/tokens';
@@ -147,10 +148,19 @@ export default function PropertyScreen() {
           {/* Off-plan payment plan */}
           {listing.completion === 'off_plan' ? (
             <View className="gap-3 rounded-apple border border-hairline/70 p-4">
-              <View className="flex-row items-center gap-2">
-                <Building2 size={18} color={colors.journey.offplan} />
-                <Text className="text-base font-semibold text-ink">{listing.developerName ?? 'New release'}</Text>
-              </View>
+              {listing.developerName ? (
+                <Pressable onPress={() => router.push(`/developer/${slugifyDeveloper(listing.developerName!)}`)} className="flex-row items-center gap-2">
+                  <Building2 size={18} color={colors.journey.offplan} />
+                  <Text className="flex-1 text-base font-semibold text-ink">{listing.developerName}</Text>
+                  <Text className="text-xs font-medium text-accent">View developer</Text>
+                  <ChevronRight size={16} color={colors.graphiteLight} />
+                </Pressable>
+              ) : (
+                <View className="flex-row items-center gap-2">
+                  <Building2 size={18} color={colors.journey.offplan} />
+                  <Text className="text-base font-semibold text-ink">New release</Text>
+                </View>
+              )}
               <View className="flex-row gap-2.5">
                 {listing.paymentPlan ? <InfoRow icon={<Wallet size={15} color={colors.graphite} />} label="Payment plan" value={listing.paymentPlan} /> : null}
                 {listing.handoverBy ? <InfoRow icon={<CalendarClock size={15} color={colors.graphite} />} label="Handover" value={listing.handoverBy} /> : null}
