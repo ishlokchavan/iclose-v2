@@ -75,7 +75,7 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const buzz = () => Haptics.selectionAsync();
 
   const pan = Gesture.Pan()
-    .minDistance(0)
+    .minDistance(8)
     .onBegin((e) => {
       'worklet';
       const i = Math.min(count - 1, Math.max(0, Math.floor((e.x - PAD) / ITEM)));
@@ -98,11 +98,22 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
       runOnJS(navigateTo)(i);
     });
 
+  const tap = Gesture.Tap().onEnd((e) => {
+    'worklet';
+    const i = Math.min(count - 1, Math.max(0, Math.floor((e.x - PAD) / ITEM)));
+    tx.value = withSpring(PAD + i * ITEM + (ITEM - CAP_W) / 2, SPRING);
+    if (i !== dragIdx.value) { dragIdx.value = i; runOnJS(setPreview)(i); }
+    runOnJS(buzz)();
+    runOnJS(navigateTo)(i);
+  });
+
+  const gesture = Gesture.Race(pan, tap);
+
   const capStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
   const barWidth = count * ITEM + PAD * 2;
 
   const items = (
-    <GestureDetector gesture={pan}>
+    <GestureDetector gesture={gesture}>
       <View style={{ flexDirection: 'row', height: BAR_H, paddingHorizontal: PAD }}>
         {state.routes.map((route, i) => {
           const Icon = ICONS[route.name] ?? Home;
