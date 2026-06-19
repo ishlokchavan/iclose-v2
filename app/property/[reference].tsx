@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { ChevronLeft, Heart, BedDouble, Bath, Maximize, MapPin, BadgeCheck, Sparkles } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
 import { useSaved } from '@/store/saved';
+import { useEnquiries } from '@/store/enquiries';
 import { CreditBadge } from '@/components/CreditBadge';
 import { Loading } from '@/components/Loading';
 import { aed, bedLabel } from '@/lib/format';
@@ -19,6 +20,7 @@ export default function PropertyScreen() {
   const { reference } = useLocalSearchParams<{ reference: string }>();
   const { byRef } = useExperience();
   const { isSaved, toggle } = useSaved();
+  const { hasEnquired } = useEnquiries();
   const insets = useSafeAreaInsets();
   const [why, setWhy] = useState<string | null>(null);
   const [whyBusy, setWhyBusy] = useState(false);
@@ -27,6 +29,7 @@ export default function PropertyScreen() {
   if (!listing) return <Loading />;
   const gallery = listing.images?.length ? listing.images : [listing.cover];
   const saved = isSaved(listing.reference);
+  const enquired = hasEnquired(listing.reference);
 
   async function explain() {
     setWhyBusy(true);
@@ -107,9 +110,17 @@ export default function PropertyScreen() {
 
       {/* Sticky CTA */}
       <View style={{ paddingBottom: insets.bottom + 12 }} className="absolute inset-x-0 bottom-0 border-t border-hairline bg-paper/95 px-5 pt-3">
-        <Pressable className="rounded-apple bg-ink py-4">
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            router.push(`/enquire?reference=${listing.reference}`);
+          }}
+          className="rounded-apple bg-ink py-4"
+        >
           <Text className="text-center text-base font-semibold text-white">
-            Enquire — claim {listing.credit.credits.toLocaleString()} credits
+            {enquired
+              ? 'Enquiry sent — ask again'
+              : `Enquire — claim ${listing.credit.credits.toLocaleString()} credits`}
           </Text>
         </Pressable>
       </View>

@@ -2,7 +2,7 @@ import { View, Text, FlatList, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { TrendingUp } from 'lucide-react-native';
+import { TrendingUp, Sparkles } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
 import { CreditBadge } from '@/components/CreditBadge';
 import { aed } from '@/lib/format';
@@ -16,9 +16,18 @@ export default function TrendingScreen() {
 
   return (
     <View className="flex-1 bg-fog" style={{ paddingTop: insets.top }}>
-      <View className="flex-row items-center gap-2 px-5 pb-3 pt-2">
-        <TrendingUp size={22} color={colors.ink} />
-        <Text className="text-2xl font-bold text-ink">Trending</Text>
+      <View className="flex-row items-center justify-between px-5 pb-3 pt-2">
+        <View className="flex-row items-center gap-2">
+          <TrendingUp size={22} color={colors.ink} />
+          <Text className="text-2xl font-bold text-ink">Trending</Text>
+        </View>
+        <Pressable
+          onPress={() => router.push('/launches')}
+          className="flex-row items-center gap-1.5 rounded-full bg-ink px-3.5 py-2"
+        >
+          <Sparkles size={15} color="#fff" />
+          <Text className="text-sm font-semibold text-white">New launches</Text>
+        </Pressable>
       </View>
       <FlatList
         data={ranked}

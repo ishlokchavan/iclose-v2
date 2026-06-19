@@ -3,9 +3,11 @@ import { View, Text, TextInput, Pressable, ScrollView, Alert } from 'react-nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
-import { Heart, LogOut } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Heart, LogOut, MessageSquare, Home, ChevronRight } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useSaved } from '@/store/saved';
+import { useEnquiries } from '@/store/enquiries';
 import { colors } from '@/theme/tokens';
 import type { Session } from '@supabase/supabase-js';
 
@@ -14,6 +16,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { saved } = useSaved();
+  const { enquired } = useEnquiries();
   const [session, setSession] = useState<Session | null>(null);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
@@ -67,9 +70,21 @@ export default function ProfileScreen() {
           <Text className="text-xl font-bold text-ink">{session.user.email}</Text>
         </View>
 
-        <View className="mx-4 flex-row items-center gap-3 rounded-apple bg-paper p-4">
-          <Heart size={20} color={colors.accent} />
-          <Text className="text-base text-ink">{saved.size} saved {saved.size === 1 ? 'home' : 'homes'}</Text>
+        <View className="mx-4 gap-3">
+          <Row
+            icon={<Heart size={20} color={colors.accent} />}
+            label={`${saved.size} saved ${saved.size === 1 ? 'home' : 'homes'}`}
+            onPress={() => router.push('/saved')}
+          />
+          <Row
+            icon={<MessageSquare size={20} color={colors.accent} />}
+            label={`${enquired.size} ${enquired.size === 1 ? 'enquiry' : 'enquiries'} sent`}
+          />
+          <Row
+            icon={<Home size={20} color={colors.accent} />}
+            label="List your property"
+            onPress={() => router.push('/sell')}
+          />
         </View>
 
         <Pressable
@@ -106,6 +121,33 @@ export default function ProfileScreen() {
           {mode === 'login' ? "New here? Create an account" : 'Already have an account? Sign in'}
         </Text>
       </Pressable>
+
+      <View className="mt-8 gap-3">
+        <Row
+          icon={<Heart size={20} color={colors.accent} />}
+          label={`${saved.size} saved ${saved.size === 1 ? 'home' : 'homes'}`}
+          onPress={() => router.push('/saved')}
+        />
+        <Row
+          icon={<Home size={20} color={colors.accent} />}
+          label="List your property"
+          onPress={() => router.push('/sell')}
+        />
+      </View>
     </ScrollView>
+  );
+}
+
+function Row({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress?: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={!onPress}
+      className="flex-row items-center gap-3 rounded-apple bg-paper p-4"
+    >
+      {icon}
+      <Text className="flex-1 text-base text-ink">{label}</Text>
+      {onPress ? <ChevronRight size={18} color={colors.graphiteLight} /> : null}
+    </Pressable>
   );
 }

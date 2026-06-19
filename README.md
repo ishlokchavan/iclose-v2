@@ -23,20 +23,21 @@ also works offline.
 
 ## What's built
 
-- **Home** — full-screen, snap-paging discovery feed (the flagship), save + haptics
-- **Trending** — listings ranked by credits-back
-- **Search** — instant client filtering + chips (NL parse via `/api/glass/search-parse` wired)
+- **Home** — full-screen, snap-paging discovery feed (the flagship), save + haptics, saved shortcut
+- **Trending** — listings ranked by credits-back, with a New-launches shortcut
+- **Search** — instant client filtering + chips, upgraded by NL parsing (`/api/glass/search-parse`)
 - **Map** — native map with listing pins (`react-native-maps`)
-- **Profile** — Supabase email + native Google OAuth, saved count, sign out
-- **Property detail** — image gallery, facts, AI "why this fits", sticky enquire CTA
-- **Launches** + **Sell** modals
-- Design tokens, types, API client, Supabase client, saved store — all ported from web
+- **Profile** — Supabase email + native Google OAuth, saved/enquiries counts, list-your-property, sign out
+- **Property detail** — image gallery, facts, AI "why this fits", working enquire flow
+- **Enquire** — lead-capture form that posts to the backend and records the enquiry locally
+- **Saved** — view and manage hearted homes
+- **Launches** modal + **Sell** — full commission-free listing-create form wired to `/api/listing`
+- Design tokens, types, API client, Supabase client, saved + enquiries stores — all ported from web
 
 ## Roadmap (next passes)
 
 Video tours in the feed, the full Tinder-style swipe deck, developer pages,
-listing-create form wired to `/api/listing`, analytics events
-(`discovery_events` / `discovery_affinity`), push notifications.
+analytics events (`discovery_events` / `discovery_affinity`), push notifications.
 
 ## Prerequisites
 
