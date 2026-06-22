@@ -7,6 +7,7 @@ import { Search as SearchIcon, X, Sparkles, Heart, Coins } from 'lucide-react-na
 import { useExperience } from '@/store/experience';
 import { useSaved } from '@/store/saved';
 import { usePullRefresh } from '@/lib/use-refresh';
+import { Glass, GlassBg } from '@/components/Glass';
 import { parseSearch, type ParsedFilters } from '@/lib/search-parse';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
@@ -89,10 +90,11 @@ export default function SearchScreen() {
   }
 
   return (
-    <View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
+    <View className="flex-1" style={{ paddingTop: insets.top }}>
+      <GlassBg />
       <View className="px-4 pb-2 pt-2">
         <Text className="mb-3 text-2xl font-bold text-ink">Search</Text>
-        <View className="flex-row items-center gap-2 rounded-full bg-mist px-4 py-3">
+        <Glass rounded={999} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 12 }}>
           {smart ? <Sparkles size={18} color={colors.accent} /> : <SearchIcon size={18} color={colors.graphite} />}
           <TextInput
             value={q}
@@ -104,7 +106,7 @@ export default function SearchScreen() {
             className="flex-1 text-base text-ink"
           />
           {q ? <Pressable onPress={clearAll} hitSlop={8}><X size={18} color={colors.graphite} /></Pressable> : null}
-        </View>
+        </Glass>
 
         {/* Quick chips */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 10 }}>
@@ -160,7 +162,7 @@ export default function SearchScreen() {
 
 function GridCard({ listing, saved, onToggle }: { listing: ExperienceListing; saved: boolean; onToggle: () => void }) {
   return (
-    <View className="flex-1 overflow-hidden rounded-2xl border border-hairline/60">
+    <View className="flex-1 overflow-hidden rounded-2xl border border-white/60 bg-white/70">
       <Pressable onPress={() => router.push(`/property/${listing.reference}`)}>
         <View className="relative">
           <Image source={{ uri: listing.cover }} style={{ width: '100%', height: 150 }} contentFit="cover" />
@@ -182,7 +184,7 @@ function GridCard({ listing, saved, onToggle }: { listing: ExperienceListing; sa
 
 function Chip({ active, onPress, children }: { active: boolean; onPress: () => void; children: React.ReactNode }) {
   return (
-    <Pressable onPress={onPress} className={`rounded-full px-3.5 py-1.5 ${active ? 'bg-ink' : 'bg-mist'}`}>
+    <Pressable onPress={onPress} className={`rounded-full px-3.5 py-1.5 ${active ? 'bg-ink' : 'border border-white/60 bg-white/55'}`}>
       <Text className={`text-[13px] font-medium ${active ? 'text-white' : 'text-graphite'}`}>{children}</Text>
     </Pressable>
   );

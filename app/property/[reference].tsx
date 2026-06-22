@@ -20,6 +20,7 @@ import { deterministicReason } from '@/lib/explain';
 import { slugifyDeveloper } from '@/lib/slug';
 import { bedLabel } from '@/lib/format';
 import { CONTACT_WHATSAPP, CONTACT_PHONE } from '@/lib/config';
+import { Glass, GlassBg } from '@/components/Glass';
 import { colors } from '@/theme/tokens';
 
 const { width } = Dimensions.get('window');
@@ -70,6 +71,7 @@ export default function PropertyScreen() {
 
   return (
     <View className="flex-1 bg-paper">
+      <GlassBg />
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 96 }} showsVerticalScrollIndicator={false}>
         {/* Hero gallery */}
         <View style={{ height: width * 1.05 }} className="bg-mist">
@@ -147,7 +149,7 @@ export default function PropertyScreen() {
 
           {/* Off-plan payment plan */}
           {listing.completion === 'off_plan' ? (
-            <View className="gap-3 rounded-apple border border-hairline/70 p-4">
+            <View className="gap-3 rounded-apple border border-white/60 bg-white/70 p-4">
               {listing.developerName ? (
                 <Pressable onPress={() => router.push(`/developer/${slugifyDeveloper(listing.developerName!)}`)} className="flex-row items-center gap-2">
                   <Building2 size={18} color={colors.journey.offplan} />
@@ -170,7 +172,7 @@ export default function PropertyScreen() {
 
           {/* Description */}
           {listing.description ? (
-            <View className="rounded-apple border border-hairline/70 p-4">
+            <View className="rounded-apple border border-white/60 bg-white/70 p-4">
               <Text className="mb-2 text-base font-semibold text-ink">About this home</Text>
               <Text className="text-sm leading-relaxed text-graphite">{listing.description}</Text>
             </View>
@@ -182,20 +184,20 @@ export default function PropertyScreen() {
               <Text className="mb-2 text-base font-semibold text-ink">Amenities</Text>
               <View className="flex-row flex-wrap gap-2">
                 {listing.amenities.map((a) => (
-                  <View key={a} className="rounded-full border border-hairline/70 px-3 py-1.5"><Text className="text-[13px] text-graphite">{a}</Text></View>
+                  <View key={a} className="rounded-full border border-white/60 bg-white/60 px-3 py-1.5"><Text className="text-[13px] text-graphite">{a}</Text></View>
                 ))}
               </View>
             </View>
           ) : null}
 
           {/* Map */}
-          <Pressable onPress={openMaps} className="flex-row items-center justify-between rounded-apple border border-hairline/70 p-4">
+          <Pressable onPress={openMaps} className="flex-row items-center justify-between rounded-apple border border-white/60 bg-white/70 p-4">
             <View className="flex-row items-center gap-2"><Navigation size={16} color={colors.accent} /><Text className="text-sm text-ink">{listing.community}, {listing.city}</Text></View>
             <Text className="text-[13px] text-accent">Open in Maps</Text>
           </Pressable>
 
           {/* Agent / source */}
-          <View className="flex-row items-center gap-3 rounded-apple border border-hairline/70 p-3.5">
+          <View className="flex-row items-center gap-3 rounded-apple border border-white/60 bg-white/70 p-3.5">
             <View className="h-12 w-12 items-center justify-center rounded-full bg-mist">
               <Text className="text-base font-semibold text-ink">
                 {(listing.agentName ?? listing.developerName ?? 'iC').split(' ').map((w) => w[0]).slice(0, 2).join('')}
@@ -216,7 +218,7 @@ export default function PropertyScreen() {
               <Text className="mb-2 text-base font-semibold text-ink">More like this</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                 {similar.map((l) => (
-                  <Pressable key={l.reference} onPress={() => router.push(`/property/${l.reference}`)} className="w-36 overflow-hidden rounded-2xl border border-hairline/60">
+                  <Pressable key={l.reference} onPress={() => router.push(`/property/${l.reference}`)} className="w-36 overflow-hidden rounded-2xl border border-white/60 bg-white/70">
                     <Image source={{ uri: l.cover }} style={{ width: '100%', height: 150 }} contentFit="cover" />
                     <View className="p-2.5">
                       <Text className="text-sm font-semibold text-ink">{formatAed(l.priceAed)}</Text>
@@ -231,7 +233,7 @@ export default function PropertyScreen() {
       </ScrollView>
 
       {/* Sticky action bar — high-intent actions */}
-      <View style={{ paddingBottom: insets.bottom + 10 }} className="absolute inset-x-0 bottom-0 flex-row items-center gap-2 border-t border-hairline bg-paper/95 px-4 pt-3">
+      <Glass rounded={0} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 10, borderTopWidth: 0.5, borderTopColor: 'rgba(0,0,0,0.08)' }}>
         <Pressable onPress={openWhatsApp} className="h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: '#25D366' }}>
           <MessageCircle size={20} color="#fff" />
         </Pressable>
@@ -245,14 +247,14 @@ export default function PropertyScreen() {
           {requested ? <Check size={20} color={colors.ink} /> : <CalendarCheck size={20} color="#fff" />}
           <Text className={`text-[15px] font-semibold ${requested ? 'text-ink' : 'text-white'}`}>{requested ? 'Viewing requested' : 'Book a viewing'}</Text>
         </Pressable>
-      </View>
+      </Glass>
     </View>
   );
 }
 
 function SpecTile({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <View className="flex-1 items-center gap-1 rounded-apple border border-hairline/70 py-3.5">
+    <View className="flex-1 items-center gap-1 rounded-apple border border-white/60 bg-white/70 py-3.5">
       {icon}
       <Text className="text-lg font-semibold text-ink">{value}</Text>
       <Text className="text-[11px] text-graphite">{label}</Text>
@@ -262,7 +264,7 @@ function SpecTile({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <View className="flex-1 rounded-2xl bg-mist p-3">
+    <View className="flex-1 rounded-2xl border border-white/60 bg-white/70 p-3">
       <View className="flex-row items-center gap-1.5">{icon}<Text className="text-xs text-graphite">{label}</Text></View>
       <Text className="mt-1 text-[15px] font-semibold text-ink">{value}</Text>
     </View>

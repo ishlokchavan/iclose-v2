@@ -10,6 +10,7 @@ import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
 import { useExperience } from '@/store/experience';
 import { usePullRefresh } from '@/lib/use-refresh';
+import { GlassBg } from '@/components/Glass';
 import { formatCredits } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
 import type { Session } from '@supabase/supabase-js';
@@ -69,8 +70,10 @@ export default function ProfileScreen() {
   }
 
   return (
-    <ScrollView
-      className="flex-1 bg-mist"
+    <View className="flex-1">
+      <GlassBg />
+      <ScrollView
+      className="flex-1"
       contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 110 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
     >
@@ -91,9 +94,9 @@ export default function ProfileScreen() {
 
       {/* Inline auth */}
       {!session && showAuth ? (
-        <View className="mb-4 gap-3 rounded-apple bg-paper p-4">
-          <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.graphiteLight} className="rounded-2xl bg-mist px-4 py-3.5 text-base text-ink" />
-          <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry placeholderTextColor={colors.graphiteLight} className="rounded-2xl bg-mist px-4 py-3.5 text-base text-ink" />
+        <View className="mb-4 gap-3 rounded-apple border border-white/60 bg-white/70 p-4">
+          <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink" />
+          <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink" />
           <Pressable disabled={busy} onPress={submitEmail} className="rounded-full bg-accent py-3.5"><Text className="text-center font-semibold text-white">{mode === 'login' ? 'Sign in' : 'Sign up'}</Text></Pressable>
           <Pressable onPress={google} className="rounded-full border border-hairline py-3.5"><Text className="text-center font-semibold text-ink">Continue with Google</Text></Pressable>
           <Pressable onPress={() => setMode(mode === 'login' ? 'signup' : 'login')}><Text className="text-center text-accent">{mode === 'login' ? 'New here? Create an account' : 'Already have an account? Sign in'}</Text></Pressable>
@@ -108,7 +111,7 @@ export default function ProfileScreen() {
       </Pressable>
 
       {/* Credits balance */}
-      <View className="mb-4 rounded-apple bg-paper p-5">
+      <View className="mb-4 rounded-apple border border-white/60 bg-white/70 p-5">
         <View className="flex-row items-center gap-2"><Coins size={16} color={colors.accent} /><Text className="text-[13px] text-graphite">iClose credits balance</Text></View>
         <Text className="mt-1.5 text-[34px] font-semibold text-ink">0</Text>
         {pendingCredits > 0 ? <Text className="mt-1 text-[13px] text-graphite">{formatCredits(pendingCredits)} credits waiting across your shortlist</Text> : null}
@@ -116,12 +119,12 @@ export default function ProfileScreen() {
 
       {/* Stats */}
       <View className="mb-4 flex-row gap-3">
-        <Pressable onPress={() => router.push('/saved')} className="flex-1 items-start gap-1 rounded-apple bg-paper p-4">
+        <Pressable onPress={() => router.push('/saved')} className="flex-1 items-start gap-1 rounded-apple border border-white/60 bg-white/70 p-4">
           <Heart size={20} color={colors.accent} />
           <Text className="text-[22px] font-semibold text-ink">{savedRefs.length}</Text>
           <Text className="text-[13px] text-graphite">Saved homes</Text>
         </Pressable>
-        <View className="flex-1 items-start gap-1 rounded-apple bg-paper p-4">
+        <View className="flex-1 items-start gap-1 rounded-apple border border-white/60 bg-white/70 p-4">
           <Eye size={20} color={colors.accent} />
           <Text className="text-[22px] font-semibold text-ink">{seen}</Text>
           <Text className="text-[13px] text-graphite">Homes explored</Text>
@@ -129,7 +132,7 @@ export default function ProfileScreen() {
       </View>
 
       {/* Reset activity */}
-      <Pressable onPress={confirmReset} className="flex-row items-center gap-3 rounded-apple bg-paper p-4">
+      <Pressable onPress={confirmReset} className="flex-row items-center gap-3 rounded-apple border border-white/60 bg-white/70 p-4">
         <RotateCcw size={20} color={colors.graphite} />
         <Text className="flex-1 text-base text-ink">Reset activity</Text>
         <ChevronRight size={18} color={colors.graphiteLight} />
@@ -141,5 +144,6 @@ export default function ProfileScreen() {
         </Pressable>
       ) : null}
     </ScrollView>
+    </View>
   );
 }

@@ -6,6 +6,7 @@ import { X, Heart, MapPin, BedDouble, Maximize, Trash2, Coins } from 'lucide-rea
 import { useExperience } from '@/store/experience';
 import { useSaved } from '@/store/saved';
 import { usePullRefresh } from '@/lib/use-refresh';
+import { GlassBg } from '@/components/Glass';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { bedLabel } from '@/lib/format';
 import { colors } from '@/theme/tokens';
@@ -20,7 +21,8 @@ export default function SavedScreen() {
   const totalCredits = saved.reduce((s, l) => s + l.credit.credits, 0);
 
   return (
-    <View className="flex-1 bg-mist" style={{ paddingTop: insets.top + 8 }}>
+    <View className="flex-1" style={{ paddingTop: insets.top + 8 }}>
+      <GlassBg />
       <View className="flex-row items-center justify-between px-4 pb-1">
         <View>
           <Text className="text-[30px] font-semibold text-ink">Saved</Text>
@@ -28,7 +30,7 @@ export default function SavedScreen() {
             {saved.length === 0 ? 'Homes you save will stack up here' : `${saved.length} ${saved.length === 1 ? 'home' : 'homes'} saved`}
           </Text>
         </View>
-        <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-paper"><X size={20} color={colors.ink} /></Pressable>
+        <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/70"><X size={20} color={colors.ink} /></Pressable>
       </View>
 
       <ScrollView
@@ -48,7 +50,7 @@ export default function SavedScreen() {
         ) : null}
 
         {saved.length === 0 ? (
-          <View className="mt-2 items-center gap-4 rounded-apple bg-paper px-6 py-14">
+          <View className="mt-2 items-center gap-4 rounded-apple border border-white/60 bg-white/70 px-6 py-14">
             <View className="h-16 w-16 items-center justify-center rounded-full bg-accent/10"><Heart size={28} color={colors.accent} /></View>
             <Text className="text-[17px] font-semibold text-ink">No saved homes yet</Text>
             <Text className="max-w-[240px] text-center text-sm text-graphite">Tap the heart on a home you love and it'll appear here — along with the credits you'd earn.</Text>
@@ -57,7 +59,7 @@ export default function SavedScreen() {
         ) : (
           <View className="gap-3">
             {saved.map((l) => (
-              <View key={l.reference} className="overflow-hidden rounded-apple bg-paper">
+              <View key={l.reference} className="overflow-hidden rounded-apple border border-white/60 bg-white/70">
                 <Pressable onPress={() => router.push(`/property/${l.reference}`)} className="flex-row gap-3 p-3">
                   <Image source={{ uri: l.cover }} style={{ height: 122, width: 112, borderRadius: 16 }} contentFit="cover" />
                   <View className="flex-1 py-1">
@@ -73,7 +75,7 @@ export default function SavedScreen() {
                     </View>
                   </View>
                 </Pressable>
-                <Pressable onPress={() => toggle(l.reference)} className="absolute right-3 top-3 h-9 w-9 items-center justify-center rounded-full bg-mist"><Trash2 size={16} color={colors.graphiteDark} /></Pressable>
+                <Pressable onPress={() => toggle(l.reference)} className="absolute right-3 top-3 h-9 w-9 items-center justify-center rounded-full bg-white/70"><Trash2 size={16} color={colors.graphiteDark} /></Pressable>
               </View>
             ))}
           </View>

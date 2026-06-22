@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { X, Home, CheckCircle2 } from 'lucide-react-native';
 import { api, type ListingDraft } from '@/lib/api';
+import { GlassBg } from '@/components/Glass';
 import { colors } from '@/theme/tokens';
 
 const PROPERTY_TYPES = ['apartment', 'villa', 'townhouse', 'penthouse', 'plot', 'office'];
@@ -70,7 +71,7 @@ export default function SellScreen() {
 
   if (done) {
     return (
-      <View className="flex-1 items-center justify-center bg-paper px-8" style={{ paddingTop: insets.top }}>
+      <View className="flex-1 items-center justify-center px-8" style={{ paddingTop: insets.top }}><GlassBg />
         <View className="h-20 w-20 items-center justify-center rounded-full bg-journey-listing/30">
           <CheckCircle2 size={40} color={colors.accent} />
         </View>
@@ -87,9 +88,9 @@ export default function SellScreen() {
 
   if (!started) {
     return (
-      <View className="flex-1 bg-paper" style={{ paddingTop: insets.top + 8 }}>
+      <View className="flex-1" style={{ paddingTop: insets.top + 8 }}><GlassBg />
         <View className="flex-row justify-end px-5">
-          <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-mist">
+          <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/70">
             <X size={20} color={colors.ink} />
           </Pressable>
         </View>
@@ -110,10 +111,10 @@ export default function SellScreen() {
   }
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-fog" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}><GlassBg />
       <View className="flex-row items-center justify-between px-5 pb-2" style={{ paddingTop: insets.top + 8 }}>
         <Text className="text-2xl font-bold text-ink">New listing</Text>
-        <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-mist">
+        <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/70">
           <X size={20} color={colors.ink} />
         </Pressable>
       </View>
@@ -152,7 +153,7 @@ export default function SellScreen() {
           multiline
           placeholder="Tell buyers what makes it special"
           placeholderTextColor={colors.graphiteLight}
-          className="mb-4 min-h-[96px] rounded-apple bg-paper px-4 py-3 text-base text-ink"
+          className="mb-4 min-h-[96px] rounded-apple border border-white/60 bg-white/70 px-4 py-3 text-base text-ink"
           style={{ textAlignVertical: 'top' }}
         />
 
@@ -174,7 +175,7 @@ function Field({ label, ...props }: { label: string } & React.ComponentProps<typ
       <Text className="mb-1.5 text-sm font-medium text-graphite">{label}</Text>
       <TextInput
         placeholderTextColor={colors.graphiteLight}
-        className="rounded-apple bg-paper px-4 py-3.5 text-base text-ink"
+        className="rounded-apple border border-white/60 bg-white/70 px-4 py-3.5 text-base text-ink"
         {...props}
       />
     </View>
@@ -185,7 +186,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
   return (
     <Pressable
       onPress={onPress}
-      className={`rounded-full border px-4 py-2 ${active ? 'border-ink bg-ink' : 'border-hairline bg-paper'}`}
+      className={`rounded-full border px-4 py-2 ${active ? 'border-ink bg-ink' : 'border-white/60 bg-white/70'}`}
     >
       <Text className={`text-sm font-medium ${active ? 'text-white' : 'text-ink'}`}>{label}</Text>
     </Pressable>

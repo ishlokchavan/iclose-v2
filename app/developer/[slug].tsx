@@ -6,6 +6,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { ChevronLeft, BadgeCheck, Building2, MapPin, Coins } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
 import { usePullRefresh } from '@/lib/use-refresh';
+import { GlassBg } from '@/components/Glass';
 import { slugifyDeveloper } from '@/lib/slug';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
@@ -30,7 +31,8 @@ export default function DeveloperScreen() {
   const priceFrom = devListings.length ? Math.min(...devListings.map((l) => l.priceAed)) : 0;
 
   return (
-    <View className="flex-1 bg-mist">
+    <View className="flex-1">
+      <GlassBg />
       <FlatList
         data={devListings}
         keyExtractor={(l) => l.reference}
@@ -39,7 +41,7 @@ export default function DeveloperScreen() {
         contentContainerStyle={{ gap: 12, paddingBottom: insets.bottom + 24 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         ListHeaderComponent={
-          <View className="mb-1 bg-paper px-4 pb-5" style={{ paddingTop: insets.top + 8 }}>
+          <View className="mb-1 px-4 pb-5" style={{ paddingTop: insets.top + 8 }}>
             <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-mist"><ChevronLeft size={24} color={colors.ink} /></Pressable>
             <View className="mt-4 flex-row items-center gap-4">
               <View className="h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-mist" style={{ borderWidth: 1, borderColor: colors.hairline }}>
@@ -74,7 +76,7 @@ export default function DeveloperScreen() {
 
 function ProjectCard({ l }: { l: ExperienceListing }) {
   return (
-    <Pressable onPress={() => router.push(`/property/${l.reference}`)} className="flex-1 overflow-hidden rounded-2xl border border-hairline/60 bg-paper">
+    <Pressable onPress={() => router.push(`/property/${l.reference}`)} className="flex-1 overflow-hidden rounded-2xl border border-white/60 bg-white/70">
       <Image source={{ uri: l.cover }} style={{ width: '100%', aspectRatio: 1 }} contentFit="cover" />
       <View className="p-2.5">
         <Text className="text-[15px] font-semibold text-ink">{formatAed(l.priceAed)}</Text>

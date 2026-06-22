@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { MapPin } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
 import { usePullRefresh } from '@/lib/use-refresh';
+import { GlassBg } from '@/components/Glass';
 import { formatAed } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
 import type { ExperienceListing } from '@/types/listing';
@@ -82,7 +83,8 @@ export default function MapScreen() {
   // ── Fallback (no native maps, e.g. Expo Go): a useful list of pinned homes ──
   if (!HAS_MAP) {
     return (
-      <View className="flex-1 bg-mist" style={{ paddingTop: insets.top + 52 }}>
+      <View className="flex-1" style={{ paddingTop: insets.top + 52 }}>
+        <GlassBg />
         {ChipBar}
         <FlatList
           data={visible}
@@ -93,14 +95,14 @@ export default function MapScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
           ListHeaderComponent={
             <View className="px-1 pb-2">
-              <View className="flex-row items-center gap-1.5 rounded-2xl bg-paper px-3 py-2">
+              <View className="flex-row items-center gap-1.5 rounded-2xl border border-white/60 bg-white/70 px-3 py-2">
                 <MapPin size={14} color={colors.graphite} />
                 <Text className="flex-1 text-xs text-graphite">{visible.length} homes · live map needs a development build</Text>
               </View>
             </View>
           }
           renderItem={({ item }) => (
-            <Pressable onPress={() => router.push(`/property/${item.reference}`)} className="flex-1 overflow-hidden rounded-2xl border border-hairline/60 bg-paper">
+            <Pressable onPress={() => router.push(`/property/${item.reference}`)} className="flex-1 overflow-hidden rounded-2xl border border-white/60 bg-white/70">
               <Image source={{ uri: item.cover }} style={{ width: '100%', aspectRatio: 1 }} contentFit="cover" />
               <View className="p-2.5">
                 <Text className="text-[15px] font-semibold text-ink">{formatAed(item.priceAed)}</Text>
