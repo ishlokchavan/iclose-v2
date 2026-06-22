@@ -60,7 +60,7 @@ export default function ProfileScreen() {
     // Authentication → URL Configuration → Redirect URLs, or Supabase falls
     // back to the project's Site URL (academy.iclose.ae).
     const redirectTo = Linking.createURL('auth-callback');
-    console.log('[auth] OAuth redirectTo =', redirectTo); // add THIS exact value to Supabase Redirect URLs
+    console.log('[auth] OAuth redirectTo =', redirectTo); // must be allow-listed in Supabase Redirect URLs
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } },
@@ -68,17 +68,28 @@ export default function ProfileScreen() {
     if (error || !data?.url) return Alert.alert('Google sign-in', error?.message ?? 'Could not start sign-in.');
 
     const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type !== 'success' || !result.url) return; // user cancelled / dismissed
 
-    // If we didn't come back to the app with an auth code, the redirect URL
-    // isn't matching Supabase's allow-list (it fell back to the Site URL).
-    if (result.type !== 'success' || !result.url || !result.url.includes('code=')) {
-      return Alert.alert(
+    // Implicit flow returns tokens in the URL fragment (#access_token=…&refresh_token=…).
+    // (Also handle ?code=… in case a build uses PKCE.)
+    const frag = result.url.includes('#') ? result.url.split('#')[1] : result.url.split('?')[1] ?? '';
+    const params = new URLSearchParams(frag);
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    const code = params.get('code');
+
+    if (access_token && refresh_token) {
+      const { error: e } = await supabase.auth.setSession({ access_token, refresh_token });
+      if (e) Alert.alert('Google sign-in', e.message);
+    } else if (code) {
+      const { error: e } = await supabase.auth.exchangeCodeForSession(result.url);
+      if (e) Alert.alert('Google sign-in', e.message);
+    } else {
+      Alert.alert(
         'Add this redirect URL in Supabase',
-        `Authentication → URL Configuration → Redirect URLs, add exactly:\n\n${redirectTo}\n\n(Tip: a wildcard like ${redirectTo.split('://')[0]}://** also works.)`,
+        `Authentication → URL Configuration → Redirect URLs:\n\n${redirectTo}\n\n(or the wildcard ${redirectTo.split('://')[0]}://** )`,
       );
     }
-    const { error: xchg } = await supabase.auth.exchangeCodeForSession(result.url);
-    if (xchg) Alert.alert('Google sign-in', xchg.message);
   }
 
   function confirmReset() {
