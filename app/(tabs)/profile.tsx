@@ -60,6 +60,7 @@ export default function ProfileScreen() {
     // Authentication → URL Configuration → Redirect URLs, or Supabase falls
     // back to the project's Site URL (academy.iclose.ae).
     const redirectTo = Linking.createURL('auth-callback');
+    console.log('[auth] OAuth redirectTo =', redirectTo); // add THIS exact value to Supabase Redirect URLs
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } },
@@ -67,15 +68,13 @@ export default function ProfileScreen() {
     if (error || !data?.url) return Alert.alert('Google sign-in', error?.message ?? 'Could not start sign-in.');
 
     const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-    if (result.type !== 'success' || !result.url) return; // user cancelled / dismissed
 
-    // If Supabase redirected somewhere other than our app (e.g. the Site URL
-    // because the redirect URL isn't allow-listed), there's no code to exchange.
-    const hasCode = result.url.includes('code=');
-    if (!hasCode) {
+    // If we didn't come back to the app with an auth code, the redirect URL
+    // isn't matching Supabase's allow-list (it fell back to the Site URL).
+    if (result.type !== 'success' || !result.url || !result.url.includes('code=')) {
       return Alert.alert(
-        'Almost there',
-        'Add this redirect URL in Supabase → Authentication → URL Configuration:\n\n' + redirectTo,
+        'Add this redirect URL in Supabase',
+        `Authentication → URL Configuration → Redirect URLs, add exactly:\n\n${redirectTo}\n\n(Tip: a wildcard like ${redirectTo.split('://')[0]}://** also works.)`,
       );
     }
     const { error: xchg } = await supabase.auth.exchangeCodeForSession(result.url);
