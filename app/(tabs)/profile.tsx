@@ -55,11 +55,31 @@ export default function ProfileScreen() {
   }
 
   async function google() {
+    // Deep link back into THIS app (iclose://auth-callback in a build,
+    // exp://…/auth-callback in Expo Go). This must be in Supabase →
+    // Authentication → URL Configuration → Redirect URLs, or Supabase falls
+    // back to the project's Site URL (academy.iclose.ae).
     const redirectTo = Linking.createURL('auth-callback');
-    const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo, skipBrowserRedirect: true } });
-    if (error || !data?.url) return Alert.alert('Google', error?.message ?? 'Failed');
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } },
+    });
+    if (error || !data?.url) return Alert.alert('Google sign-in', error?.message ?? 'Could not start sign-in.');
+
     const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-    if (result.type === 'success' && result.url) await supabase.auth.exchangeCodeForSession(result.url);
+    if (result.type !== 'success' || !result.url) return; // user cancelled / dismissed
+
+    // If Supabase redirected somewhere other than our app (e.g. the Site URL
+    // because the redirect URL isn't allow-listed), there's no code to exchange.
+    const hasCode = result.url.includes('code=');
+    if (!hasCode) {
+      return Alert.alert(
+        'Almost there',
+        'Add this redirect URL in Supabase → Authentication → URL Configuration:\n\n' + redirectTo,
+      );
+    }
+    const { error: xchg } = await supabase.auth.exchangeCodeForSession(result.url);
+    if (xchg) Alert.alert('Google sign-in', xchg.message);
   }
 
   function confirmReset() {

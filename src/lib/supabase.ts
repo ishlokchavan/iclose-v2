@@ -13,5 +13,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    // PKCE is the secure native OAuth flow; required for exchangeCodeForSession.
+    flowType: 'pkce',
   },
 });
