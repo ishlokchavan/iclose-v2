@@ -13,5 +13,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    // Implicit flow returns tokens directly in the redirect URL — no WebCrypto
+    // (unavailable in Expo Go/Hermes), which PKCE's code-challenge requires.
+    flowType: 'implicit',
   },
 });

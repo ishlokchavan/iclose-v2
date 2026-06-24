@@ -1,44 +1,75 @@
-import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
+import React, { createContext, useContext, useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const KEY = 'iclose.saved.v1';
+type Decision = 'saved' | 'passed';
+
+const KEY = 'iclose.glass.decisions.v1';
 
 interface SavedValue {
+  decisions: Record<string, Decision>;
+  savedRefs: string[];
   saved: Set<string>;
   isSaved: (ref: string) => boolean;
+  isDecided: (ref: string) => boolean;
+  save: (ref: string) => void;
+  pass: (ref: string) => void;
   toggle: (ref: string) => void;
+  reset: () => void;
 }
 
 const Ctx = createContext<SavedValue | null>(null);
 
+/**
+ * Saved / passed decisions — mirrors the web saved-store (kept on-device, the
+ * same as the web app's localStorage). "Saved" homes power the Saved tab;
+ * "passed" homes drop out of the feed.
+ */
 export function SavedProvider({ children }: { children: React.ReactNode }) {
-  const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [decisions, setDecisions] = useState<Record<string, Decision>>({});
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(KEY).then((raw) => {
-      if (raw) setSaved(new Set(JSON.parse(raw)));
-    });
+    AsyncStorage.getItem(KEY)
+      .then((raw) => {
+        if (raw) setDecisions(JSON.parse(raw));
+      })
+      .catch(() => {})
+      .finally(() => setHydrated(true));
   }, []);
 
-  const persist = useCallback((next: Set<string>) => {
-    setSaved(next);
-    AsyncStorage.setItem(KEY, JSON.stringify([...next])).catch(() => {});
+  useEffect(() => {
+    if (!hydrated) return;
+    AsyncStorage.setItem(KEY, JSON.stringify(decisions)).catch(() => {});
+  }, [decisions, hydrated]);
+
+  const setDecision = useCallback((ref: string, decision: Decision) => {
+    setDecisions((prev) => ({ ...prev, [ref]: decision }));
   }, []);
 
-  const toggle = useCallback(
-    (ref: string) => {
-      const next = new Set(saved);
-      next.has(ref) ? next.delete(ref) : next.add(ref);
-      persist(next);
-    },
-    [saved, persist],
-  );
+  const value = useMemo<SavedValue>(() => {
+    const savedRefs = Object.entries(decisions)
+      .filter(([, d]) => d === 'saved')
+      .map(([ref]) => ref);
+    return {
+      decisions,
+      savedRefs,
+      saved: new Set(savedRefs),
+      isSaved: (ref) => decisions[ref] === 'saved',
+      isDecided: (ref) => ref in decisions,
+      save: (ref) => setDecision(ref, 'saved'),
+      pass: (ref) => setDecision(ref, 'passed'),
+      toggle: (ref) =>
+        setDecisions((prev) => {
+          const next = { ...prev };
+          if (next[ref] === 'saved') delete next[ref];
+          else next[ref] = 'saved';
+          return next;
+        }),
+      reset: () => setDecisions({}),
+    };
+  }, [decisions, setDecision]);
 
-  return (
-    <Ctx.Provider value={{ saved, isSaved: (r) => saved.has(r), toggle }}>
-      {children}
-    </Ctx.Provider>
-  );
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 export function useSaved(): SavedValue {

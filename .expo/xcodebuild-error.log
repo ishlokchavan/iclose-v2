@@ -1,7 +1,0 @@
-** BUILD FAILED **
-
-
-The following build commands failed:
-	CompileC /Users/shlokchavan/Library/Developer/Xcode/DerivedData/iClose-bhkzqvfwnfyzpagrvuuvarquttlf/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/fmt.build/Objects-normal/arm64/format.o /Users/shlokchavan/Documents/Documents\ -\ Shlok’s\ MacBook\ Air\ -\ 1/iClose/iclose-app/ios/Pods/fmt/src/format.cc normal arm64 c++ com.apple.compilers.llvm.clang.1_0.compiler (in target 'fmt' from project 'Pods')
-	Building workspace iClose with scheme iClose and configuration Debug
-(2 failures)

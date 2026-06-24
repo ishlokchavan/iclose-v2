@@ -8,35 +8,56 @@ Next.js backend — the `/api/glass/*` routes and Supabase project are reused as
 ## Architecture
 
 ```
-Native app (this repo)              Your existing backend (closehq, deployed)
-─────────────────────               ─────────────────────────────────────────
-Expo Router screens        ──GET──▶ /api/glass/listings   (feed data)
-NativeWind (your tokens)   ─POST──▶ /api/glass/why         (AI "why it fits")
-Reanimated / gestures      ─POST──▶ /api/glass/search-parse
-Supabase JS (AsyncStorage) ◀─────▶ Supabase  (auth + analytics)
+Native app (this repo)                 Supabase  (iclose-academy-db — the live DB)
+─────────────────────                  ──────────────────────────────────────────
+Expo Router screens          ──read──▶ listings (status=active) + listing_translations
+NativeWind (your tokens)     ──read──▶ listing_images (carousel)
+Behavioural recommender      ─write──▶ discovery_events / discovery_affinity (analytics)
+Supabase JS (AsyncStorage)   ◀──────▶ Supabase Auth (email + Google OAuth)
 Instant seed → live upgrade
 ```
 
-The feed paints instantly from bundled seed data, then upgrades to live
-listings — same instant-render strategy as the web `ExperienceProvider`, so it
-also works offline.
+Everything in the feed comes from the **live database** — the exact same source
+as the web `/experience` page. The native data layer is a direct port of the
+web's `lib/glass/*` + `lib/portal/listings`: it reads the `listings` table
+(`status = 'active'`) with translations and the `listing_images` carousel, then
+enriches each row with the credit award + one-line hook client-side (identical
+logic to the web). The feed paints instantly from bundled seed, then upgrades to
+the live rows, so first paint never blocks and the app still works offline.
 
-## What's built
+The Supabase anon key is a publishable, RLS-protected client key (the same one
+the web app ships), so the app reads the DB out of the box with no setup.
 
-- **Home** — full-screen, snap-paging discovery feed (the flagship), save + haptics
-- **Trending** — listings ranked by credits-back
-- **Search** — instant client filtering + chips (NL parse via `/api/glass/search-parse` wired)
-- **Map** — native map with listing pins (`react-native-maps`)
-- **Profile** — Supabase email + native Google OAuth, saved count, sign out
-- **Property detail** — image gallery, facts, AI "why this fits", sticky enquire CTA
-- **Launches** + **Sell** modals
-- Design tokens, types, API client, Supabase client, saved store — all ported from web
+## What's built (mirrors the web `/experience`)
+
+- **First-run onboarding** — the brand **intro story** (3 slides) then the
+  **taste picker** (intent · budget · love a few homes) that seeds the recommender
+- **Apple-style liquid-glass tab bar** — floating frosted pill, icons-only, the
+  active tab a filled ink circle
+- **Home** — full-screen, recommender-ranked discovery feed: swipeable photo/video
+  gallery, Save / Share / Pass / Info rail, instant "Why this fits you", haptics,
+  swipe-up hint, and an end cap (Review saved / Start over)
+- **Behavioural recommender** — per-facet affinity (ported from the web) ranks the
+  feed; views/dwell/save/skip/share log to `discovery_events` (DB)
+- **Trending** — off-plan launches with a stories rail + project cards
+- **Launches** — auto-advancing, Instagram-style **stories viewer** (tap zones,
+  hold to pause, save, view home)
+- **Search** — instant substring search + chips, upgraded by on-device
+  natural-language parsing ("2-bed near the marina under 2M with a pool")
+- **Map** — native map with live price-pin markers, filter chips, bottom card carousel
+- **Profile** — Supabase email + native Google OAuth, credits balance, saved/explored
+  stats, reset activity, list-your-property
+- **Property detail** — photo/video gallery, credits panel, off-plan payment plan,
+  amenities, map link, agent card, "more like this", and the high-intent action bar
+  (WhatsApp / Call / Book a viewing) — all tracked, exactly like the web
+- **Saved** — shortlist with total credits, remove, empty state (on-device, same as web)
+- **Sell** — commission-free listing-create form → `/api/listing`
+- Design tokens, types, data layer, recommender, explain, tracking — all ported from web
 
 ## Roadmap (next passes)
 
-Video tours in the feed, the full Tinder-style swipe deck, developer pages,
-listing-create form wired to `/api/listing`, analytics events
-(`discovery_events` / `discovery_affinity`), push notifications.
+Inline video playback (currently opens in the system player), developer profile
+pages (`/experience/developer/[slug]`), push notifications.
 
 ## Prerequisites
 

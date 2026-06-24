@@ -8,6 +8,7 @@ import type { ExpoConfig } from 'expo/config';
 const config: ExpoConfig = {
   name: 'iClose',
   slug: 'iclose',
+  owner: 'shlokchavan.personal',
   scheme: 'iclose',
   version: '1.0.0',
   orientation: 'portrait',
@@ -23,6 +24,12 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'ae.iclose.app',
+    usesAppleSignIn: true,
+    // Declared explicitly so EAS's capability sync registers Sign In with Apple
+    // on the App ID + provisioning profile (usesAppleSignIn alone wasn't detected).
+    entitlements: {
+      'com.apple.developer.applesignin': ['Default'],
+    },
     config: { usesNonExemptEncryption: false },
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
@@ -44,13 +51,20 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-secure-store',
+    'expo-video',
     ['expo-splash-screen', { backgroundColor: '#ffffff', image: './assets/splash.png', resizeMode: 'contain' }],
   ],
   experiments: { typedRoutes: true },
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://iclose.ae',
-    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
-    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
+    // Live iClose database (iclose-academy-db). The anon key is a publishable,
+    // RLS-protected client key — safe to ship, same as the web app.
+    supabaseUrl:
+      process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://nnkicmfsdbfpucfcnutn.supabase.co',
+    supabaseAnonKey:
+      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ua2ljbWZzZGJmcHVjZmNudXRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODkyMDcsImV4cCI6MjA5NDI2NTIwN30.liASHVfCZQsB4OFwhY6uBYuv99IWXaMBbGGgbuFiKTs',
+    eas: { projectId: '329eea7c-7a6a-4abf-bf2c-a5ed6aaf817a' },
   },
 };
 

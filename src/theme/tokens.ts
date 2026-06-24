@@ -5,6 +5,7 @@ export const colors = {
   ink700: '#3a3a3c',
   graphite: '#6e6e73',
   graphiteLight: '#86868b',
+  graphiteDark: '#424245',
   hairline: '#d2d2d7',
   mist: '#f5f5f7',
   fog: '#fbfbfd',

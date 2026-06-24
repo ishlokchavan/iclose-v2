@@ -1,50 +1,85 @@
-import { View, Text, FlatList, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { TrendingUp } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Flame, CalendarClock, Wallet, Coins, ArrowUpRight } from 'lucide-react-native';
 import { useExperience } from '@/store/experience';
-import { CreditBadge } from '@/components/CreditBadge';
-import { aed } from '@/lib/format';
+import { usePullRefresh } from '@/lib/use-refresh';
+import { GlassBg } from '@/components/Glass';
+import { formatAed, formatCredits } from '@/data/experience-data';
 import { colors } from '@/theme/tokens';
 
-/** Trending — ranked by credit value back (highest reward first). */
+/** Trending — latest off-plan launches, with a stories rail (mirrors the web). */
 export default function TrendingScreen() {
-  const { listings } = useExperience();
+  const { launches } = useExperience();
+  const { refreshing, onRefresh } = usePullRefresh();
   const insets = useSafeAreaInsets();
-  const ranked = [...listings].sort((a, b) => b.credit.credits - a.credit.credits);
 
   return (
-    <View className="flex-1 bg-fog" style={{ paddingTop: insets.top }}>
-      <View className="flex-row items-center gap-2 px-5 pb-3 pt-2">
-        <TrendingUp size={22} color={colors.ink} />
-        <Text className="text-2xl font-bold text-ink">Trending</Text>
+    <View className="flex-1">
+      <GlassBg />
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 110 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+      >
+      {/* Header */}
+      <View style={{ paddingTop: insets.top + 12 }} className="px-4 pb-3">
+        <View className="flex-row items-center gap-2">
+          <Flame size={22} color={colors.journey.offplan} />
+          <Text className="text-[26px] font-semibold text-ink">Trending</Text>
+        </View>
+        <Text className="mt-1 text-sm text-graphite">Latest off-plan launches in the market</Text>
       </View>
-      <FlatList
-        data={ranked}
-        keyExtractor={(l) => l.reference}
-        contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110, gap: 14 }}
-        renderItem={({ item, index }) => (
-          <Pressable
-            onPress={() => router.push(`/property/${item.reference}`)}
-            className="flex-row gap-3 rounded-apple bg-paper p-3"
-            style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-          >
-            <Image source={{ uri: item.cover }} style={{ width: 96, height: 96, borderRadius: 14 }} contentFit="cover" />
-            <View className="flex-1 justify-between py-1">
-              <Text className="text-base font-semibold text-ink" numberOfLines={2}>{item.title}</Text>
-              <Text className="text-sm text-graphite">{item.community}</Text>
-              <View className="flex-row items-center justify-between">
-                <Text className="text-base font-bold text-ink">{aed(item.priceAed)}</Text>
-                <CreditBadge award={item.credit} />
+
+      {/* Stories rail */}
+      {launches.length ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, paddingHorizontal: 16, paddingBottom: 16 }}>
+          {launches.map((l) => (
+            <Pressable key={l.reference} onPress={() => router.push(`/launches?start=${l.reference}`)} className="w-[72px] items-center gap-1.5">
+              <LinearGradient colors={[colors.accent, colors.journey.offplan]} style={{ borderRadius: 999, padding: 2.5 }}>
+                <View style={{ borderRadius: 999, padding: 2.5, backgroundColor: '#fff' }}>
+                  <Image source={{ uri: l.cover }} style={{ height: 60, width: 60, borderRadius: 999 }} contentFit="cover" />
+                </View>
+              </LinearGradient>
+              <Text className="text-[11px] text-graphite" numberOfLines={1}>{l.developerName ?? l.community}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : null}
+
+      {/* Project cards */}
+      <View className="gap-3 px-4 pt-4">
+        {launches.map((l) => (
+          <Pressable key={l.reference} onPress={() => router.push(`/property/${l.reference}`)} className="overflow-hidden rounded-apple border border-white/60 bg-white/70"
+            style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+            <View className="relative">
+              <Image source={{ uri: l.cover }} style={{ width: '100%', aspectRatio: 1.6 }} contentFit="cover" />
+              <View className="absolute left-3 top-3 flex-row items-center gap-1 rounded-full bg-black/45 px-2.5 py-1">
+                <Flame size={13} color={colors.journey.offplan} /><Text className="text-[11.5px] font-medium text-white">Trending</Text>
               </View>
             </View>
-            <View className="absolute -left-1 -top-1 h-7 w-7 items-center justify-center rounded-full bg-ink">
-              <Text className="text-xs font-bold text-white">{index + 1}</Text>
+            <View className="p-4">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-lg font-semibold text-ink">from {formatAed(l.priceAed)}</Text>
+                <View className="flex-row items-center gap-1 rounded-full bg-accent/10 px-2.5 py-1">
+                  <Coins size={13} color={colors.accent} /><Text className="text-xs font-semibold text-accent">{formatCredits(l.credit.credits)}</Text>
+                </View>
+              </View>
+              <Text className="mt-1 text-[15px] font-medium text-ink">{l.title}</Text>
+              <Text className="text-[13px] text-graphite">{l.community}, {l.city}</Text>
+              <View className="mt-3 flex-row flex-wrap items-center gap-3 border-t border-hairline/60 pt-3">
+                {l.paymentPlan ? <View className="flex-row items-center gap-1.5"><Wallet size={15} color={colors.journey.offplan} /><Text className="text-[12.5px] text-graphite">{l.paymentPlan} plan</Text></View> : null}
+                {l.handoverBy ? <View className="flex-row items-center gap-1.5"><CalendarClock size={15} color={colors.journey.offplan} /><Text className="text-[12.5px] text-graphite">{l.handoverBy}</Text></View> : null}
+                <View className="ml-auto flex-row items-center gap-0.5"><Text className="text-[12.5px] font-medium text-accent">View</Text><ArrowUpRight size={13} color={colors.accent} /></View>
+              </View>
             </View>
           </Pressable>
-        )}
-      />
+        ))}
+        {!launches.length ? <Text className="py-16 text-center text-sm text-graphite">No trending launches right now — check back soon.</Text> : null}
+      </View>
+      </ScrollView>
     </View>
   );
 }

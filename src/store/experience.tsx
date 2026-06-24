@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { api } from '@/lib/api';
-import { SEED_LISTINGS } from '@/data/seed';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { getListings, fetchCarouselImages } from '@/lib/listings';
+import { toExperienceListing, FALLBACK_EXPERIENCE_LISTINGS } from '@/data/experience-data';
 import type { ExperienceListing } from '@/types/listing';
 
 interface ExperienceValue {
@@ -8,30 +8,46 @@ interface ExperienceValue {
   launches: ExperienceListing[];
   loading: boolean;
   byRef: (reference: string) => ExperienceListing | undefined;
+  /** Re-fetch listings from Supabase (used by pull-to-refresh). */
+  refresh: () => Promise<void>;
 }
 
 const Ctx = createContext<ExperienceValue | null>(null);
 
 /**
- * Same strategy as the web ExperienceProvider: paint instantly from seed
- * data, then quietly upgrade to live listings — first render never blocks on
- * the network, so the app is usable offline too.
+ * Reads the live Supabase `listings` table (+ `listing_images`) directly —
+ * the same data source as the web /experience page — enriching each row with
+ * credits + hook. Paints instantly from seed, then upgrades to live data, so
+ * first render never blocks on the network and the app works offline too.
  */
 export function ExperienceProvider({ children }: { children: React.ReactNode }) {
-  const [listings, setListings] = useState<ExperienceListing[]>(SEED_LISTINGS);
+  const [listings, setListings] = useState<ExperienceListing[]>(FALLBACK_EXPERIENCE_LISTINGS);
   const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    try {
+      const [live, extras] = await Promise.all([
+        getListings({ purpose: 'sale', limit: 50 }),
+        fetchCarouselImages(),
+      ]);
+      if (live.length) setListings(live.map((l) => toExperienceListing(l, extras[l.reference])));
+    } catch {
+      /* keep current/seed */
+    }
+  }, []);
 
   useEffect(() => {
     let alive = true;
-    api
-      .listings()
-      .then((data) => {
-        if (alive && data?.listings?.length) setListings(data.listings);
-      })
-      .catch(() => {/* keep seed */})
-      .finally(() => alive && setLoading(false));
+    (async () => {
+      await load();
+      if (alive) setLoading(false);
+    })();
     return () => { alive = false; };
-  }, []);
+  }, [load]);
+
+  const refresh = useCallback(async () => {
+    await load();
+  }, [load]);
 
   const value = useMemo<ExperienceValue>(
     () => ({
@@ -39,8 +55,9 @@ export function ExperienceProvider({ children }: { children: React.ReactNode }) 
       launches: listings.filter((l) => l.completion === 'off_plan'),
       loading,
       byRef: (reference) => listings.find((l) => l.reference === reference),
+      refresh,
     }),
-    [listings, loading],
+    [listings, loading, refresh],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
