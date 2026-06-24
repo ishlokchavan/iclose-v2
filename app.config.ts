@@ -8,6 +8,7 @@ import type { ExpoConfig } from 'expo/config';
 const config: ExpoConfig = {
   name: 'iClose',
   slug: 'iclose',
+  owner: 'shlokchavan.personal',
   scheme: 'iclose',
   version: '1.0.0',
   orientation: 'portrait',
@@ -57,6 +58,7 @@ const config: ExpoConfig = {
     supabaseAnonKey:
       process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ua2ljbWZzZGJmcHVjZmNudXRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODkyMDcsImV4cCI6MjA5NDI2NTIwN30.liASHVfCZQsB4OFwhY6uBYuv99IWXaMBbGGgbuFiKTs',
+    eas: { projectId: '329eea7c-7a6a-4abf-bf2c-a5ed6aaf817a' },
   },
 };
 
