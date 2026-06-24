@@ -25,6 +25,11 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: 'ae.iclose.app',
     usesAppleSignIn: true,
+    // Declared explicitly so EAS's capability sync registers Sign In with Apple
+    // on the App ID + provisioning profile (usesAppleSignIn alone wasn't detected).
+    entitlements: {
+      'com.apple.developer.applesignin': ['Default'],
+    },
     config: { usesNonExemptEncryption: false },
     infoPlist: {
       NSLocationWhenInUseUsageDescription:
