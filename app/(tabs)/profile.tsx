@@ -5,7 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
-import { Heart, Eye, Coins, Plus, ChevronRight, RotateCcw, LogIn, LogOut } from 'lucide-react-native';
+import { Heart, Eye, Coins, Plus, ChevronRight, RotateCcw, LogIn, LogOut, Trash2 } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
@@ -120,6 +120,30 @@ export default function ProfileScreen() {
     ]);
   }
 
+  function confirmDelete() {
+    Alert.alert(
+      'Delete account',
+      'This permanently deletes your iClose account and your saved data. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete account', style: 'destructive', onPress: deleteAccount },
+      ],
+    );
+  }
+
+  async function deleteAccount() {
+    try {
+      const { error } = await supabase.functions.invoke('delete-account', { method: 'POST' });
+      if (error) return Alert.alert('Delete account', error.message);
+      reset();
+      resetSignals();
+      await supabase.auth.signOut();
+      Alert.alert('Account deleted', 'Your account and data have been permanently removed.');
+    } catch (e) {
+      Alert.alert('Delete account', (e as Error)?.message ?? 'Could not delete the account.');
+    }
+  }
+
   return (
     <View className="flex-1">
       <GlassBg />
@@ -199,9 +223,14 @@ export default function ProfileScreen() {
       </Pressable>
 
       {session ? (
-        <Pressable onPress={() => supabase.auth.signOut()} className="mt-4 flex-row items-center justify-center gap-2 rounded-apple border border-hairline py-4">
-          <LogOut size={18} color={colors.ink} /><Text className="font-semibold text-ink">Sign out</Text>
-        </Pressable>
+        <>
+          <Pressable onPress={() => supabase.auth.signOut()} className="mt-4 flex-row items-center justify-center gap-2 rounded-apple border border-hairline py-4">
+            <LogOut size={18} color={colors.ink} /><Text className="font-semibold text-ink">Sign out</Text>
+          </Pressable>
+          <Pressable onPress={confirmDelete} className="mt-3 flex-row items-center justify-center gap-2 py-3">
+            <Trash2 size={16} color="#e11d48" /><Text className="font-semibold" style={{ color: '#e11d48' }}>Delete account</Text>
+          </Pressable>
+        </>
       ) : null}
     </ScrollView>
     </View>
