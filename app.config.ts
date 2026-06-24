@@ -24,6 +24,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'ae.iclose.app',
+    usesAppleSignIn: true,
     config: { usesNonExemptEncryption: false },
     infoPlist: {
       NSLocationWhenInUseUsageDescription:

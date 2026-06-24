@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Alert, RefreshControl } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Alert, RefreshControl, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
 import { Heart, Eye, Coins, Plus, ChevronRight, RotateCcw, LogIn, LogOut } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
@@ -29,12 +30,32 @@ export default function ProfileScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => { setSession(s); if (s) setShowAuth(false); });
+    if (Platform.OS === 'ios') AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  async function apple() {
+    try {
+      const cred = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+      if (!cred.identityToken) return Alert.alert('Apple sign-in', 'No identity token returned.');
+      const { error } = await supabase.auth.signInWithIdToken({ provider: 'apple', token: cred.identityToken });
+      if (error) Alert.alert('Apple sign-in', error.message);
+    } catch (e) {
+      // User cancelled the native sheet — not an error.
+      if ((e as { code?: string })?.code === 'ERR_REQUEST_CANCELED') return;
+      Alert.alert('Apple sign-in', (e as Error)?.message ?? 'Failed');
+    }
+  }
 
   const seen = Object.keys(decisions).length;
   const pendingCredits = listings
@@ -128,6 +149,15 @@ export default function ProfileScreen() {
           <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink" />
           <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink" />
           <Pressable disabled={busy} onPress={submitEmail} className="rounded-full bg-accent py-3.5"><Text className="text-center font-semibold text-white">{mode === 'login' ? 'Sign in' : 'Sign up'}</Text></Pressable>
+          {appleAvailable ? (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={999}
+              style={{ height: 48, width: '100%' }}
+              onPress={apple}
+            />
+          ) : null}
           <Pressable onPress={google} className="rounded-full border border-hairline py-3.5"><Text className="text-center font-semibold text-ink">Continue with Google</Text></Pressable>
           <Pressable onPress={() => setMode(mode === 'login' ? 'signup' : 'login')}><Text className="text-center text-accent">{mode === 'login' ? 'New here? Create an account' : 'Already have an account? Sign in'}</Text></Pressable>
         </View>
