@@ -22,7 +22,7 @@ const config: ExpoConfig = {
   },
   assetBundlePatterns: ['**/*'],
   ios: {
-    supportsTablet: true,
+    supportsTablet: false,
     bundleIdentifier: 'ae.iclose.app',
     usesAppleSignIn: true,
     // Declared explicitly so EAS's capability sync registers Sign In with Apple
