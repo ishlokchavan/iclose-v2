@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { View, Text, ScrollView, Pressable, Alert, StyleSheet, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -41,6 +41,15 @@ export default function ShareDetailScreen() {
   const [ledger, setLedger] = useState<ShareLedgerEntry[]>([]);
   const [listing, setListing] = useState<Listing | null>(null);
   const [descOpen, setDescOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await s.refresh();
+      if (asset && /^[0-9a-f-]{36}$/i.test(asset.id)) setLedger(await getAssetLedger(asset.id, 12));
+    } finally { setRefreshing(false); }
+  }, [s, asset]);
 
   useEffect(() => {
     if (asset && /^[0-9a-f-]{36}$/i.test(asset.id)) getAssetLedger(asset.id, 12).then(setLedger);
@@ -88,7 +97,8 @@ export default function ShareDetailScreen() {
   return (
     <View className="flex-1">
       <GlassBg />
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}>
         {/* Cover */}
         <View className="relative">
           <Pressable onPress={() => { if (asset.listingReference) router.push(`/gallery/${asset.listingReference}`); }}>

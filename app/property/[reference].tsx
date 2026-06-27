@@ -1,23 +1,22 @@
-import { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Dimensions, Linking } from 'react-native';
+import { View, Text, ScrollView, Pressable, Dimensions, Linking, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
   ChevronLeft, ChevronRight, Heart, Share2, BedDouble, Bath, Maximize, MapPin, BadgeCheck,
-  CalendarClock, Wallet, Building2, Navigation, Coins, Phone, Sparkles,
+  CalendarClock, Wallet, Building2, Navigation, Coins, Phone,
 } from 'lucide-react-native';
 import { Share } from 'react-native';
 import { WhatsAppIcon } from '@/components/icons/WhatsApp';
 import { useExperience } from '@/store/experience';
 import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
+import { usePullRefresh } from '@/lib/use-refresh';
 import { SwipeGallery } from '@/components/SwipeGallery';
 import { Loading } from '@/components/Loading';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { facetsOf } from '@/lib/recommender';
-import { deterministicReason } from '@/lib/explain';
 import { slugifyDeveloper } from '@/lib/slug';
 import { bedLabel } from '@/lib/format';
 import { CONTACT_WHATSAPP, CONTACT_PHONE, listingUrl } from '@/lib/config';
@@ -30,9 +29,9 @@ export default function PropertyScreen() {
   const { reference } = useLocalSearchParams<{ reference: string }>();
   const { byRef, listings } = useExperience();
   const { isSaved, toggle } = useSaved();
-  const { track, getAffinity } = useSignals();
+  const { track } = useSignals();
   const insets = useSafeAreaInsets();
-  const [whyOpen, setWhyOpen] = useState(false);
+  const { refreshing, onRefresh } = usePullRefresh();
 
   const listing = byRef(String(reference));
   if (!listing) return <Loading />;
@@ -74,7 +73,8 @@ export default function PropertyScreen() {
   return (
     <View className="flex-1 bg-paper">
       <GlassBg />
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 96 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 96 }} showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}>
         {/* Hero gallery */}
         <View style={{ height: width * 1.05 }} className="bg-mist">
           <SwipeGallery
@@ -139,16 +139,6 @@ export default function PropertyScreen() {
             <SpecTile icon={<Bath size={20} color={colors.ink} />} label="Bathrooms" value={`${listing.bathrooms ?? '—'}`} />
             <SpecTile icon={<Maximize size={20} color={colors.ink} />} label="Area" value={listing.areaSqft ? `${(listing.areaSqft / 1000).toFixed(1)}k` : '—'} />
           </View>
-
-          {/* Why this fits you */}
-          <Pressable onPress={() => setWhyOpen((o) => !o)} className="flex-row items-center gap-2 self-start rounded-full bg-mist px-3 py-2">
-            <Sparkles size={15} color={colors.accent} /><Text className="text-[13px] font-medium text-graphite">Why this fits you</Text>
-          </Pressable>
-          {whyOpen ? (
-            <View className="-mt-2 rounded-2xl border border-accent/15 bg-accent/5 px-3 py-2">
-              <Text className="text-[13px] leading-snug text-ink">{deterministicReason(getAffinity(), listing)}</Text>
-            </View>
-          ) : null}
 
           {/* Off-plan payment plan */}
           {listing.completion === 'off_plan' ? (

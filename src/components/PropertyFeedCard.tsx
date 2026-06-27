@@ -2,7 +2,7 @@ import { memo, useState } from 'react';
 import { View, Text, Pressable, Share, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
-  Heart, Share2, X, Info, MapPin, BedDouble, Bath, Maximize, BadgeCheck, Coins, Sparkles,
+  Heart, Share2, X, Info, MapPin, BedDouble, Bath, Maximize, BadgeCheck, Coins,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
@@ -10,7 +10,6 @@ import { SwipeGallery } from './SwipeGallery';
 import { LikeBurst } from './LikeBurst';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { listingUrl } from '@/lib/config';
-import { deterministicReason } from '@/lib/explain';
 import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
 import type { ExperienceListing } from '@/types/listing';
@@ -36,9 +35,8 @@ function PropertyFeedCardImpl({
   onPass?: () => void;
 }) {
   const { isSaved, toggle, pass } = useSaved();
-  const { track, getAffinity } = useSignals();
+  const { track } = useSignals();
   const saved = isSaved(listing.reference);
-  const [whyOpen, setWhyOpen] = useState(false);
   const [burst, setBurst] = useState(0);
 
   function toggleSave() {
@@ -79,6 +77,7 @@ function PropertyFeedCardImpl({
         videos={listing.videos}
         height={height}
         playing={active}
+        indicator="count"
         indicatorTop={topInset + 52}
         onTap={openDetails}
         onDoubleTap={onDoubleTap}
@@ -145,21 +144,6 @@ function PropertyFeedCardImpl({
             ) : null}
           </View>
         </Pressable>
-
-        <Pressable
-          onPress={() => setWhyOpen((o) => !o)}
-          className="mt-1 flex-row items-center gap-1.5 self-start rounded-full bg-white/15 px-3 py-1.5"
-        >
-          <Sparkles size={13} color="#9effe0" />
-          <Text className="text-[12.5px] font-medium text-white">Why this fits you</Text>
-        </Pressable>
-        {whyOpen ? (
-          <View className="rounded-2xl bg-white/15 px-3 py-2">
-            <Text className="text-[13px] leading-snug text-white">
-              {deterministicReason(getAffinity(), listing)}
-            </Text>
-          </View>
-        ) : null}
       </View>
     </View>
   );

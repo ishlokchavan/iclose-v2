@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Wallet, Plus, BadgeCheck, ShieldAlert } from 'lucide-react-native';
@@ -25,6 +25,12 @@ export default function WalletModal() {
   }, [s.wallet?.walletAddress]);
 
   useEffect(() => { reload(); }, [reload]);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try { await s.refreshUser(); await reload(); } finally { setRefreshing(false); }
+  }, [s, reload]);
 
   async function topUp(amount: number) {
     setBusy(true);
@@ -61,7 +67,8 @@ export default function WalletModal() {
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 24 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 24 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}>
         {/* Balance card */}
         <View className="overflow-hidden rounded-apple border border-white/60 bg-white/80 p-5">
           <View className="flex-row items-center gap-2">

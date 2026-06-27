@@ -39,7 +39,7 @@ export function SwipeGallery({
   videos?: string[];
   width?: number;
   height: number;
-  indicator?: 'bars' | 'dots';
+  indicator?: 'bars' | 'dots' | 'count';
   onDoubleTap?: () => void;
   onTap?: () => void;
   contentFit?: 'cover' | 'contain';
@@ -97,15 +97,17 @@ export function SwipeGallery({
 
       {slides.length > 1 ? (
         <>
-          <View pointerEvents="none" className="absolute left-0 right-0 flex-row items-center justify-center gap-1.5" style={{ top: indicatorTop }}>
-            {slides.map((_, i) =>
-              indicator === 'bars' ? (
-                <View key={i} style={{ height: 3.5, width: 24, borderRadius: 2, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 2 }} className={i === index ? 'bg-white' : 'bg-white/45'} />
-              ) : (
-                <View key={i} style={{ height: 6, width: 6, borderRadius: 3 }} className={i === index ? 'bg-white' : 'bg-white/45'} />
-              ),
-            )}
-          </View>
+          {indicator !== 'count' ? (
+            <View pointerEvents="none" className="absolute left-0 right-0 flex-row items-center justify-center gap-1.5" style={{ top: indicatorTop }}>
+              {slides.map((_, i) =>
+                indicator === 'bars' ? (
+                  <View key={i} style={{ height: 3.5, width: 24, borderRadius: 2, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 2 }} className={i === index ? 'bg-white' : 'bg-white/45'} />
+                ) : (
+                  <View key={i} style={{ height: 6, width: 6, borderRadius: 3 }} className={i === index ? 'bg-white' : 'bg-white/45'} />
+                ),
+              )}
+            </View>
+          ) : null}
           {/* Visible "x / N" counter so people know there's more to swipe */}
           <View pointerEvents="none" className="absolute right-3 rounded-full bg-black/45 px-2 py-0.5" style={{ top: indicatorTop - 3 }}>
             <Text className="text-[11px] font-semibold text-white">{index + 1} / {slides.length}</Text>

@@ -3,10 +3,8 @@ import { View, Text, FlatList, Dimensions, Pressable, RefreshControl, type ViewT
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
-import { Search, Heart } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useExperience } from '@/store/experience';
-import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
 import { PropertyFeedCard } from '@/components/PropertyFeedCard';
 import { Loading } from '@/components/Loading';
@@ -22,7 +20,6 @@ type Row = ExperienceListing | typeof END;
 /** Home — instant, recommender-ranked discovery feed with first-run onboarding. */
 export default function FeedScreen() {
   const { listings, loading } = useExperience();
-  const { saved } = useSaved();
   const { rank, track, seedVersion } = useSignals();
   const { refreshing, onRefresh } = usePullRefresh();
   const insets = useSafeAreaInsets();
@@ -131,16 +128,6 @@ export default function FeedScreen() {
             </Text>
           </Pressable>
         ))}
-      </View>
-
-      {/* Right icons */}
-      <View style={{ position: 'absolute', top: insets.top + 4, right: 16 }} className="flex-row gap-2">
-        <Pressable onPress={() => router.push('/search')} hitSlop={8} className="h-10 w-10 items-center justify-center rounded-full bg-black/30">
-          <Search size={20} color="#fff" />
-        </Pressable>
-        <Pressable onPress={() => router.push('/saved')} hitSlop={8} className="h-10 w-10 items-center justify-center rounded-full bg-black/30">
-          <Heart size={20} color="#fff" fill={saved.size ? '#ff4d6d' : 'transparent'} />
-        </Pressable>
       </View>
 
       {/* Swipe-up hint on the first card */}
