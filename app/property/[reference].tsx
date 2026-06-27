@@ -6,9 +6,10 @@ import { useLocalSearchParams, router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
   ChevronLeft, ChevronRight, Heart, Share2, BedDouble, Bath, Maximize, MapPin, BadgeCheck,
-  CalendarClock, Wallet, Building2, Navigation, Coins, Phone, MessageCircle, CalendarCheck, Check, Sparkles,
+  CalendarClock, Wallet, Building2, Navigation, Coins, Phone, Sparkles,
 } from 'lucide-react-native';
 import { Share } from 'react-native';
+import { WhatsAppIcon } from '@/components/icons/WhatsApp';
 import { useExperience } from '@/store/experience';
 import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
@@ -31,7 +32,6 @@ export default function PropertyScreen() {
   const { isSaved, toggle } = useSaved();
   const { track, getAffinity } = useSignals();
   const insets = useSafeAreaInsets();
-  const [requested, setRequested] = useState(false);
   const [whyOpen, setWhyOpen] = useState(false);
 
   const listing = byRef(String(reference));
@@ -232,20 +232,15 @@ export default function PropertyScreen() {
         </View>
       </ScrollView>
 
-      {/* Sticky action bar — high-intent actions */}
-      <Glass rounded={0} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 10, borderTopWidth: 0.5, borderTopColor: 'rgba(0,0,0,0.08)' }}>
-        <Pressable onPress={openWhatsApp} className="h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: '#25D366' }}>
-          <MessageCircle size={20} color="#fff" />
+      {/* Sticky action bar — talk to an agent */}
+      <Glass rounded={0} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 10, borderTopWidth: 0.5, borderTopColor: 'rgba(0,0,0,0.08)' }}>
+        <Pressable onPress={openWhatsApp} className="h-12 flex-[2] flex-row items-center justify-center gap-2 rounded-full" style={{ backgroundColor: '#25D366' }}>
+          <WhatsAppIcon size={21} color="#fff" />
+          <Text className="text-[15px] font-semibold text-white">WhatsApp</Text>
         </Pressable>
-        <Pressable onPress={call} className="h-12 w-12 items-center justify-center rounded-full bg-mist">
-          <Phone size={20} color={colors.ink} />
-        </Pressable>
-        <Pressable
-          onPress={() => { setRequested(true); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); track('viewing', listing); }}
-          className={`h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full ${requested ? 'bg-journey-listing' : 'bg-ink'}`}
-        >
-          {requested ? <Check size={20} color={colors.ink} /> : <CalendarCheck size={20} color="#fff" />}
-          <Text className={`text-[15px] font-semibold ${requested ? 'text-ink' : 'text-white'}`}>{requested ? 'Viewing requested' : 'Book a viewing'}</Text>
+        <Pressable onPress={call} className="h-12 flex-1 flex-row items-center justify-center gap-2 rounded-full bg-ink">
+          <Phone size={19} color="#fff" />
+          <Text className="text-[15px] font-semibold text-white">Call</Text>
         </Pressable>
       </Glass>
     </View>

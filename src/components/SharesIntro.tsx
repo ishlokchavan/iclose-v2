@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, FlatList, Dimensions } from 'react-native';
+import { View, Text, Pressable, FlatList, Dimensions, Modal } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -53,7 +53,8 @@ export function SharesIntro() {
   const last = idx === SLIDES.length - 1;
 
   return (
-    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }} className="bg-paper">
+    <Modal visible animationType="fade" onRequestClose={finish} statusBarTranslucent>
+    <View className="flex-1 bg-paper">
       <View style={{ position: 'absolute', top: insets.top + 12, left: 20, right: 20, zIndex: 10 }} className="flex-row items-center gap-3">
         <View className="flex-1 flex-row gap-1.5">
           {SLIDES.map((_, i) => (
@@ -89,12 +90,12 @@ export function SharesIntro() {
       />
 
       <View style={{ position: 'absolute', left: 24, right: 24, bottom: insets.bottom + 20 }}>
-        <Text className="mb-3 text-center text-[11.5px] text-ink/35">A demo — explore freely with play money. No real funds involved.</Text>
         <Pressable onPress={() => (last ? finish() : go(idx + 1))} className="flex-row items-center justify-center gap-2 rounded-full bg-ink py-4">
           <Text className="text-base font-semibold text-white">{last ? 'Start exploring' : 'Next'}</Text>
           <ArrowRight size={18} color="#fff" />
         </Pressable>
       </View>
     </View>
+    </Modal>
   );
 }

@@ -19,6 +19,6 @@ export const SUPABASE_URL =
 export const SUPABASE_ANON_KEY =
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || extra.supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY;
 
-/** Contact channels for listing enquiries (WhatsApp / call) — same defaults as web. */
-export const CONTACT_WHATSAPP = process.env.EXPO_PUBLIC_WHATSAPP_NUMBER || '971501234567';
-export const CONTACT_PHONE = process.env.EXPO_PUBLIC_CONTACT_PHONE || '+971501234567';
+/** Contact channels for listing enquiries (WhatsApp / call). */
+export const CONTACT_WHATSAPP = process.env.EXPO_PUBLIC_WHATSAPP_NUMBER || '971585530429';
+export const CONTACT_PHONE = process.env.EXPO_PUBLIC_CONTACT_PHONE || '+971585530429';

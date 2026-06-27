@@ -2,26 +2,12 @@ import { View, Text, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import {
-  ShieldCheck, Landmark, BadgeCheck, Building2, Info, TrendingUp, BadgePercent,
+  ShieldCheck, Landmark, BadgeCheck, Building2, TrendingUp, BadgePercent,
 } from 'lucide-react-native';
 import { colors } from '@/theme/tokens';
 import { formatAed, outcomeFor } from '@/lib/shares';
 import { availableTokens, fundedPct, minInvestmentAed } from '@/types/shares';
 import type { ShareAsset } from '@/types/shares';
-
-/** Persistent, unmissable disclaimer — this module is a demonstration. */
-export function DemoBanner({ compact = false }: { compact?: boolean }) {
-  return (
-    <View className="mx-4 mt-3 flex-row items-start gap-2 rounded-2xl border border-amber-300/70 bg-amber-50/80 px-3.5 py-2.5">
-      <Info size={15} color="#b45309" style={{ marginTop: 1 }} />
-      <Text className="flex-1 text-[11.5px] leading-4 text-amber-800">
-        {compact
-          ? 'Demonstration only — no real money or securities.'
-          : 'Demonstration of tokenized real estate. No real money, securities, or transactions are involved. Modeled on the Dubai Land Department / VARA framework.'}
-      </Text>
-    </View>
-  );
-}
 
 /** Compliance signal chips — the regulatory stack a production build would use. */
 export function ComplianceRow() {

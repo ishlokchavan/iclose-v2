@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { Landmark, Wallet, PieChart, ArrowUpRight } from 'lucide-react-native';
 import { useShares } from '@/store/shares';
 import { GlassBg } from '@/components/Glass';
-import { DemoBanner, AssetCard, FilterChips, RegulatedNote } from '@/components/SharesUI';
+import { AssetCard, FilterChips, RegulatedNote } from '@/components/SharesUI';
 import { SharesIntro } from '@/components/SharesIntro';
 import type { MarketFilter } from '@/components/SharesUI';
 import { formatAed } from '@/lib/shares';
@@ -58,8 +58,6 @@ export default function SharesScreen() {
           </View>
           <Text className="mt-1 text-sm text-graphite">Own a piece of Dubai real estate — from {formatAed(500)}</Text>
         </View>
-
-        <DemoBanner compact />
 
         {/* Portfolio strip — signed-in only */}
         {s.signedIn ? (

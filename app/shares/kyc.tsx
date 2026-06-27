@@ -68,8 +68,8 @@ export default function KycModal() {
         <View className="flex-row items-start gap-2.5 rounded-2xl border border-white/60 bg-white/75 p-4">
           <ShieldCheck size={20} color={colors.accent} />
           <Text className="flex-1 text-[12.5px] leading-4 text-graphite">
-            A quick verification (KYC) is required before investing — exactly as a VARA-regulated platform would.
-            This is a demonstration: details are not stored beyond your demo wallet and not verified against any registry.
+            A quick verification (KYC) is required before investing, as required for any VARA-regulated platform.
+            Your details are kept private and used only to set up your account.
           </Text>
         </View>
 
@@ -91,8 +91,7 @@ export default function KycModal() {
             {accredited ? <Check size={14} color="#fff" /> : null}
           </View>
           <Text className="flex-1 text-[12.5px] leading-4 text-graphite">
-            I understand this is a demonstration, that iClose Shares does not currently offer real securities, and that
-            any redemption of iClose credits is handled separately, off-platform.
+            I confirm the details above are mine and I agree to the iClose Shares terms.
           </Text>
         </Pressable>
 

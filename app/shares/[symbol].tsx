@@ -12,7 +12,7 @@ import { useShares } from '@/store/shares';
 import { getListingByReference } from '@/lib/listings';
 import type { Listing } from '@/types/listing';
 import { GlassBg } from '@/components/Glass';
-import { DemoBanner, FundingBar, Metric, RegulatedNote, DiscountBadge } from '@/components/SharesUI';
+import { FundingBar, Metric, RegulatedNote, DiscountBadge } from '@/components/SharesUI';
 import { OutcomeSimulator } from '@/components/OutcomeSimulator';
 import { Term } from '@/components/Term';
 import { getAssetLedger, formatAed, shortHash, shortAddr, feeBreakdown, outcomeFor } from '@/lib/shares';
@@ -144,8 +144,6 @@ export default function ShareDetailScreen() {
           </View>
         ) : null}
 
-        <DemoBanner compact />
-
         {/* Tabs */}
         <View className="mx-4 mt-4 flex-row rounded-full bg-black/5 p-1">
           {TABS.map((t) => {
@@ -209,7 +207,7 @@ export default function ShareDetailScreen() {
               <Text className="pt-2 text-[15px] font-semibold text-ink">Documents</Text>
               <View className="gap-2.5">
                 {docRows.map((d) => (
-                  <Pressable key={d.title} onPress={() => Alert.alert('Demo document', `“${d.title}” would open here in a production build.`)}
+                  <Pressable key={d.title} onPress={() => Alert.alert(d.title, 'This document will open here.')}
                     className="flex-row items-center gap-3 rounded-2xl border border-white/60 bg-white/70 px-3.5 py-3.5">
                     <View className="h-9 w-9 items-center justify-center rounded-full bg-accent/10"><d.icon size={17} color={colors.accent} /></View>
                     <View className="flex-1"><Text className="text-[14px] font-medium text-ink">{d.title}</Text><Text className="text-[12px] text-graphite">{d.sub}</Text></View>
@@ -274,7 +272,7 @@ export default function ShareDetailScreen() {
                 <FeeRow label="DLD transfer fee (2%)" value={formatAed(fees.dldDiscounted)} strike={formatAed(fees.dldFull)} />
                 <View className="my-2 h-px bg-hairline/60" />
                 <FeeRow label="Total" value={formatAed(fees.total)} bold />
-                <Text className="mt-2 text-[11px] leading-4 text-graphiteLight">In the real world you’d also pay these fees. The DLD’s 2% is the tokenization-pilot rate (normally 4%). This demo only moves the share amount.</Text>
+                <Text className="mt-2 text-[11px] leading-4 text-graphiteLight">These are the costs on a real purchase. The DLD’s 2% is the tokenization rate (normally 4%).</Text>
               </View>
 
               <Text className="pt-4 text-[15px] font-semibold text-ink">Your <Term k="distribution">rent payouts</Term></Text>
@@ -331,7 +329,7 @@ export default function ShareDetailScreen() {
             </>
           )}
         </View>
-        <Text className="mt-1.5 text-center text-[10.5px] text-graphiteLight">{formatAed(price)} per share · demo, no real money</Text>
+        <Text className="mt-1.5 text-center text-[10.5px] text-graphiteLight">{formatAed(price)} per share</Text>
       </View>
     </View>
   );

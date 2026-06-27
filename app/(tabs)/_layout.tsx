@@ -9,7 +9,8 @@ export default function TabsLayout() {
       screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: '#ffffff' } }}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="trending" />
+      {/* Trending hidden for now — off-plan lives as a tab on the home feed. */}
+      <Tabs.Screen name="trending" options={{ href: null }} />
       <Tabs.Screen name="search" />
       <Tabs.Screen name="map" />
       {/* 6th tab — tokenized real-estate. Hidden entirely when the flag is off. */}

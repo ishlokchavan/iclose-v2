@@ -162,7 +162,7 @@ export default function SecondaryMarket() {
         )}
 
         <Text className="px-5 pt-5 text-center text-[11px] leading-4 text-graphiteLight">
-          Peer-to-peer resale at a price you set — a demonstration of on-platform liquidity. No real funds move.
+          Sell your shares to other investors at a price you set — liquidity whenever you need it.
         </Text>
       </ScrollView>
     </View>

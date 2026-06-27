@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { Text, Pressable, Modal, View } from 'react-native';
 import { X, HelpCircle } from 'lucide-react-native';
 import { colors } from '@/theme/tokens';
@@ -16,36 +16,49 @@ export const GLOSSARY: Record<string, { title: string; body: string }> = {
   kyc: { title: 'Verification (KYC)', body: 'A quick identity check that regulated platforms must do before you invest. Takes under a minute.' },
 };
 
+type Entry = { title: string; body: string };
+const Ctx = createContext<{ show: (k: string) => void }>({ show: () => {} });
+
 /**
- * Inline term with a dotted underline + help dot. Tap to read a one-sentence,
- * plain-English explanation. Self-contained (own modal), so it can be dropped
- * anywhere text appears.
+ * Hosts a single glossary popover at the tree root. Lifting the modal out of the
+ * inline <Term> is essential — a <Modal> nested inside a <Text> breaks layout.
  */
-export function Term({ k, children }: { k: keyof typeof GLOSSARY | string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const entry = GLOSSARY[k];
-  if (!entry) return <>{children}</>;
+export function GlossaryProvider({ children }: { children: React.ReactNode }) {
+  const [entry, setEntry] = useState<Entry | null>(null);
   return (
-    <>
-      <Text onPress={() => setOpen(true)} className="font-medium text-accent" style={{ textDecorationLine: 'underline', textDecorationStyle: 'dotted' }}>
-        {children}
-      </Text>
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable onPress={() => setOpen(false)} className="flex-1 justify-end bg-black/40">
+    <Ctx.Provider value={{ show: (k) => { const e = GLOSSARY[k]; if (e) setEntry(e); } }}>
+      {children}
+      <Modal visible={!!entry} transparent animationType="fade" onRequestClose={() => setEntry(null)} statusBarTranslucent>
+        <Pressable onPress={() => setEntry(null)} className="flex-1 justify-end bg-black/40">
           <Pressable onPress={(e) => e.stopPropagation()} className="rounded-t-[28px] bg-white px-5 pb-10 pt-5">
             <View className="mb-3 flex-row items-center justify-between">
               <View className="flex-row items-center gap-2">
                 <HelpCircle size={18} color={colors.accent} />
-                <Text className="text-[17px] font-semibold text-ink">{entry.title}</Text>
+                <Text className="text-[17px] font-semibold text-ink">{entry?.title}</Text>
               </View>
-              <Pressable onPress={() => setOpen(false)} className="h-9 w-9 items-center justify-center rounded-full bg-black/5">
+              <Pressable onPress={() => setEntry(null)} className="h-9 w-9 items-center justify-center rounded-full bg-black/5">
                 <X size={18} color={colors.ink} />
               </Pressable>
             </View>
-            <Text className="text-[14.5px] leading-6 text-graphite">{entry.body}</Text>
+            <Text className="text-[14.5px] leading-6 text-graphite">{entry?.body}</Text>
           </Pressable>
         </Pressable>
       </Modal>
-    </>
+    </Ctx.Provider>
+  );
+}
+
+/**
+ * Inline term with a dotted underline. Tap to read a one-sentence, plain-English
+ * explanation. Renders ONLY a <Text> (modal lives in the provider) so it's safe
+ * to drop inside any text flow.
+ */
+export function Term({ k, children }: { k: keyof typeof GLOSSARY | string; children: React.ReactNode }) {
+  const { show } = useContext(Ctx);
+  if (!GLOSSARY[k]) return <>{children}</>;
+  return (
+    <Text onPress={() => show(k)} className="font-medium text-accent" style={{ textDecorationLine: 'underline', textDecorationStyle: 'dotted' }}>
+      {children}
+    </Text>
   );
 }

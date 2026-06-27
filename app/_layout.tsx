@@ -9,13 +9,16 @@ import { ExperienceProvider } from '@/store/experience';
 import { SavedProvider } from '@/store/saved';
 import { SignalStoreProvider } from '@/store/signals';
 import { SharesProvider } from '@/store/shares';
+import { GlossaryProvider } from '@/components/Term';
 import { FEATURES } from '@/lib/features';
 import { IntroStory } from '@/components/IntroStory';
 import { TastePicker } from '@/components/TastePicker';
 
-/** Mount the Shares store only when the module is enabled (zero overhead off). */
+/** Mount the Shares store + glossary only when the module is enabled. */
 function WithShares({ children }: { children: React.ReactNode }) {
-  return FEATURES.shares ? <SharesProvider>{children}</SharesProvider> : <>{children}</>;
+  return FEATURES.shares
+    ? <SharesProvider><GlossaryProvider>{children}</GlossaryProvider></SharesProvider>
+    : <>{children}</>;
 }
 
 SplashScreen.preventAutoHideAsync().catch(() => {});

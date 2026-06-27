@@ -144,7 +144,7 @@ export default function InvestModal() {
           {mode === 'buy' ? <Row label="Minimum purchase" value={`${asset.minTokens} share · ${formatAed(unit * asset.minTokens)}`} /> : null}
           <View className="my-2 h-px bg-hairline/60" />
           <Row label={mode === 'buy' ? 'Payment amount' : 'You receive'} value={formatAed(cost)} bold />
-          <Row label="Platform fee" value="AED 0 (demo)" />
+          <Row label="Platform fee" value="AED 0" />
           {mode === 'buy' ? <Row label="Est. annual rent" value={formatAed(annualRent)} accent /> : null}
           {mode === 'buy' ? <Row label="Est. monthly income" value={formatAed(projected)} /> : null}
           <View className="my-2 h-px bg-hairline/60" />
@@ -157,7 +157,7 @@ export default function InvestModal() {
 
         {tooPoor ? (
           <Pressable onPress={() => router.push('/shares/wallet')} className="mt-3 items-center rounded-2xl border border-amber-300/70 bg-amber-50/80 py-3">
-            <Text className="text-[13px] font-medium text-amber-800">Not enough balance — add demo funds</Text>
+            <Text className="text-[13px] font-medium text-amber-800">Not enough balance — add funds</Text>
           </Pressable>
         ) : null}
         {tooMany ? (
@@ -181,7 +181,7 @@ export default function InvestModal() {
           )}
         </Pressable>
         <Text className="mt-2 text-center text-[10.5px] text-graphiteLight">
-          Demonstration — no real money or securities change hands.
+          Secured by a DLD-registered title held in custody.
         </Text>
       </View>
     </View>

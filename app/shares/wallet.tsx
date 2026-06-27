@@ -42,7 +42,7 @@ export default function WalletModal() {
         <GlassBg />
         <Closer insets={insets} />
         <View className="flex-1 items-center justify-center px-6">
-          <Text className="text-center text-[15px] text-graphite">Sign in to open your demo wallet.</Text>
+          <Text className="text-center text-[15px] text-graphite">Sign in to open your wallet.</Text>
           <Pressable onPress={() => { router.back(); router.push('/(tabs)/profile'); }} className="mt-4 rounded-full bg-accent px-5 py-3">
             <Text className="font-semibold text-white">Go to sign in</Text>
           </Pressable>
@@ -55,7 +55,7 @@ export default function WalletModal() {
     <View className="flex-1">
       <GlassBg />
       <View style={{ paddingTop: insets.top + 8 }} className="flex-row items-center justify-between px-4">
-        <Text className="text-[18px] font-semibold text-ink">Demo wallet</Text>
+        <Text className="text-[18px] font-semibold text-ink">Wallet</Text>
         <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-black/5">
           <X size={20} color={colors.ink} />
         </Pressable>
@@ -84,7 +84,7 @@ export default function WalletModal() {
         </View>
 
         {/* Add funds */}
-        <Text className="mb-2 mt-5 text-[13px] font-semibold text-ink">Add demo funds</Text>
+        <Text className="mb-2 mt-5 text-[13px] font-semibold text-ink">Add funds</Text>
         <View className="flex-row gap-2.5">
           {[10000, 50000, 100000].map((amt) => (
             <Pressable key={amt} disabled={busy} onPress={() => topUp(amt)}
