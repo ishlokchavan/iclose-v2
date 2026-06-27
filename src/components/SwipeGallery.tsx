@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Pressable, FlatList, Dimensions } from 'react-native';
+import { View, Text, Pressable, FlatList, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
-import * as WebBrowser from 'expo-web-browser';
-import { Play, Volume2, VolumeX } from 'lucide-react-native';
+import { Play } from 'lucide-react-native';
 
 type Slide = { type: 'image' | 'video'; uri: string; poster: string };
 
@@ -11,7 +10,7 @@ const { width: SCREEN_W } = Dimensions.get('window');
 /**
  * Optional inline-video module (expo-video). Loaded defensively because it isn't
  * present in some runtimes (e.g. Expo Go); when missing, video slides show the
- * poster and open the tour in the system browser on tap.
+ * poster.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let VideoMod: any = null;
@@ -23,7 +22,7 @@ try {
 }
 const HAS_VIDEO = Boolean(VideoMod?.useVideoPlayer && VideoMod?.VideoView);
 
-/** Horizontal photo/video gallery — mirrors the web SwipeGallery. */
+/** Horizontal photo/video gallery. Single tap = onTap, double tap = onDoubleTap. */
 export function SwipeGallery({
   images,
   videos,
@@ -31,7 +30,10 @@ export function SwipeGallery({
   height,
   indicator = 'bars',
   onDoubleTap,
+  onTap,
   contentFit = 'cover',
+  playing = true,
+  indicatorTop = 14,
 }: {
   images: string[];
   videos?: string[];
@@ -39,7 +41,10 @@ export function SwipeGallery({
   height: number;
   indicator?: 'bars' | 'dots';
   onDoubleTap?: () => void;
+  onTap?: () => void;
   contentFit?: 'cover' | 'contain';
+  playing?: boolean;
+  indicatorTop?: number;
 }) {
   const poster = images[0];
   const slides: Slide[] = [
@@ -47,13 +52,23 @@ export function SwipeGallery({
     ...images.map((uri) => ({ type: 'image' as const, uri, poster: uri })),
   ];
   const [index, setIndex] = useState(0);
-  const lastTap = useRef(0);
 
-  function doubleTap() {
+  // Shared single/double-tap discrimination for every slide.
+  const lastTap = useRef(0);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function handlePress() {
     const now = Date.now();
-    if (now - lastTap.current < 280) { onDoubleTap?.(); lastTap.current = 0; }
-    else lastTap.current = now;
+    if (now - lastTap.current < 280) {
+      if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+      lastTap.current = 0;
+      onDoubleTap?.();
+    } else {
+      lastTap.current = now;
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => { onTap?.(); timer.current = null; }, 280);
+    }
   }
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   return (
     <View style={{ width, height }}>
@@ -66,11 +81,14 @@ export function SwipeGallery({
         onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
         renderItem={({ item, index: i }) =>
           item.type === 'video' && HAS_VIDEO ? (
-            <VideoSlide uri={item.uri} poster={item.poster} width={width} height={height} contentFit={contentFit} active={i === index} onDoubleTap={doubleTap} />
+            <VideoSlide uri={item.uri} poster={item.poster} width={width} height={height} contentFit={contentFit} active={i === index && playing} onPress={handlePress} />
           ) : item.type === 'video' ? (
-            <PosterVideoSlide uri={item.uri} poster={item.poster} width={width} height={height} contentFit={contentFit} onDoubleTap={doubleTap} />
+            <Pressable onPress={handlePress} style={{ width, height }}>
+              <Image source={{ uri: item.poster }} style={{ width, height }} contentFit={contentFit} />
+              <View pointerEvents="none" style={StyleAbsCenter}><PlayBadge /></View>
+            </Pressable>
           ) : (
-            <Pressable onPress={doubleTap} style={{ width, height }}>
+            <Pressable onPress={handlePress} style={{ width, height }}>
               <Image source={{ uri: item.poster }} style={{ width, height }} contentFit={contentFit} transition={200} />
             </Pressable>
           )
@@ -78,35 +96,41 @@ export function SwipeGallery({
       />
 
       {slides.length > 1 ? (
-        <View pointerEvents="none" className="absolute left-0 right-0 flex-row items-center justify-center gap-1.5" style={{ top: 14 }}>
-          {slides.map((_, i) =>
-            indicator === 'bars' ? (
-              <View key={i} style={{ height: 3, width: 22, borderRadius: 2 }} className={i === index ? 'bg-white' : 'bg-white/40'} />
-            ) : (
-              <View key={i} style={{ height: 6, width: 6, borderRadius: 3 }} className={i === index ? 'bg-white' : 'bg-white/40'} />
-            ),
-          )}
-        </View>
+        <>
+          <View pointerEvents="none" className="absolute left-0 right-0 flex-row items-center justify-center gap-1.5" style={{ top: indicatorTop }}>
+            {slides.map((_, i) =>
+              indicator === 'bars' ? (
+                <View key={i} style={{ height: 3.5, width: 24, borderRadius: 2, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 2 }} className={i === index ? 'bg-white' : 'bg-white/45'} />
+              ) : (
+                <View key={i} style={{ height: 6, width: 6, borderRadius: 3 }} className={i === index ? 'bg-white' : 'bg-white/45'} />
+              ),
+            )}
+          </View>
+          {/* Visible "x / N" counter so people know there's more to swipe */}
+          <View pointerEvents="none" className="absolute right-3 rounded-full bg-black/45 px-2 py-0.5" style={{ top: indicatorTop - 3 }}>
+            <Text className="text-[11px] font-semibold text-white">{index + 1} / {slides.length}</Text>
+          </View>
+        </>
       ) : null}
     </View>
   );
 }
 
-/** Inline player (expo-video present). Muted + looping while in view; tap to mute/unmute. */
+/** Inline player. Autoplays with sound while it's the active slide of the active card. */
 function VideoSlide({
-  uri, poster, width, height, contentFit, active, onDoubleTap,
+  uri, poster, width, height, contentFit, active, onPress,
 }: {
   uri: string; poster: string; width: number; height: number;
-  contentFit: 'cover' | 'contain'; active: boolean; onDoubleTap: () => void;
+  contentFit: 'cover' | 'contain'; active: boolean; onPress: () => void;
 }) {
-  const [muted, setMuted] = useState(true);
   const [ready, setReady] = useState(false);
-  const lastTap = useRef(0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const player = VideoMod.useVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = true; });
+  const player = VideoMod.useVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = false; });
   const VideoView = VideoMod.VideoView;
 
-  useEffect(() => { if (active) player.play(); else player.pause(); }, [active, player]);
+  useEffect(() => {
+    if (active) { player.muted = false; player.play(); } else { player.pause(); }
+  }, [active, player]);
   useEffect(() => {
     const sub = player.addListener('statusChange', ({ status }: { status: string }) => {
       if (status === 'readyToPlay') setReady(true);
@@ -114,48 +138,11 @@ function VideoSlide({
     return () => sub.remove();
   }, [player]);
 
-  function tap() {
-    const now = Date.now();
-    if (now - lastTap.current < 280) { onDoubleTap(); lastTap.current = 0; return; }
-    lastTap.current = now;
-    const next = !muted;
-    setMuted(next);
-    player.muted = next;
-  }
-
   return (
-    <Pressable onPress={tap} style={{ width, height }}>
+    <Pressable onPress={onPress} style={{ width, height }}>
       {!ready ? <Image source={{ uri: poster }} style={{ position: 'absolute', width, height }} contentFit={contentFit} /> : null}
       <VideoView player={player} style={{ width, height }} contentFit={contentFit} nativeControls={false} />
-      {!ready ? (
-        <View pointerEvents="none" style={StyleAbsCenter}><PlayBadge /></View>
-      ) : (
-        <View pointerEvents="none" className="absolute bottom-4 right-4 h-9 w-9 items-center justify-center rounded-full bg-black/45">
-          {muted ? <VolumeX size={18} color="#fff" /> : <Volume2 size={18} color="#fff" />}
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
-/** Fallback (no expo-video): poster + play; opens the tour in the system browser. */
-function PosterVideoSlide({
-  uri, poster, width, height, contentFit, onDoubleTap,
-}: {
-  uri: string; poster: string; width: number; height: number;
-  contentFit: 'cover' | 'contain'; onDoubleTap: () => void;
-}) {
-  const lastTap = useRef(0);
-  function tap() {
-    const now = Date.now();
-    if (now - lastTap.current < 280) { onDoubleTap(); lastTap.current = 0; return; }
-    lastTap.current = now;
-    WebBrowser.openBrowserAsync(uri).catch(() => {});
-  }
-  return (
-    <Pressable onPress={tap} style={{ width, height }}>
-      <Image source={{ uri: poster }} style={{ width, height }} contentFit={contentFit} />
-      <View pointerEvents="none" style={StyleAbsCenter}><PlayBadge /></View>
+      {!ready ? <View pointerEvents="none" style={StyleAbsCenter}><PlayBadge /></View> : null}
     </Pressable>
   );
 }

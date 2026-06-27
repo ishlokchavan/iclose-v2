@@ -3,6 +3,7 @@ import { View, Text, FlatList, Dimensions, Pressable, RefreshControl, type ViewT
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Search, Heart } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { useExperience } from '@/store/experience';
 import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
@@ -66,7 +67,18 @@ export default function FeedScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listings]);
 
-  const data: Row[] = useMemo(() => [...ranked, END], [ranked]);
+  const [tab, setTab] = useState<'ready' | 'off_plan'>('ready');
+  const feed = useMemo(
+    () => ranked.filter((l) => (tab === 'ready' ? l.completion === 'ready' : l.completion === 'off_plan')),
+    [ranked, tab],
+  );
+  const data: Row[] = useMemo(() => [...feed, END], [feed]);
+
+  const switchTab = useCallback((t: 'ready' | 'off_plan') => {
+    setTab(t);
+    Haptics.selectionAsync();
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, []);
 
   if (!listings.length && loading) return <Loading />;
 
@@ -103,21 +115,29 @@ export default function FeedScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ffffff" />}
       />
 
-      {/* Header — wordmark + search (mirrors the web deck header) */}
-      <View style={{ position: 'absolute', top: insets.top + 4, left: 20, right: 16 }} className="flex-row items-center justify-between">
-        <Text className="text-xl font-bold text-white">iClose</Text>
-        <View className="flex-row gap-2">
-          <Pressable onPress={() => router.push('/search')} hitSlop={8} className="h-10 w-10 items-center justify-center rounded-full bg-black/30">
-            <Search size={20} color="#fff" />
+      {/* Center tabs — Ready / Off-plan (Instagram-style) */}
+      <View pointerEvents="box-none" style={{ position: 'absolute', top: insets.top + 8, left: 0, right: 0 }} className="flex-row items-center justify-center gap-6">
+        {(['ready', 'off_plan'] as const).map((t) => (
+          <Pressable key={t} onPress={() => switchTab(t)} hitSlop={10}>
+            <Text className={`text-[17px] ${tab === t ? 'font-bold text-white' : 'font-semibold text-white/50'}`}>
+              {t === 'ready' ? 'Ready' : 'Off-plan'}
+            </Text>
           </Pressable>
-          <Pressable onPress={() => router.push('/saved')} hitSlop={8} className="h-10 w-10 items-center justify-center rounded-full bg-black/30">
-            <Heart size={20} color="#fff" fill={saved.size ? '#ff4d6d' : 'transparent'} />
-          </Pressable>
-        </View>
+        ))}
+      </View>
+
+      {/* Right icons */}
+      <View style={{ position: 'absolute', top: insets.top + 4, right: 16 }} className="flex-row gap-2">
+        <Pressable onPress={() => router.push('/search')} hitSlop={8} className="h-10 w-10 items-center justify-center rounded-full bg-black/30">
+          <Search size={20} color="#fff" />
+        </Pressable>
+        <Pressable onPress={() => router.push('/saved')} hitSlop={8} className="h-10 w-10 items-center justify-center rounded-full bg-black/30">
+          <Heart size={20} color="#fff" fill={saved.size ? '#ff4d6d' : 'transparent'} />
+        </Pressable>
       </View>
 
       {/* Swipe-up hint on the first card */}
-      {ranked[0] && activeRefStr === ranked[0].reference ? (
+      {feed[0] && activeRefStr === feed[0].reference ? (
         <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 110 }} className="items-center">
           <View className="rounded-full bg-black/40 px-3.5 py-1.5"><Text className="text-xs font-medium text-white">Swipe up for the next home</Text></View>
         </View>

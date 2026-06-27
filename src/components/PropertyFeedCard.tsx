@@ -7,6 +7,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { SwipeGallery } from './SwipeGallery';
+import { LikeBurst } from './LikeBurst';
 import { formatAed, formatCredits } from '@/data/experience-data';
 import { deterministicReason } from '@/lib/explain';
 import { useSaved } from '@/store/saved';
@@ -37,11 +38,18 @@ function PropertyFeedCardImpl({
   const { track, getAffinity } = useSignals();
   const saved = isSaved(listing.reference);
   const [whyOpen, setWhyOpen] = useState(false);
+  const [burst, setBurst] = useState(0);
 
   function toggleSave() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!saved) track('save', listing);
     toggle(listing.reference);
+  }
+
+  // Double-tap: like (never un-likes) + heart pop, Instagram-style.
+  function onDoubleTap() {
+    if (!saved) toggleSave();
+    setBurst((b) => b + 1);
   }
 
   function openDetails() {
@@ -69,7 +77,10 @@ function PropertyFeedCardImpl({
         images={listing.images}
         videos={listing.videos}
         height={height}
-        onDoubleTap={() => { if (!saved) toggleSave(); }}
+        playing={active}
+        indicatorTop={topInset + 10}
+        onTap={openDetails}
+        onDoubleTap={onDoubleTap}
       />
 
       <LinearGradient
@@ -78,6 +89,8 @@ function PropertyFeedCardImpl({
         locations={[0, 0.22, 0.5, 1]}
         style={{ position: 'absolute', width: '100%', height: '100%' }}
       />
+
+      <LikeBurst trigger={burst} />
 
       {/* Top chips */}
       <View pointerEvents="none" style={{ position: 'absolute', top: topInset + 44, left: 16, right: 16 }} className="flex-row items-center gap-2">
