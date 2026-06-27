@@ -3,15 +3,16 @@ import { Home, Coins, TrendingUp } from 'lucide-react-native';
 import { AmountSlider } from '@/components/AmountSlider';
 import { Term } from '@/components/Term';
 import { outcomeFor, effectivePrice, formatAed } from '@/lib/shares';
-import { availableTokens } from '@/types/shares';
+import { availableTokens, minInvestmentAed } from '@/types/shares';
 import type { ShareAsset } from '@/types/shares';
 import { colors } from '@/theme/tokens';
 
-/** Sensible slider bounds for an offering. */
+/** Sensible slider bounds for an offering (floors at the minimum investment). */
 export function simulatorBounds(asset: ShareAsset) {
   const unit = effectivePrice(asset);
-  const cap = Math.min(100000, Math.max(unit * 10, availableTokens(asset) * unit));
-  return { min: unit, max: Math.max(unit, cap), step: unit };
+  const min = minInvestmentAed(asset);
+  const cap = Math.min(100000, Math.max(min * 20, availableTokens(asset) * unit));
+  return { min, max: Math.max(min, cap), step: unit };
 }
 
 /**

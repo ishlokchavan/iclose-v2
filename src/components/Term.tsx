@@ -5,7 +5,7 @@ import { colors } from '@/theme/tokens';
 
 /** Plain-English glossary — one friendly sentence per term, no jargon. */
 export const GLOSSARY: Record<string, { title: string; body: string }> = {
-  shares: { title: 'Property shares', body: 'A property is split into many small, equal pieces. Buy a few and you own that share of the home — just like owning part of it on paper.' },
+  shares: { title: 'Property shares', body: 'A property is split into many small, equal pieces — we create 1,000 shares for every square foot. So a 1,300 sq ft home has 1.3 million shares. Each share’s price is simply the property value divided by the number of shares.' },
   rent: { title: 'Monthly rent', body: 'The home is rented out. Each month the rent is split between everyone who owns a share — your cut lands in your wallet.' },
   yield: { title: 'Rental yield', body: 'How much rent you earn in a year compared with what you put in. A 7% yield means about AED 70 a year for every AED 1,000 invested.' },
   appreciation: { title: 'Value growth', body: 'If the property becomes worth more over time, your shares are worth more too. This is the “could be worth more later” part.' },

@@ -40,6 +40,7 @@ export default function RootLayout() {
                 <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#ffffff' } }}>
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="property/[reference]" options={{ presentation: 'card', animation: 'slide_from_right' }} />
+                  <Stack.Screen name="gallery/[reference]" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="developer/[slug]" options={{ presentation: 'card', animation: 'slide_from_right' }} />
                   <Stack.Screen name="launches" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="sell" options={{ presentation: 'modal' }} />

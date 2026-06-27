@@ -20,8 +20,9 @@ export default function InvestModal() {
 
   const initialTokens = mode === 'sell'
     ? Math.min(10, holding?.tokens ?? 1)
-    : Math.max(1, parseInt(String(tokensParam ?? ''), 10) || 20);
+    : Math.max(asset?.minTokens ?? 1, parseInt(String(tokensParam ?? ''), 10) || (asset ? Math.floor(5000 / effectivePrice(asset)) : 20));
   const [tokens, setTokens] = useState(initialTokens);
+  const step = asset ? Math.max(1, Math.round(50 / effectivePrice(asset))) : 10; // ~AED 50 per tap
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<{ hash: string; tokens: number; total: number } | null>(null);
@@ -115,14 +116,14 @@ export default function InvestModal() {
 
         {/* Stepper */}
         <View className="mt-5 flex-row items-center justify-between rounded-apple border border-white/60 bg-white/75 p-4">
-          <Pressable onPress={() => setTokens((n) => Math.max(1, n - 10))} className="h-11 w-11 items-center justify-center rounded-full bg-black/5">
+          <Pressable onPress={() => setTokens((n) => Math.max(mode === 'buy' ? asset.minTokens : 1, n - step))} className="h-11 w-11 items-center justify-center rounded-full bg-black/5">
             <Minus size={18} color={colors.ink} />
           </Pressable>
           <View className="items-center">
             <Text className="text-[28px] font-semibold text-ink">{tokens.toLocaleString()}</Text>
-            <Text className="text-[12px] text-graphite">shares</Text>
+            <Text className="text-[12px] text-graphite">shares · {formatAed(cost)}</Text>
           </View>
-          <Pressable onPress={() => setTokens((n) => n + 10)} className="h-11 w-11 items-center justify-center rounded-full bg-black/5">
+          <Pressable onPress={() => setTokens((n) => n + step)} className="h-11 w-11 items-center justify-center rounded-full bg-black/5">
             <Plus size={18} color={colors.ink} />
           </Pressable>
         </View>
@@ -130,7 +131,7 @@ export default function InvestModal() {
         <View className="mt-3 flex-row gap-2">
           {(mode === 'sell'
             ? [25, 50, 100].map((p) => ({ label: `${p}%`, val: Math.max(1, Math.floor((maxTokens * p) / 100)) }))
-            : [20, 50, 100, 200].map((q) => ({ label: String(q), val: q }))
+            : [500, 1000, 5000, 10000].map((amt) => ({ label: formatAed(amt, { compact: true }), val: Math.max(asset.minTokens, Math.floor(amt / unit)) }))
           ).map((c) => (
             <Pressable key={c.label} onPress={() => setTokens(c.val)} className="flex-1 items-center rounded-full border border-hairline/70 bg-white/70 py-2">
               <Text className="text-[12.5px] font-medium text-ink700">{c.label}</Text>
