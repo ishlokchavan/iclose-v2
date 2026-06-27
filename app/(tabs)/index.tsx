@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, FlatList, Dimensions, Pressable, RefreshControl, type ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { Search, Heart } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useExperience } from '@/store/experience';
@@ -25,6 +26,7 @@ export default function FeedScreen() {
   const { rank, track, seedVersion } = useSignals();
   const { refreshing, onRefresh } = usePullRefresh();
   const insets = useSafeAreaInsets();
+  const focused = useIsFocused();
   const listRef = useRef<FlatList<Row>>(null);
 
   const [ranked, setRanked] = useState<ExperienceListing[]>([]);
@@ -94,7 +96,7 @@ export default function FeedScreen() {
           ) : (
             <PropertyFeedCard
               listing={item}
-              active={item.reference === activeRefStr}
+              active={item.reference === activeRefStr && focused}
               tabBarSpace={insets.bottom + 96}
               topInset={insets.top}
               onPass={() => goNext(index)}
