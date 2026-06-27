@@ -37,7 +37,7 @@ const AnimatedGlass: any = GlassViewComp ? Animated.createAnimatedComponent(Glas
 const ICONS: Record<string, typeof House> = {
   index: House, trending: Compass, search: Search, map: MapPin, shares: Landmark,
 };
-const FILLABLE: Record<string, boolean> = { index: true, trending: false, search: false, map: true, shares: false };
+const FILLABLE: Record<string, boolean> = { index: true, trending: false, search: false, map: true, shares: true };
 
 const ITEM = 60;
 const CAP_W = 48;
@@ -152,9 +152,9 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
           return (
             <View key={route.key} style={{ width: ITEM, alignItems: 'center', justifyContent: 'center' }}>
               <Icon
-                size={25}
-                color={active ? colors.ink : colors.graphiteDark}
-                strokeWidth={active ? 2.4 : 1.9}
+                size={active ? 27 : 25}
+                color={active ? colors.ink : colors.graphiteLight}
+                strokeWidth={active ? 2.2 : 1.9}
                 fill={active && FILLABLE[route.name] ? colors.ink : 'transparent'}
               />
             </View>
@@ -180,7 +180,7 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
             {items}
           </GlassContainerComp>
         ) : (
-          <BlurView intensity={Platform.OS === 'android' ? 95 : 60} tint="systemChromeMaterialLight" style={[styles.fill, styles.glassBorder, { borderRadius: BAR_H / 2, overflow: 'hidden' }]}>
+          <BlurView intensity={Platform.OS === 'android' ? 100 : 80} tint="systemChromeMaterialLight" style={[styles.fill, styles.glassBorder, { borderRadius: BAR_H / 2, overflow: 'hidden' }]}>
             {capsule}
             {items}
           </BlurView>
@@ -192,8 +192,8 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
 
 const styles = StyleSheet.create({
   fill: { ...StyleSheet.absoluteFillObject },
-  shadow: { shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 14 },
-  glassBorder: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', backgroundColor: 'rgba(255,255,255,0.4)' },
+  shadow: { shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 24, shadowOffset: { width: 0, height: 10 }, elevation: 16 },
+  glassBorder: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.75)', backgroundColor: 'rgba(255,255,255,0.42)' },
   capsule: { position: 'absolute', top: (BAR_H - CAP_H) / 2, left: 0, width: CAP_W, height: CAP_H, borderRadius: CAP_H / 2 },
-  capsuleFallback: { backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' },
+  capsuleFallback: { backgroundColor: 'rgba(255,255,255,0.9)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.8)', shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
 });

@@ -1,8 +1,8 @@
-import { useCallback, useState } from 'react';
-import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { View, Text, ScrollView, Pressable, RefreshControl, TextInput, FlatList, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Landmark, Wallet, PieChart, ArrowUpRight } from 'lucide-react-native';
+import { Landmark, Wallet, PieChart, ArrowUpRight, Search, X } from 'lucide-react-native';
 import { useShares } from '@/store/shares';
 import { GlassBg } from '@/components/Glass';
 import { AssetCard, FilterChips, RegulatedNote } from '@/components/SharesUI';
@@ -10,13 +10,20 @@ import { SharesIntro } from '@/components/SharesIntro';
 import type { MarketFilter } from '@/components/SharesUI';
 import { formatAed } from '@/lib/shares';
 import { fundedPct } from '@/types/shares';
+import type { ShareAsset } from '@/types/shares';
 import { colors } from '@/theme/tokens';
+
+const { width: SCREEN_W } = Dimensions.get('window');
+const CARD_W = Math.round(SCREEN_W * 0.84);
+const GAP = 14;
 
 /** Shares — tokenized real-estate marketplace (the 6th tab). */
 export default function SharesScreen() {
   const s = useShares();
   const insets = useSafeAreaInsets();
   const [refreshing, setRefreshing] = useState(false);
+  const [filter, setFilter] = useState<MarketFilter>('all');
+  const [query, setQuery] = useState('');
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -24,23 +31,24 @@ export default function SharesScreen() {
   }, [s]);
 
   // Portfolio roll-up across the signed-in user's holdings.
-  const value = s.holdings.reduce((sum, h) => {
-    const a = s.byId(h.assetId); return sum + (a ? h.tokens * a.tokenPriceAed : 0);
-  }, 0);
+  const value = s.holdings.reduce((sum, h) => { const a = s.byId(h.assetId); return sum + (a ? h.tokens * a.tokenPriceAed : 0); }, 0);
   const invested = s.holdings.reduce((sum, h) => sum + h.tokens * h.avgCostAed, 0);
-  const monthlyIncome = s.holdings.reduce((sum, h) => {
-    const a = s.byId(h.assetId);
-    return sum + (a ? (h.tokens * a.tokenPriceAed * a.grossYieldPct) / 100 / 12 : 0);
-  }, 0);
+  const monthlyIncome = s.holdings.reduce((sum, h) => { const a = s.byId(h.assetId); return sum + (a ? (h.tokens * a.tokenPriceAed * a.grossYieldPct) / 100 / 12 : 0); }, 0);
   const hasHoldings = s.holdings.length > 0;
 
-  const [filter, setFilter] = useState<MarketFilter>('all');
-  const list = s.assets.filter((a) => {
-    if (filter === 'funded') return a.status !== 'funding';
-    if (filter === 'off_plan') return a.completion === 'off_plan';
-    if (filter === 'new') return a.status === 'funding' && fundedPct(a) < 40;
-    return a.status === 'funding';
-  });
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return s.assets.filter((a) => {
+      const passFilter =
+        filter === 'funded' ? a.status !== 'funding'
+        : filter === 'off_plan' ? a.completion === 'off_plan'
+        : filter === 'new' ? a.status === 'funding' && fundedPct(a) < 40
+        : a.status === 'funding';
+      if (!passFilter) return false;
+      if (!q) return true;
+      return [a.name, a.community, a.city, a.symbol].filter(Boolean).join(' ').toLowerCase().includes(q);
+    });
+  }, [s.assets, filter, query]);
 
   return (
     <View className="flex-1">
@@ -93,20 +101,63 @@ export default function SharesScreen() {
           </Pressable>
         ) : null}
 
-        {/* Filter + feed */}
-        <FilterChips value={filter} onChange={setFilter} />
-        <View className="gap-3 px-4 pt-3">
-          {list.map((a) => <AssetCard key={a.symbol} asset={a} />)}
-          {!list.length ? (
-            <Text className="py-12 text-center text-sm text-graphite">Nothing here right now — try another filter.</Text>
-          ) : null}
+        {/* Search */}
+        <View className="mx-4 mt-3 flex-row items-center gap-2 rounded-full border border-white/60 bg-white/75 px-4 py-2.5">
+          <Search size={18} color={colors.graphite} />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search by area or property"
+            placeholderTextColor={colors.graphiteLight}
+            className="flex-1 text-[15px] text-ink"
+          />
+          {query ? <Pressable onPress={() => setQuery('')} hitSlop={8}><X size={16} color={colors.graphite} /></Pressable> : null}
         </View>
+
+        {/* Filters */}
+        <FilterChips value={filter} onChange={setFilter} />
+
+        {/* Swipeable card carousel */}
+        {filtered.length ? (
+          <Carousel data={filtered} />
+        ) : (
+          <Text className="py-12 text-center text-sm text-graphite">No homes match — try another search or filter.</Text>
+        )}
 
         <RegulatedNote />
       </ScrollView>
 
       {/* First-run explainer (shown once) */}
       <SharesIntro />
+    </View>
+  );
+}
+
+/** Horizontal snap carousel of offering cards with page dots. */
+function Carousel({ data }: { data: ShareAsset[] }) {
+  const [page, setPage] = useState(0);
+  const active = Math.min(page, data.length - 1);
+  return (
+    <View className="pt-3">
+      <FlatList
+        data={data}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(a) => a.symbol}
+        snapToInterval={CARD_W + GAP}
+        decelerationRate="fast"
+        snapToAlignment="start"
+        contentContainerStyle={{ paddingHorizontal: 16, gap: GAP }}
+        onMomentumScrollEnd={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / (CARD_W + GAP)))}
+        renderItem={({ item }) => <View style={{ width: CARD_W }}><AssetCard asset={item} /></View>}
+      />
+      {data.length > 1 ? (
+        <View className="mt-3 flex-row items-center justify-center gap-1.5">
+          {data.map((_, i) => (
+            <View key={i} style={{ height: 6, width: i === active ? 16 : 6, borderRadius: 3 }} className={i === active ? 'bg-accent' : 'bg-black/15'} />
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }
