@@ -79,7 +79,7 @@ function PropertyFeedCardImpl({
         videos={listing.videos}
         height={height}
         playing={active}
-        indicatorTop={topInset + 10}
+        indicatorTop={topInset + 52}
         onTap={openDetails}
         onDoubleTap={onDoubleTap}
       />

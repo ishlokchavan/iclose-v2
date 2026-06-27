@@ -117,6 +117,11 @@ export default function FeedScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ffffff" />}
       />
 
+      {/* Wordmark */}
+      <View pointerEvents="none" style={{ position: 'absolute', top: insets.top + 8, left: 20 }}>
+        <Text className="text-xl font-bold text-white">iClose</Text>
+      </View>
+
       {/* Center tabs — Ready / Off-plan (Instagram-style) */}
       <View pointerEvents="box-none" style={{ position: 'absolute', top: insets.top + 8, left: 0, right: 0 }} className="flex-row items-center justify-center gap-6">
         {(['ready', 'off_plan'] as const).map((t) => (
