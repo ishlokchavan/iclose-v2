@@ -52,6 +52,7 @@ const config: ExpoConfig = {
     'expo-router',
     'expo-secure-store',
     'expo-video',
+    ['expo-image-picker', { photosPermission: 'iClose needs access to your photos so you can add them to your property listing.' }],
     ['expo-splash-screen', { backgroundColor: '#ffffff', image: './assets/splash.png', resizeMode: 'contain' }],
   ],
   experiments: { typedRoutes: true },
