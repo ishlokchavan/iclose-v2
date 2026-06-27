@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ChevronLeft, FileText, ShieldCheck, Landmark, Boxes, Bed, Bath, Maximize2,
   Sparkles, ArrowLeftRight, Coins, ExternalLink, ShoppingCart,
-  FileCheck2, CalendarCheck, Images as ImageIcon,
+  FileCheck2, CalendarCheck,
 } from 'lucide-react-native';
 import { useShares } from '@/store/shares';
 import { getListingByReference } from '@/lib/listings';
@@ -91,7 +91,9 @@ export default function ShareDetailScreen() {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}>
         {/* Cover */}
         <View className="relative">
-          <Image source={{ uri: asset.coverImageUrl ?? undefined }} style={{ width: '100%', height: 260 }} contentFit="cover" />
+          <Pressable onPress={() => { if (asset.listingReference) router.push(`/gallery/${asset.listingReference}`); }}>
+            <Image source={{ uri: asset.coverImageUrl ?? undefined }} style={{ width: '100%', height: 260 }} contentFit="cover" />
+          </Pressable>
           <Pressable onPress={() => router.back()} style={{ top: insets.top + 8 }}
             className="absolute left-4 h-10 w-10 items-center justify-center rounded-full bg-black/40">
             <ChevronLeft size={22} color="#fff" />
@@ -100,12 +102,6 @@ export default function ShareDetailScreen() {
             <View className="rounded-full bg-black/45 px-2.5 py-1"><Text className="text-[11px] font-semibold tracking-wide text-white">{asset.symbol}</Text></View>
             {asset.discountPct > 0 ? <DiscountBadge pct={asset.discountPct} /> : null}
           </View>
-          {asset.listingReference ? (
-            <Pressable onPress={() => router.push(`/gallery/${asset.listingReference}`)} className="absolute bottom-3 right-4 flex-row items-center gap-1.5 rounded-full bg-black/45 px-3 py-1.5">
-              <ImageIcon size={15} color="#fff" />
-              <Text className="text-[12.5px] font-semibold text-white">View gallery</Text>
-            </Pressable>
-          ) : null}
         </View>
 
         <View className="px-4 pt-4">

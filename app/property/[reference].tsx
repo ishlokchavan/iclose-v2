@@ -6,7 +6,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
   ChevronLeft, ChevronRight, Heart, Share2, BedDouble, Bath, Maximize, MapPin, BadgeCheck,
-  CalendarClock, Wallet, Building2, Navigation, Coins, Phone, Sparkles, Images as ImageIcon,
+  CalendarClock, Wallet, Building2, Navigation, Coins, Phone, Sparkles,
 } from 'lucide-react-native';
 import { Share } from 'react-native';
 import { WhatsAppIcon } from '@/components/icons/WhatsApp';
@@ -82,6 +82,7 @@ export default function PropertyScreen() {
             videos={listing.videos}
             height={width * 1.05}
             indicator="dots"
+            onTap={() => router.push(`/gallery/${listing.reference}`)}
             onDoubleTap={() => { if (!saved) toggleSave(); }}
           />
           <Pressable onPress={() => router.back()} style={{ top: insets.top + 8 }}
@@ -98,12 +99,6 @@ export default function PropertyScreen() {
               <Heart size={20} color="#fff" fill={saved ? '#fff' : 'transparent'} />
             </Pressable>
           </View>
-          {listing.images.length > 1 ? (
-            <Pressable onPress={() => router.push(`/gallery/${listing.reference}`)} className="absolute bottom-3 right-4 flex-row items-center gap-1.5 rounded-full bg-black/45 px-3 py-1.5">
-              <ImageIcon size={15} color="#fff" />
-              <Text className="text-[12.5px] font-semibold text-white">View gallery</Text>
-            </Pressable>
-          ) : null}
         </View>
 
         <View className="gap-4 px-5 pt-5">
