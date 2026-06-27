@@ -11,14 +11,17 @@ import { availableTokens } from '@/types/shares';
 import { colors } from '@/theme/tokens';
 
 export default function InvestModal() {
-  const { symbol, mode: modeParam } = useLocalSearchParams<{ symbol: string; mode?: string }>();
+  const { symbol, mode: modeParam, tokens: tokensParam } = useLocalSearchParams<{ symbol: string; mode?: string; tokens?: string }>();
   const mode: 'buy' | 'sell' = modeParam === 'sell' ? 'sell' : 'buy';
   const s = useShares();
   const insets = useSafeAreaInsets();
   const asset = s.bySymbol(String(symbol));
   const holding = asset ? s.holdingFor(asset.id) : undefined;
 
-  const [tokens, setTokens] = useState(mode === 'sell' ? Math.min(10, holding?.tokens ?? 1) : 20);
+  const initialTokens = mode === 'sell'
+    ? Math.min(10, holding?.tokens ?? 1)
+    : Math.max(1, parseInt(String(tokensParam ?? ''), 10) || 20);
+  const [tokens, setTokens] = useState(initialTokens);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<{ hash: string; tokens: number; total: number } | null>(null);

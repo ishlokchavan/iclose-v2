@@ -2,10 +2,11 @@ import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, Pressable, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Landmark, Wallet, PieChart, ArrowUpRight, LogIn } from 'lucide-react-native';
+import { Landmark, Wallet, PieChart, ArrowUpRight } from 'lucide-react-native';
 import { useShares } from '@/store/shares';
 import { GlassBg } from '@/components/Glass';
 import { DemoBanner, AssetCard, FilterChips, RegulatedNote } from '@/components/SharesUI';
+import { SharesIntro } from '@/components/SharesIntro';
 import type { MarketFilter } from '@/components/SharesUI';
 import { formatAed } from '@/lib/shares';
 import { fundedPct } from '@/types/shares';
@@ -60,7 +61,7 @@ export default function SharesScreen() {
 
         <DemoBanner compact />
 
-        {/* Wallet + portfolio strip */}
+        {/* Portfolio strip — signed-in only */}
         {s.signedIn ? (
           <Pressable
             onPress={() => router.push('/shares/portfolio')}
@@ -92,22 +93,7 @@ export default function SharesScreen() {
               </View>
             </View>
           </Pressable>
-        ) : (
-          <Pressable
-            onPress={() => router.push('/(tabs)/profile')}
-            className="mx-4 mt-3 flex-row items-center justify-between rounded-apple border border-white/60 bg-white/80 p-4"
-            style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-          >
-            <View className="flex-1 pr-3">
-              <Text className="text-[15px] font-semibold text-ink">Sign in to invest</Text>
-              <Text className="mt-0.5 text-[12.5px] text-graphite">Free demo wallet — {formatAed(100000, { compact: true })} to explore.</Text>
-            </View>
-            <View className="flex-row items-center gap-1 rounded-full bg-accent px-3.5 py-2">
-              <LogIn size={14} color="#fff" />
-              <Text className="text-[13px] font-semibold text-white">Sign in</Text>
-            </View>
-          </Pressable>
-        )}
+        ) : null}
 
         {/* Filter + feed */}
         <FilterChips value={filter} onChange={setFilter} />
@@ -120,6 +106,9 @@ export default function SharesScreen() {
 
         <RegulatedNote />
       </ScrollView>
+
+      {/* First-run explainer (shown once) */}
+      <SharesIntro />
     </View>
   );
 }

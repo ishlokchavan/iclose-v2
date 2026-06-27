@@ -229,6 +229,36 @@ export const projectedAnnualIncome = (a: ShareAsset, tokens: number) =>
 export const effectivePrice = (a: ShareAsset) =>
   a.discountPct > 0 ? Math.round(a.tokenPriceAed * (1 - a.discountPct / 100) * 100) / 100 : a.tokenPriceAed;
 
+export interface Outcome {
+  tokens: number;
+  amount: number;        // actual amount put in (tokens × effective price)
+  monthly: number;       // net rent per month
+  yearly: number;        // net rent per year
+  fiveYearValue: number; // capital value after 5 years of appreciation
+  fiveYearRent: number;  // total rent collected over 5 years
+  stakePct: number;      // your share of the whole property
+}
+
+/**
+ * Outcome-first math: turn "how much money" into the plain things people care
+ * about — monthly rent, yearly rent, and what the slice could be worth later.
+ */
+export function outcomeFor(asset: ShareAsset, amount: number): Outcome {
+  const unit = effectivePrice(asset);
+  const tokens = Math.max(0, Math.floor(amount / unit));
+  const actual = tokens * unit;
+  const yearly = (actual * asset.netYieldPct) / 100;
+  return {
+    tokens,
+    amount: actual,
+    monthly: yearly / 12,
+    yearly,
+    fiveYearValue: actual * Math.pow(1 + asset.appreciationPct / 100, 5),
+    fiveYearRent: yearly * 5,
+    stakePct: asset.propertyValueAed > 0 ? (actual / asset.propertyValueAed) * 100 : 0,
+  };
+}
+
 /**
  * Illustrative real-world cost breakdown for an investment (purchase costs,
  * platform fee, and the DLD transfer fee at the tokenization-pilot 2% vs the

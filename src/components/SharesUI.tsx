@@ -5,7 +5,7 @@ import {
   ShieldCheck, Landmark, BadgeCheck, Building2, Info, TrendingUp, BadgePercent,
 } from 'lucide-react-native';
 import { colors } from '@/theme/tokens';
-import { formatAed } from '@/lib/shares';
+import { formatAed, outcomeFor } from '@/lib/shares';
 import { availableTokens, fundedPct, minInvestmentAed } from '@/types/shares';
 import type { ShareAsset } from '@/types/shares';
 
@@ -128,8 +128,9 @@ export function FilterChips({ value, onChange }: { value: MarketFilter; onChange
   );
 }
 
-/** Clean offering card — photo, name, funding, then "From price" + yield. */
+/** Clean offering card — photo, name, funding, then "From price" + earnings teaser. */
 export function AssetCard({ asset }: { asset: ShareAsset }) {
+  const teaser = outcomeFor(asset, 5000); // "what AED 5,000 earns" — outcome-first
   return (
     <Pressable
       onPress={() => router.push(`/shares/${asset.symbol}`)}
@@ -153,12 +154,15 @@ export function AssetCard({ asset }: { asset: ShareAsset }) {
 
         <View className="mt-3"><FundingBar asset={asset} /></View>
 
-        <View className="mt-3.5 flex-row items-center justify-between border-t border-hairline/60 pt-3">
+        <View className="mt-3.5 flex-row items-end justify-between border-t border-hairline/60 pt-3">
           <View>
             <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">From</Text>
             <Text className="text-[16px] font-semibold text-ink">{formatAed(minInvestmentAed(asset))}</Text>
           </View>
-          <YieldChip asset={asset} />
+          <View className="items-end">
+            <Text className="text-[15px] font-semibold text-emerald-700">~{formatAed(Math.round(teaser.monthly))}/mo</Text>
+            <Text className="text-[10.5px] text-graphiteLight">rent on {formatAed(5000, { compact: true })}</Text>
+          </View>
         </View>
       </View>
     </Pressable>

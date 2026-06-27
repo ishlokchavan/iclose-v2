@@ -41,7 +41,7 @@ export default function PortfolioScreen() {
       const amt = Number(total) || 0;
       await s.refreshUser();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      setClaimMsg(amt > 0 ? `${formatAed(amt)} rental income added to your wallet.` : 'No new rental income to claim right now.');
+      setClaimMsg(amt > 0 ? `🎉 Your rent is in! +${formatAed(amt)} added to your wallet.` : 'No new rent to collect just yet — check back next month.');
     } catch (e) {
       setClaimMsg(e instanceof Error ? e.message : 'Could not claim right now.');
     } finally { setClaiming(false); }
@@ -87,8 +87,8 @@ export default function PortfolioScreen() {
             {claiming ? <ActivityIndicator color="#059669" /> : <Gift size={18} color="#059669" />}
           </View>
           <View className="flex-1">
-            <Text className="text-[14px] font-semibold text-emerald-800">Claim rental income</Text>
-            <Text className="text-[12px] text-emerald-700">{claimMsg ?? 'Collect distributions from your shares'}</Text>
+            <Text className="text-[14px] font-semibold text-emerald-800">Collect your rent</Text>
+            <Text className="text-[12px] text-emerald-700">{claimMsg ?? 'Your share of the rent is waiting — tap to collect.'}</Text>
           </View>
           <ArrowUpRight size={18} color="#059669" />
         </Pressable>

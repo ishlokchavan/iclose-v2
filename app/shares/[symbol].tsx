@@ -1,20 +1,22 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Alert, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  ChevronLeft, Minus, Plus, FileText, ShieldCheck, Landmark, Boxes, Bed, Bath,
-  Maximize2, Sparkles, ArrowLeftRight, Coins, TrendingUp, ExternalLink,
-  ShoppingCart, FileCheck2, CalendarCheck,
+  ChevronLeft, FileText, ShieldCheck, Landmark, Boxes, Bed, Bath, Maximize2,
+  Sparkles, ArrowLeftRight, Coins, ExternalLink, ShoppingCart,
+  FileCheck2, CalendarCheck,
 } from 'lucide-react-native';
 import { useShares } from '@/store/shares';
 import { getListingByReference } from '@/lib/listings';
 import type { Listing } from '@/types/listing';
 import { GlassBg } from '@/components/Glass';
 import { DemoBanner, FundingBar, Metric, RegulatedNote, DiscountBadge } from '@/components/SharesUI';
-import { getAssetLedger, formatAed, shortHash, shortAddr, feeBreakdown } from '@/lib/shares';
-import { availableTokens, minInvestmentAed, discountedTokenPrice, marketUpliftPct } from '@/types/shares';
+import { OutcomeSimulator } from '@/components/OutcomeSimulator';
+import { Term } from '@/components/Term';
+import { getAssetLedger, formatAed, shortHash, shortAddr, feeBreakdown, outcomeFor } from '@/lib/shares';
+import { discountedTokenPrice, marketUpliftPct } from '@/types/shares';
 import type { ShareLedgerEntry } from '@/types/shares';
 import { colors } from '@/theme/tokens';
 
@@ -35,7 +37,7 @@ export default function ShareDetailScreen() {
   const dists = asset ? s.distributionsFor(asset.id) : [];
 
   const [tab, setTab] = useState<Tab>('overview');
-  const [tokens, setTokens] = useState(20);
+  const [amount, setAmount] = useState(5000);
   const [ledger, setLedger] = useState<ShareLedgerEntry[]>([]);
   const [listing, setListing] = useState<Listing | null>(null);
   const [descOpen, setDescOpen] = useState(false);
@@ -46,15 +48,6 @@ export default function ShareDetailScreen() {
   useEffect(() => {
     if (asset?.listingReference) getListingByReference(asset.listingReference).then(setListing);
   }, [asset?.listingReference]);
-
-  const calc = useMemo(() => {
-    if (!asset) return null;
-    const cost = tokens * asset.tokenPriceAed;
-    const annualNet = (cost * asset.netYieldPct) / 100;
-    const appreciation = (cost * asset.appreciationPct) / 100;
-    const totalYr = annualNet + appreciation;
-    return { cost, annualNet, monthlyNet: annualNet / 12, appreciation, totalYr, totalPct: cost > 0 ? (totalYr / cost) * 100 : 0 };
-  }, [asset, tokens]);
 
   if (!asset) {
     return (
@@ -70,12 +63,13 @@ export default function ShareDetailScreen() {
   const funded = asset.status !== 'funding';
   const price = discountedTokenPrice(asset);
   const uplift = marketUpliftPct(asset);
-  const fees = feeBreakdown(asset, tokens);
+  const sim = outcomeFor(asset, amount);
+  const fees = feeBreakdown(asset, sim.tokens);
 
-  const startInvest = (mode: 'buy' | 'sell') => {
+  const startInvest = () => {
     if (!s.signedIn) { router.push('/(tabs)/profile'); return; }
     if (s.wallet?.kycStatus !== 'verified') { router.push('/shares/kyc'); return; }
-    router.push(`/shares/invest?symbol=${asset.symbol}&mode=${mode}`);
+    router.push(`/shares/invest?symbol=${asset.symbol}&mode=buy&tokens=${Math.max(1, sim.tokens)}`);
   };
 
   const docRows = [
@@ -85,9 +79,9 @@ export default function ShareDetailScreen() {
     { icon: Boxes, title: 'Independent valuation report', sub: 'RICS-aligned' },
   ];
   const steps = [
-    { icon: ShoppingCart, title: 'Buy your shares', sub: `From ${formatAed(minInvestmentAed(asset))} — pick how many shares you want.` },
-    { icon: FileCheck2, title: 'Ownership recorded', sub: 'Your shares are minted to your wallet and the title is held by a licensed custodian.' },
-    { icon: CalendarCheck, title: 'Earn monthly rent', sub: 'Receive your share of rental income as distributions, plus any value growth.' },
+    { icon: ShoppingCart, title: 'Buy your shares', sub: 'Pick how much to put in — from AED 500. You get that share of the home.' },
+    { icon: FileCheck2, title: 'Ownership recorded', sub: 'Your shares land in your wallet; the title is safely held by a licensed custodian.' },
+    { icon: CalendarCheck, title: 'Earn monthly rent', sub: 'Collect your share of the rent each month, plus any growth in value.' },
   ];
   const amenities = listing?.amenities ?? [];
 
@@ -97,16 +91,13 @@ export default function ShareDetailScreen() {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}>
         {/* Cover */}
         <View className="relative">
-          <Image source={{ uri: asset.coverImageUrl ?? undefined }} style={{ width: '100%', height: 280 }} contentFit="cover" />
+          <Image source={{ uri: asset.coverImageUrl ?? undefined }} style={{ width: '100%', height: 260 }} contentFit="cover" />
           <Pressable onPress={() => router.back()} style={{ top: insets.top + 8 }}
             className="absolute left-4 h-10 w-10 items-center justify-center rounded-full bg-black/40">
             <ChevronLeft size={22} color="#fff" />
           </Pressable>
           <View className="absolute bottom-3 left-4 flex-row items-center gap-2">
             <View className="rounded-full bg-black/45 px-2.5 py-1"><Text className="text-[11px] font-semibold tracking-wide text-white">{asset.symbol}</Text></View>
-            <View className="flex-row items-center gap-1 rounded-full bg-emerald-600/90 px-2.5 py-1">
-              <TrendingUp size={12} color="#fff" /><Text className="text-[11px] font-semibold text-white">{asset.grossYieldPct.toFixed(1)}% gross yield</Text>
-            </View>
             {asset.discountPct > 0 ? <DiscountBadge pct={asset.discountPct} /> : null}
           </View>
         </View>
@@ -116,33 +107,35 @@ export default function ShareDetailScreen() {
           <Text className="text-[13.5px] text-graphite">{asset.community}, {asset.city}</Text>
         </View>
 
-        {/* Key metrics */}
-        <View className="mx-4 mt-3 flex-row gap-3 rounded-apple border border-white/60 bg-white/75 p-4">
-          <View className="flex-1">
-            <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">Share price</Text>
-            <View className="flex-row items-baseline gap-1.5">
-              <Text className="mt-0.5 text-[15px] font-semibold text-ink">{formatAed(price)}</Text>
-              {asset.discountPct > 0 ? <Text className="text-[11px] text-graphiteLight line-through">{formatAed(asset.tokenPriceAed)}</Text> : null}
+        {/* HERO — outcome simulator (or funded note) */}
+        <View className="mx-4 mt-3">
+          {!funded ? (
+            <OutcomeSimulator asset={asset} amount={amount} onAmountChange={setAmount} />
+          ) : (
+            <View className="rounded-apple border border-white/60 bg-white/80 p-4">
+              <Text className="text-[15px] font-semibold text-ink">This home is fully funded 🎉</Text>
+              <Text className="mt-1 text-[13px] leading-5 text-graphite">
+                All shares have been bought. You can still pick some up from other investors on the{' '}
+                <Term k="secondary">secondary market</Term>.
+              </Text>
             </View>
-          </View>
-          <Metric label="Min. invest" value={formatAed(minInvestmentAed(asset))} />
-          <Metric label="Appreciation" value={`${asset.appreciationPct.toFixed(0)}%/yr`} accent />
+          )}
         </View>
 
-        {/* Funding */}
+        {/* Funding snapshot */}
         <View className="mx-4 mt-3 rounded-apple border border-white/60 bg-white/75 p-4">
           <FundingBar asset={asset} />
           <View className="mt-3 flex-row gap-3 border-t border-hairline/60 pt-3">
-            <Metric label="Total shares" value={asset.totalTokens.toLocaleString()} />
+            <Metric label="Property value" value={formatAed(asset.propertyValueAed, { compact: true })} />
             <Metric label="Investors" value={asset.investorCount.toLocaleString()} />
-            <Metric label="Deadline" value={asset.fundingDeadline ?? '—'} />
+            <Metric label="Closes" value={asset.fundingDeadline ?? '—'} />
           </View>
         </View>
 
         {/* Your position */}
         {holding && holding.tokens > 0 ? (
           <View className="mx-4 mt-3 rounded-apple border border-accent/30 bg-accent/5 p-4">
-            <Text className="text-[12px] font-semibold uppercase tracking-wide text-accent">Your position</Text>
+            <Text className="text-[12px] font-semibold uppercase tracking-wide text-accent">You own</Text>
             <View className="mt-2 flex-row gap-3">
               <Metric label="Shares" value={holding.tokens.toLocaleString()} />
               <Metric label="Value" value={formatAed(holding.tokens * asset.tokenPriceAed)} />
@@ -170,14 +163,13 @@ export default function ShareDetailScreen() {
           {/* OVERVIEW */}
           {tab === 'overview' ? (
             <View className="gap-3">
-              {/* Market value uplift */}
               <View className="flex-row gap-3 rounded-apple border border-white/60 bg-white/75 p-4">
                 <View className="flex-1">
-                  <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">Tokenized value</Text>
+                  <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">You buy in at</Text>
                   <Text className="mt-0.5 text-[16px] font-semibold text-ink">{formatAed(asset.propertyValueAed, { compact: true })}</Text>
                 </View>
                 <View className="flex-1">
-                  <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">Market value</Text>
+                  <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">Today’s market value</Text>
                   <View className="flex-row items-baseline gap-1.5">
                     <Text className="mt-0.5 text-[16px] font-semibold text-ink">{formatAed(asset.marketValueAed ?? asset.propertyValueAed, { compact: true })}</Text>
                     {uplift > 0 ? <Text className="text-[12px] font-semibold text-emerald-700">+{uplift.toFixed(0)}%</Text> : null}
@@ -185,27 +177,23 @@ export default function ShareDetailScreen() {
                 </View>
               </View>
 
-              {/* Highlights */}
               <View className="gap-2">
                 {asset.highlights.map((h) => (
                   <View key={h} className="flex-row items-center gap-2 rounded-2xl border border-white/60 bg-white/70 px-3.5 py-3">
-                    <View className="h-1.5 w-1.5 rounded-full bg-accent" />
-                    <Text className="text-[14px] text-ink700">{h}</Text>
+                    <View className="h-1.5 w-1.5 rounded-full bg-accent" /><Text className="text-[14px] text-ink700">{h}</Text>
                   </View>
                 ))}
               </View>
 
               <Text className="text-[13.5px] leading-5 text-graphite">
-                {asset.name} is offered as {asset.totalTokens.toLocaleString()} digital shares of {formatAed(asset.tokenPriceAed)} each,
-                backed by a {asset.dldDeedRef ? 'DLD-tokenized' : 'registered'} title deed held by a licensed custodian. Shareholders
-                earn proportional rental income (paid as distributions) and any change in property value.
+                This home is split into {asset.totalTokens.toLocaleString()} equal <Term k="shares">shares</Term>. Buy as many as you like —
+                you’ll earn your slice of the <Term k="rent">rent</Term> each month and benefit from any <Term k="appreciation">growth</Term> in value.
               </Text>
 
-              {/* How it works */}
               <Text className="pt-2 text-[15px] font-semibold text-ink">How it works</Text>
               <View className="rounded-apple border border-white/60 bg-white/75 p-4">
                 {steps.map((st, i) => (
-                  <View key={st.title} className="flex-row gap-3" >
+                  <View key={st.title} className="flex-row gap-3">
                     <View className="items-center">
                       <View className="h-8 w-8 items-center justify-center rounded-full bg-accent/10"><st.icon size={16} color={colors.accent} /></View>
                       {i < steps.length - 1 ? <View className="my-1 w-px flex-1 bg-hairline" /> : null}
@@ -218,7 +206,6 @@ export default function ShareDetailScreen() {
                 ))}
               </View>
 
-              {/* Documents */}
               <Text className="pt-2 text-[15px] font-semibold text-ink">Documents</Text>
               <View className="gap-2.5">
                 {docRows.map((d) => (
@@ -275,60 +262,34 @@ export default function ShareDetailScreen() {
           ) : null}
 
           {/* FINANCIALS */}
-          {tab === 'financials' && calc ? (
+          {tab === 'financials' ? (
             <View>
-              {/* Calculator */}
-              <View className="rounded-apple border border-white/60 bg-white/75 p-4">
-                <Text className="text-[13px] font-semibold text-ink">Returns calculator</Text>
-                <View className="mt-3 flex-row items-center justify-between">
-                  <Pressable onPress={() => setTokens((n) => Math.max(asset.minTokens, n - 10))} className="h-10 w-10 items-center justify-center rounded-full bg-black/5"><Minus size={18} color={colors.ink} /></Pressable>
-                  <View className="items-center"><Text className="text-[24px] font-semibold text-ink">{tokens.toLocaleString()}</Text><Text className="text-[11px] text-graphite">shares · {formatAed(calc.cost)}</Text></View>
-                  <Pressable onPress={() => setTokens((n) => Math.min(availableTokens(asset) || n + 10, n + 10))} className="h-10 w-10 items-center justify-center rounded-full bg-black/5"><Plus size={18} color={colors.ink} /></Pressable>
-                </View>
-                <View className="mt-3 flex-row gap-2">
-                  {[10, 50, 100, 500].map((q) => (
-                    <Pressable key={q} onPress={() => setTokens(q)} className="flex-1 items-center rounded-full border border-hairline/70 bg-white/70 py-1.5"><Text className="text-[12px] font-medium text-ink700">{q}</Text></Pressable>
-                  ))}
-                </View>
-              </View>
+              <Text className="text-[13px] text-graphite">Based on <Text className="font-semibold text-ink">{formatAed(sim.amount)}</Text> from the slider above.</Text>
 
-              <View className="mt-3 rounded-apple border border-white/60 bg-white/75 p-4">
-                <View className="flex-row gap-3">
-                  <Metric label="Net rental / yr" value={formatAed(calc.annualNet)} />
-                  <Metric label="Monthly income" value={formatAed(calc.monthlyNet)} accent />
-                </View>
-                <View className="mt-3 flex-row gap-3 border-t border-hairline/60 pt-3">
-                  <Metric label="Appreciation / yr" value={formatAed(calc.appreciation)} />
-                  <Metric label="Est. total / yr" value={`${formatAed(calc.totalYr)} (${calc.totalPct.toFixed(1)}%)`} accent />
-                </View>
-                <Text className="mt-3 text-[11px] leading-4 text-graphiteLight">Illustrative. Net yield {asset.netYieldPct}% + appreciation {asset.appreciationPct}% p.a. Actual returns vary.</Text>
-              </View>
-
-              {/* Cost breakdown */}
-              <Text className="pt-4 text-[15px] font-semibold text-ink">Investment cost breakdown</Text>
+              <Text className="pt-3 text-[15px] font-semibold text-ink">What it costs (real-world)</Text>
               <View className="mt-2 rounded-apple border border-white/60 bg-white/75 p-4">
                 <FeeRow label="Share amount" value={formatAed(fees.amount)} />
                 <FeeRow label="Purchase costs (3%)" value={formatAed(fees.purchaseCosts)} />
                 <FeeRow label="iClose platform fee (1.5%)" value={formatAed(fees.platformFee)} />
                 <FeeRow label="DLD transfer fee (2%)" value={formatAed(fees.dldDiscounted)} strike={formatAed(fees.dldFull)} />
                 <View className="my-2 h-px bg-hairline/60" />
-                <FeeRow label="Total (real-world)" value={formatAed(fees.total)} bold />
-                <Text className="mt-2 text-[11px] leading-4 text-graphiteLight">Illustrative real-world costs. The DLD 2% reflects the tokenization-pilot rate (vs 4%). This demo debits only the share amount.</Text>
+                <FeeRow label="Total" value={formatAed(fees.total)} bold />
+                <Text className="mt-2 text-[11px] leading-4 text-graphiteLight">In the real world you’d also pay these fees. The DLD’s 2% is the tokenization-pilot rate (normally 4%). This demo only moves the share amount.</Text>
               </View>
 
-              {/* Distributions */}
+              <Text className="pt-4 text-[15px] font-semibold text-ink">Your <Term k="distribution">rent payouts</Term></Text>
               {dists.length ? (
-                <View className="mt-3 rounded-apple border border-white/60 bg-white/75 p-4">
-                  <Text className="text-[13px] font-semibold text-ink">Recent distributions</Text>
+                <View className="mt-2 rounded-apple border border-white/60 bg-white/75 p-4">
                   {dists.slice(0, 4).map((d) => (
-                    <View key={d.id} className="mt-2.5 flex-row items-center justify-between">
-                      <View className="flex-row items-center gap-2"><Coins size={14} color={colors.accent} /><Text className="text-[13px] text-ink700">{d.period} rental</Text></View>
-                      <Text className="text-[13px] font-medium text-ink">{formatAed(d.perTokenAed)}/share</Text>
+                    <View key={d.id} className="flex-row items-center justify-between py-1.5">
+                      <View className="flex-row items-center gap-2"><Coins size={14} color={colors.accent} /><Text className="text-[13px] text-ink700">{d.period}</Text></View>
+                      <Text className="text-[13px] font-medium text-ink">{formatAed(Math.round(d.perTokenAed * sim.tokens))}</Text>
                     </View>
                   ))}
+                  <Text className="mt-1.5 text-[11px] text-graphiteLight">What you’d have received on {sim.tokens.toLocaleString()} shares.</Text>
                 </View>
               ) : (
-                <Text className="mt-3 px-1 text-[12.5px] text-graphite">Off-plan — rental distributions begin after handover.</Text>
+                <Text className="mt-2 text-[12.5px] text-graphite">Off-plan — rent starts after the home is handed over.</Text>
               )}
             </View>
           ) : null}
@@ -340,10 +301,11 @@ export default function ShareDetailScreen() {
                 <Text className="text-[13px] font-semibold text-ink">On-chain activity</Text>
                 <Pressable onPress={() => router.push('/shares/ledger')} className="flex-row items-center gap-1"><Text className="text-[12.5px] font-medium text-accent">Full ledger</Text><ExternalLink size={13} color={colors.accent} /></Pressable>
               </View>
+              <Text className="mb-3 text-[12px] leading-4 text-graphite">Every purchase and rent payout is recorded as a tamper-proof entry — like a public receipt book anyone can check.</Text>
               {ledger.length ? ledger.map((e) => <LedgerRow key={e.txHash} e={e} />) : (
                 <View className="items-center rounded-apple border border-white/60 bg-white/70 py-8">
-                  <Text className="text-[13px] text-graphite">No on-chain activity yet.</Text>
-                  <Text className="text-[12px] text-graphiteLight">Be the first to invest in this property.</Text>
+                  <Text className="text-[13px] text-graphite">No activity yet.</Text>
+                  <Text className="text-[12px] text-graphiteLight">Be the first to invest in this home.</Text>
                 </View>
               )}
             </View>
@@ -353,26 +315,23 @@ export default function ShareDetailScreen() {
 
       {/* Sticky action bar */}
       <View style={{ paddingBottom: insets.bottom + 10 }} className="absolute inset-x-0 bottom-0 border-t border-hairline/50 bg-white/90 px-4 pt-2.5">
-        <View className="mb-2 flex-row items-center justify-between">
-          <Text className="text-[12px] text-graphite">Price / share <Text className="font-semibold text-ink">{formatAed(price)}</Text></Text>
-          {asset.discountPct > 0 ? <DiscountBadge pct={asset.discountPct} /> : null}
-        </View>
         <View className="flex-row gap-3">
           {funded ? (
             <Pressable onPress={() => router.push(`/shares/market?symbol=${asset.symbol}`)} className="flex-1 flex-row items-center justify-center gap-2 rounded-full bg-accent py-3.5">
-              <ArrowLeftRight size={17} color="#fff" /><Text className="text-[15px] font-semibold text-white">Trade on secondary market</Text>
+              <ArrowLeftRight size={17} color="#fff" /><Text className="text-[15px] font-semibold text-white">Buy from investors</Text>
             </Pressable>
           ) : (
             <>
               <Pressable onPress={() => router.push(`/shares/market?symbol=${asset.symbol}`)} className="flex-row items-center justify-center gap-1.5 rounded-full border border-hairline bg-white px-5 py-3.5">
                 <ArrowLeftRight size={16} color={colors.ink} /><Text className="text-[14px] font-semibold text-ink">Trade</Text>
               </Pressable>
-              <Pressable onPress={() => startInvest('buy')} className="flex-1 flex-row items-center justify-center gap-2 rounded-full bg-accent py-3.5">
-                <Coins size={17} color="#fff" /><Text className="text-[15px] font-semibold text-white">Invest now</Text>
+              <Pressable onPress={startInvest} className="flex-1 flex-row items-center justify-center gap-2 rounded-full bg-accent py-3.5">
+                <Coins size={17} color="#fff" /><Text className="text-[15px] font-semibold text-white">Invest {formatAed(sim.amount, { compact: true })}</Text>
               </Pressable>
             </>
           )}
         </View>
+        <Text className="mt-1.5 text-center text-[10.5px] text-graphiteLight">{formatAed(price)} per share · demo, no real money</Text>
       </View>
     </View>
   );
