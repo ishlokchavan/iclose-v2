@@ -65,6 +65,12 @@ const config: ExpoConfig = {
       process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ua2ljbWZzZGJmcHVjZmNudXRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODkyMDcsImV4cCI6MjA5NDI2NTIwN30.liASHVfCZQsB4OFwhY6uBYuv99IWXaMBbGGgbuFiKTs',
     eas: { projectId: '329eea7c-7a6a-4abf-bf2c-a5ed6aaf817a' },
+    // Feature flags. `shares` gates the tokenized real-estate module (6th tab +
+    // /shares routes). Off => the module is fully hidden; the build under App
+    // Store review ships with it off and is never affected.
+    features: {
+      shares: process.env.EXPO_PUBLIC_FEATURE_SHARES !== 'false',
+    },
   },
 };
 

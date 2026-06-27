@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, runOnJS } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { House, Compass, Search, MapPin, User } from 'lucide-react-native';
+import { House, Compass, Search, MapPin, User, Landmark } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { supabase } from '@/lib/supabase';
@@ -35,9 +35,9 @@ try {
 const AnimatedGlass: any = GlassViewComp ? Animated.createAnimatedComponent(GlassViewComp) : null;
 
 const ICONS: Record<string, typeof House> = {
-  index: House, trending: Compass, search: Search, map: MapPin,
+  index: House, trending: Compass, search: Search, map: MapPin, shares: Landmark,
 };
-const FILLABLE: Record<string, boolean> = { index: true, trending: false, search: false, map: true };
+const FILLABLE: Record<string, boolean> = { index: true, trending: false, search: false, map: true, shares: false };
 
 const ITEM = 60;
 const CAP_W = 48;

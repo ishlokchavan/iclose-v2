@@ -1,4 +1,19 @@
-# iClose Mint — Tokenized Real Estate Module (Plan)
+# iClose Shares — Tokenized Real Estate Module
+
+> **Implemented ✅ (branch `claude/bold-maxwell-pdqlsb`).** Final user-facing name
+> is **"Shares"** (tab) — chosen over "Mint"/"Tokens" to avoid confusion with
+> iClose **credits**. The token/ledger mechanics described below run under the
+> hood unchanged. What shipped:
+> - DB: 6 `shares_*` tables + hash-linked ledger + 9 atomic RPCs + 8 seeded
+>   offerings (live Supabase, additive, RLS + column-grant hardened, advisors clean).
+> - App: 6th **Shares** tab + 7 screens (market, asset detail with
+>   Overview/Financials/Documents/Ledger, invest/sell, KYC, wallet, portfolio,
+>   secondary market, ledger explorer), all feature-flagged behind `FEATURES.shares`.
+> - Verified: `tsc --noEmit` clean · `expo export` bundles · buy/dividend flow
+>   tested green on live functions · anon blocked from PII columns + RPCs.
+> - **The App-Store build (build 9) is untouched** — module ships later as v1.1.
+
+**Original plan (for reference) follows.**
 
 **Status:** Plan for approval — _no implementation yet._
 **Type:** Compliant **showcase / demo** (no real money, no live securities).
