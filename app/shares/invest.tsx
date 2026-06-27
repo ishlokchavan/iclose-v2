@@ -6,7 +6,7 @@ import { X, Minus, Plus, CheckCircle2, Wallet } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useShares } from '@/store/shares';
 import { GlassBg } from '@/components/Glass';
-import { buyShares, sellShares, formatAed, shortHash } from '@/lib/shares';
+import { buyShares, sellShares, formatAed, shortHash, effectivePrice } from '@/lib/shares';
 import { availableTokens } from '@/types/shares';
 import { colors } from '@/theme/tokens';
 
@@ -24,13 +24,13 @@ export default function InvestModal() {
   const [receipt, setReceipt] = useState<{ hash: string; tokens: number; total: number } | null>(null);
 
   const maxTokens = mode === 'sell' ? (holding?.tokens ?? 0) : (availableTokens(asset!) || 0);
-  const cost = (asset?.tokenPriceAed ?? 0) * tokens;
+  // Buy at the discounted (effective) price; sell back at par — the discount is upside.
+  const unit = asset ? (mode === 'buy' ? effectivePrice(asset) : asset.tokenPriceAed) : 0;
+  const cost = unit * tokens;
   const balance = s.wallet?.cashBalanceAed ?? 0;
 
-  const projected = useMemo(() => {
-    if (!asset) return 0;
-    return (cost * asset.netYieldPct) / 100 / 12;
-  }, [asset, cost]);
+  const annualRent = useMemo(() => (asset ? (cost * asset.netYieldPct) / 100 : 0), [asset, cost]);
+  const projected = annualRent / 12;
 
   if (!asset) return null;
 
@@ -137,9 +137,13 @@ export default function InvestModal() {
 
         {/* Breakdown */}
         <View className="mt-5 rounded-apple border border-white/60 bg-white/75 p-4">
-          <Row label={mode === 'buy' ? 'Amount to invest' : 'You receive'} value={formatAed(cost)} bold />
+          <Row label={mode === 'buy' ? 'Maximum available' : 'Your holding'} value={`${maxTokens.toLocaleString()} shares`} />
+          {mode === 'buy' ? <Row label="Minimum purchase" value={`${asset.minTokens} share · ${formatAed(unit * asset.minTokens)}`} /> : null}
+          <View className="my-2 h-px bg-hairline/60" />
+          <Row label={mode === 'buy' ? 'Payment amount' : 'You receive'} value={formatAed(cost)} bold />
           <Row label="Platform fee" value="AED 0 (demo)" />
-          {mode === 'buy' ? <Row label="Est. monthly income" value={formatAed(projected)} accent /> : null}
+          {mode === 'buy' ? <Row label="Est. annual rent" value={formatAed(annualRent)} accent /> : null}
+          {mode === 'buy' ? <Row label="Est. monthly income" value={formatAed(projected)} /> : null}
           <View className="my-2 h-px bg-hairline/60" />
           <Row
             label="Wallet balance"

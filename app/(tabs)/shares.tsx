@@ -5,8 +5,10 @@ import { router } from 'expo-router';
 import { Landmark, Wallet, PieChart, ArrowUpRight, LogIn } from 'lucide-react-native';
 import { useShares } from '@/store/shares';
 import { GlassBg } from '@/components/Glass';
-import { DemoBanner, ComplianceRow, AssetCard } from '@/components/SharesUI';
+import { DemoBanner, ComplianceRow, AssetCard, FilterChips, RegulatedNote } from '@/components/SharesUI';
+import type { MarketFilter } from '@/components/SharesUI';
 import { formatAed } from '@/lib/shares';
+import { fundedPct } from '@/types/shares';
 import { colors } from '@/theme/tokens';
 
 /** Shares — tokenized real-estate marketplace (the 6th tab). */
@@ -31,8 +33,13 @@ export default function SharesScreen() {
   }, 0);
   const hasHoldings = s.holdings.length > 0;
 
-  const open = s.assets.filter((a) => a.status === 'funding');
-  const funded = s.assets.filter((a) => a.status !== 'funding');
+  const [filter, setFilter] = useState<MarketFilter>('all');
+  const list = s.assets.filter((a) => {
+    if (filter === 'funded') return a.status !== 'funding';
+    if (filter === 'off_plan') return a.completion === 'off_plan';
+    if (filter === 'new') return a.status === 'funding' && fundedPct(a) < 40;
+    return a.status === 'funding';
+  });
 
   return (
     <View className="flex-1">
@@ -104,23 +111,17 @@ export default function SharesScreen() {
 
         <ComplianceRow />
 
-        {/* Open offerings */}
-        <Text className="px-4 pb-2 pt-5 text-[17px] font-semibold text-ink">Open for investment</Text>
-        <View className="gap-3 px-4">
-          {open.map((a) => <AssetCard key={a.symbol} asset={a} />)}
+        {/* Filter + feed */}
+        <FilterChips value={filter} onChange={setFilter} />
+        <View className="gap-3 px-4 pt-3">
+          {list.map((a) => <AssetCard key={a.symbol} asset={a} />)}
+          {!list.length ? (
+            <Text className="py-12 text-center text-sm text-graphite">Nothing here right now — try another filter.</Text>
+          ) : null}
         </View>
 
-        {/* Funded / closed */}
-        {funded.length ? (
-          <>
-            <Text className="px-4 pb-2 pt-6 text-[17px] font-semibold text-ink">Fully funded</Text>
-            <View className="gap-3 px-4">
-              {funded.map((a) => <AssetCard key={a.symbol} asset={a} />)}
-            </View>
-          </>
-        ) : null}
-
-        <Text className="px-5 pt-6 text-center text-[11px] leading-4 text-graphiteLight">
+        <RegulatedNote />
+        <Text className="px-5 pt-1 text-center text-[11px] leading-4 text-graphiteLight">
           iClose Shares is a demonstration. Figures are illustrative. Tokenized property investing in the UAE is
           regulated by VARA and the Dubai Land Department; a production launch would require the appropriate licences.
         </Text>

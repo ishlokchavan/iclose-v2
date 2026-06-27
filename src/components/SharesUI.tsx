@@ -3,10 +3,13 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import {
   ShieldCheck, Landmark, BadgeCheck, Building2, Info, TrendingUp, ArrowUpRight,
+  Users, BadgePercent,
 } from 'lucide-react-native';
 import { colors } from '@/theme/tokens';
 import { formatAed } from '@/lib/shares';
-import { availableTokens, fundedPct, minInvestmentAed } from '@/types/shares';
+import {
+  availableTokens, fundedPct, minInvestmentAed, discountedTokenPrice, marketUpliftPct,
+} from '@/types/shares';
 import type { ShareAsset } from '@/types/shares';
 
 /** Persistent, unmissable disclaimer — this module is a demonstration. */
@@ -43,7 +46,17 @@ export function ComplianceRow() {
   );
 }
 
-/** Funding progress bar with sold/total label. */
+/** Small "Regulated by VARA · DLD" trust line. */
+export function RegulatedNote() {
+  return (
+    <View className="flex-row items-center justify-center gap-1.5 py-2">
+      <ShieldCheck size={12} color={colors.graphiteLight} />
+      <Text className="text-[11px] text-graphiteLight">Regulated framework — VARA · Dubai Land Department</Text>
+    </View>
+  );
+}
+
+/** Funding progress bar with a "X sold / out of Y" counter. */
 export function FundingBar({ asset }: { asset: ShareAsset }) {
   const pct = fundedPct(asset);
   const funded = asset.status !== 'funding';
@@ -56,9 +69,9 @@ export function FundingBar({ asset }: { asset: ShareAsset }) {
         />
       </View>
       <View className="mt-1.5 flex-row items-center justify-between">
-        <Text className="text-[12px] font-medium text-ink">{pct.toFixed(0)}% funded</Text>
+        <Text className="text-[12px] font-medium text-ink">{asset.tokensSold.toLocaleString()} sold</Text>
         <Text className="text-[12px] text-graphite">
-          {funded ? 'Fully funded' : `${availableTokens(asset).toLocaleString()} shares left`}
+          {funded ? 'Fully funded' : `of ${asset.totalTokens.toLocaleString()} · ${availableTokens(asset).toLocaleString()} left`}
         </Text>
       </View>
     </View>
@@ -84,8 +97,44 @@ export function YieldChip({ asset }: { asset: ShareAsset }) {
   );
 }
 
+export function DiscountBadge({ pct }: { pct: number }) {
+  if (pct <= 0) return null;
+  return (
+    <View className="flex-row items-center gap-1 rounded-full bg-emerald-500/90 px-2.5 py-1">
+      <BadgePercent size={12} color="#fff" />
+      <Text className="text-[11px] font-bold text-white">{pct}% off</Text>
+    </View>
+  );
+}
+
+/** Filter chips for the marketplace. */
+export type MarketFilter = 'all' | 'new' | 'off_plan' | 'funded';
+export function FilterChips({ value, onChange }: { value: MarketFilter; onChange: (f: MarketFilter) => void }) {
+  const chips: { key: MarketFilter; label: string }[] = [
+    { key: 'all', label: 'Marketplace' },
+    { key: 'new', label: 'New' },
+    { key: 'off_plan', label: 'Off-plan' },
+    { key: 'funded', label: 'Funded' },
+  ];
+  return (
+    <View className="flex-row gap-2 px-4 pt-4">
+      {chips.map((c) => {
+        const active = value === c.key;
+        return (
+          <Pressable key={c.key} onPress={() => onChange(c.key)}
+            className={`rounded-full px-3.5 py-2 ${active ? 'bg-accent' : 'border border-hairline/70 bg-white/70'}`}>
+            <Text className={`text-[12.5px] font-semibold ${active ? 'text-white' : 'text-ink700'}`}>{c.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 /** Offering card used on the market + portfolio screens. */
 export function AssetCard({ asset }: { asset: ShareAsset }) {
+  const uplift = marketUpliftPct(asset);
+  const price = discountedTokenPrice(asset);
   return (
     <Pressable
       onPress={() => router.push(`/shares/${asset.symbol}`)}
@@ -94,17 +143,25 @@ export function AssetCard({ asset }: { asset: ShareAsset }) {
     >
       <View className="relative">
         <Image source={{ uri: asset.coverImageUrl ?? undefined }} style={{ width: '100%', aspectRatio: 1.7 }} contentFit="cover" />
-        <View className="absolute left-3 top-3 flex-row items-center gap-1 rounded-full bg-black/45 px-2.5 py-1">
-          <Text className="text-[11px] font-semibold tracking-wide text-white">{asset.symbol}</Text>
-        </View>
-        <View className="absolute right-3 top-3">
-          <YieldChip asset={asset} />
-        </View>
-        {asset.status === 'funded' ? (
-          <View className="absolute bottom-3 left-3 rounded-full bg-emerald-600/90 px-2.5 py-1">
-            <Text className="text-[11px] font-semibold text-white">Fully funded</Text>
+        {asset.investorCount > 0 ? (
+          <View className="absolute left-3 top-3 flex-row items-center gap-1 rounded-full bg-white/90 px-2.5 py-1">
+            <Users size={12} color={colors.accent} />
+            <Text className="text-[11px] font-semibold text-ink700">Listed by {asset.investorCount} investors</Text>
           </View>
         ) : null}
+        <View className="absolute right-3 top-3">
+          {asset.discountPct > 0 ? <DiscountBadge pct={asset.discountPct} /> : <YieldChip asset={asset} />}
+        </View>
+        <View className="absolute bottom-3 left-3 flex-row items-center gap-2">
+          <View className="rounded-full bg-black/45 px-2.5 py-1">
+            <Text className="text-[11px] font-semibold tracking-wide text-white">{asset.symbol}</Text>
+          </View>
+          {asset.status === 'funded' ? (
+            <View className="rounded-full bg-emerald-600/90 px-2.5 py-1">
+              <Text className="text-[11px] font-semibold text-white">Fully funded</Text>
+            </View>
+          ) : null}
+        </View>
       </View>
       <View className="p-4">
         <Text className="text-[15.5px] font-semibold text-ink" numberOfLines={1}>{asset.name}</Text>
@@ -114,12 +171,20 @@ export function AssetCard({ asset }: { asset: ShareAsset }) {
 
         <View className="mt-3.5 flex-row items-center justify-between border-t border-hairline/60 pt-3">
           <View>
-            <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">From</Text>
-            <Text className="text-[15px] font-semibold text-ink">{formatAed(minInvestmentAed(asset))}</Text>
+            <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">Price / share</Text>
+            <View className="flex-row items-baseline gap-1.5">
+              <Text className="text-[15px] font-semibold text-ink">{formatAed(price)}</Text>
+              {asset.discountPct > 0 ? (
+                <Text className="text-[11px] text-graphiteLight line-through">{formatAed(asset.tokenPriceAed)}</Text>
+              ) : null}
+            </View>
           </View>
           <View className="items-end">
-            <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">Property value</Text>
-            <Text className="text-[15px] font-semibold text-ink">{formatAed(asset.propertyValueAed, { compact: true })}</Text>
+            <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">Market value</Text>
+            <View className="flex-row items-baseline gap-1.5">
+              <Text className="text-[15px] font-semibold text-ink">{formatAed(asset.marketValueAed ?? asset.propertyValueAed, { compact: true })}</Text>
+              {uplift > 0 ? <Text className="text-[11.5px] font-semibold text-emerald-700">+{uplift.toFixed(0)}%</Text> : null}
+            </View>
           </View>
           <View className="flex-row items-center gap-0.5 self-end">
             <Text className="text-[12.5px] font-medium text-accent">View</Text>

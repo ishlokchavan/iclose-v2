@@ -18,6 +18,7 @@ export const SHARES_SEED: ShareAsset[] = [
     grossYieldPct: 6.5, netYieldPct: 5.6, appreciationPct: 9, fundingDeadline: '2026-09-30',
     status: 'funding', dldDeedRef: 'DLD-T-2026-0143', minTokens: 1,
     highlights: ['Beachfront plot', 'Private pool & beach', 'DLD-tokenized title'],
+    marketValueAed: 25875000, discountPct: 0, investorCount: 47,
   },
   {
     id: 'DIFC-O1', symbol: 'DIFC-O1', listingReference: 'IC-1008',
@@ -28,6 +29,7 @@ export const SHARES_SEED: ShareAsset[] = [
     grossYieldPct: 8.5, netYieldPct: 7.4, appreciationPct: 6, fundingDeadline: '2026-08-31',
     status: 'funding', dldDeedRef: 'DLD-T-2026-0211', minTokens: 1,
     highlights: ['Grade-A commercial', 'Blue-chip tenant', 'High net yield'],
+    marketValueAed: 20350000, discountPct: 5, investorCount: 63,
   },
   {
     id: 'CREEK-P1', symbol: 'CREEK-P1', listingReference: 'IC-1007',
@@ -38,6 +40,7 @@ export const SHARES_SEED: ShareAsset[] = [
     grossYieldPct: 7, netYieldPct: 6.1, appreciationPct: 11, fundingDeadline: '2026-12-31',
     status: 'funding', dldDeedRef: 'DLD-T-2026-0298', minTokens: 1,
     highlights: ['Emaar off-plan', 'Skyline & creek views', 'High appreciation'],
+    marketValueAed: 15616000, discountPct: 10, investorCount: 38,
   },
   {
     id: 'HILLS-T1', symbol: 'HILLS-T1', listingReference: 'IC-1005',
@@ -48,6 +51,7 @@ export const SHARES_SEED: ShareAsset[] = [
     grossYieldPct: 6.8, netYieldPct: 5.9, appreciationPct: 8, fundingDeadline: '2026-09-15',
     status: 'funding', dldDeedRef: 'DLD-T-2026-0156', minTokens: 1,
     highlights: ['Family community', 'Park & golf access', 'Strong rental demand'],
+    marketValueAed: 4959000, discountPct: 0, investorCount: 91,
   },
   {
     id: 'BAY-R1', symbol: 'BAY-R1', listingReference: 'IC-1016',
@@ -58,6 +62,7 @@ export const SHARES_SEED: ShareAsset[] = [
     grossYieldPct: 9, netYieldPct: 7.9, appreciationPct: 6, fundingDeadline: '2026-07-31',
     status: 'funded', dldDeedRef: 'DLD-T-2026-0102', minTokens: 1,
     highlights: ['Fully funded', 'Long-lease tenant', 'Top-tier yield'],
+    marketValueAed: 4578000, discountPct: 0, investorCount: 120,
   },
   {
     id: 'DT-A1', symbol: 'DT-A1', listingReference: 'IC-1001',
@@ -68,6 +73,7 @@ export const SHARES_SEED: ShareAsset[] = [
     grossYieldPct: 6.5, netYieldPct: 5.7, appreciationPct: 8, fundingDeadline: '2026-10-31',
     status: 'funding', dldDeedRef: 'DLD-T-2026-0177', minTokens: 1,
     highlights: ['Burj Khalifa view', 'Prime Downtown', 'Airbnb-ready'],
+    marketValueAed: 3776000, discountPct: 10, investorCount: 24,
   },
   {
     id: 'MAR-A1', symbol: 'MAR-A1', listingReference: 'IC-1002',
@@ -78,6 +84,7 @@ export const SHARES_SEED: ShareAsset[] = [
     grossYieldPct: 7.2, netYieldPct: 6.3, appreciationPct: 7, fundingDeadline: '2026-08-15',
     status: 'funding', dldDeedRef: 'DLD-T-2026-0188', minTokens: 1,
     highlights: ['Waterfront living', 'High occupancy', 'Entry-level ticket'],
+    marketValueAed: 2053500, discountPct: 5, investorCount: 56,
   },
   {
     id: 'YAS-A1', symbol: 'YAS-A1', listingReference: 'IC-1013',
@@ -88,5 +95,6 @@ export const SHARES_SEED: ShareAsset[] = [
     grossYieldPct: 7.5, netYieldPct: 6.6, appreciationPct: 9, fundingDeadline: '2026-11-30',
     status: 'funding', dldDeedRef: 'ADGM-T-2026-0044', minTokens: 1,
     highlights: ['Aldar off-plan', 'Abu Dhabi growth corridor', 'Low entry point'],
+    marketValueAed: 1788000, discountPct: 10, investorCount: 12,
   },
 ];

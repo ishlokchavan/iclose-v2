@@ -14,7 +14,7 @@ import type {
 const configured = () => Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 const ASSET_COLS =
-  'id,symbol,listing_reference,name,city,community,property_type,completion,cover_image_url,property_value_aed,token_price_aed,total_tokens,tokens_sold,gross_yield_pct,net_yield_pct,appreciation_pct,funding_deadline,status,dld_deed_ref,min_tokens,highlights';
+  'id,symbol,listing_reference,name,city,community,property_type,completion,cover_image_url,property_value_aed,token_price_aed,total_tokens,tokens_sold,gross_yield_pct,net_yield_pct,appreciation_pct,funding_deadline,status,dld_deed_ref,min_tokens,highlights,market_value_aed,discount_pct,investor_count';
 // user_id / counterparty_id are intentionally NOT granted to clients.
 const LEDGER_COLS =
   'block_number,tx_hash,prev_hash,asset_id,actor_address,type,tokens,price_per_token_aed,total_aed,status,created_at';
@@ -29,6 +29,8 @@ function toAsset(r: any): ShareAsset {
     grossYieldPct: Number(r.gross_yield_pct), netYieldPct: Number(r.net_yield_pct),
     appreciationPct: Number(r.appreciation_pct), fundingDeadline: r.funding_deadline,
     status: r.status, dldDeedRef: r.dld_deed_ref, minTokens: r.min_tokens, highlights: r.highlights ?? [],
+    marketValueAed: r.market_value_aed == null ? null : Number(r.market_value_aed),
+    discountPct: Number(r.discount_pct ?? 0), investorCount: r.investor_count ?? 0,
   };
 }
 const toLedger = (r: any): ShareLedgerEntry => ({
@@ -222,3 +224,25 @@ export const shortAddr = (a?: string | null) =>
 /** Projected annual rental income (AED) for a token count at an asset's gross yield. */
 export const projectedAnnualIncome = (a: ShareAsset, tokens: number) =>
   (a.tokenPriceAed * tokens * a.grossYieldPct) / 100;
+
+/** Effective (post-discount) share price actually charged on a primary buy. */
+export const effectivePrice = (a: ShareAsset) =>
+  a.discountPct > 0 ? Math.round(a.tokenPriceAed * (1 - a.discountPct / 100) * 100) / 100 : a.tokenPriceAed;
+
+/**
+ * Illustrative real-world cost breakdown for an investment (purchase costs,
+ * platform fee, and the DLD transfer fee at the tokenization-pilot 2% vs the
+ * usual 4%). Shown for education on the Financials tab; the demo only debits the
+ * share amount itself.
+ */
+export function feeBreakdown(asset: ShareAsset, tokens: number) {
+  const amount = effectivePrice(asset) * tokens;
+  const purchaseCosts = amount * 0.03;
+  const platformFee = amount * 0.015;
+  const dldFull = amount * 0.04;
+  const dldDiscounted = amount * 0.02;
+  return {
+    amount, purchaseCosts, platformFee, dldFull, dldDiscounted,
+    total: amount + purchaseCosts + platformFee + dldDiscounted,
+  };
+}

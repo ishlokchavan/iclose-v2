@@ -28,6 +28,9 @@ export interface ShareAsset {
   dldDeedRef: string | null;
   minTokens: number;
   highlights: string[];
+  marketValueAed: number | null;
+  discountPct: number;
+  investorCount: number;
 }
 
 export interface ShareWallet {
@@ -83,3 +86,11 @@ export const availableTokens = (a: ShareAsset) => Math.max(0, a.totalTokens - a.
 export const fundedPct = (a: ShareAsset) =>
   a.totalTokens > 0 ? Math.min(100, (a.tokensSold / a.totalTokens) * 100) : 0;
 export const minInvestmentAed = (a: ShareAsset) => a.tokenPriceAed * a.minTokens;
+/** Promo price per share after the marketing discount (display only). */
+export const discountedTokenPrice = (a: ShareAsset) =>
+  a.discountPct > 0 ? a.tokenPriceAed * (1 - a.discountPct / 100) : a.tokenPriceAed;
+/** Current market value premium over the tokenized (entry) value, as a %. */
+export const marketUpliftPct = (a: ShareAsset) =>
+  a.marketValueAed && a.propertyValueAed > 0
+    ? ((a.marketValueAed - a.propertyValueAed) / a.propertyValueAed) * 100
+    : 0;
