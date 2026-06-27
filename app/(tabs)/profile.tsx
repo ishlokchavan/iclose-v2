@@ -5,7 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
-import { Heart, Eye, Coins, Plus, ChevronRight, RotateCcw, LogIn, LogOut, Trash2 } from 'lucide-react-native';
+import { Heart, Eye, Coins, Plus, ChevronRight, RotateCcw, LogIn, LogOut, Trash2, Building2 } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
@@ -193,6 +193,15 @@ export default function ProfileScreen() {
         <View className="flex-1"><Text className="text-[15px] font-semibold text-white">List your property</Text><Text className="text-[13px] text-white/65">Sell direct · commission-free</Text></View>
         <ChevronRight size={20} color="rgba(255,255,255,0.6)" />
       </Pressable>
+
+      {/* My listings — signed-in only */}
+      {session ? (
+        <Pressable onPress={() => router.push('/my-listings')} className="mb-4 flex-row items-center gap-3 rounded-apple border border-white/60 bg-white/70 p-4">
+          <View className="h-11 w-11 items-center justify-center rounded-full bg-accent/10"><Building2 size={22} color={colors.accent} /></View>
+          <View className="flex-1"><Text className="text-[15px] font-semibold text-ink">My listings</Text><Text className="text-[13px] text-graphite">Track your submitted properties</Text></View>
+          <ChevronRight size={20} color={colors.graphiteLight} />
+        </Pressable>
+      ) : null}
 
       {/* Credits balance */}
       <View className="mb-4 rounded-apple border border-white/60 bg-white/70 p-5">

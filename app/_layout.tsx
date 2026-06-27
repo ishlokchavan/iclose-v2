@@ -44,6 +44,7 @@ export default function RootLayout() {
                   <Stack.Screen name="developer/[slug]" options={{ presentation: 'card', animation: 'slide_from_right' }} />
                   <Stack.Screen name="launches" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="sell" options={{ presentation: 'modal' }} />
+                  <Stack.Screen name="my-listings" options={{ presentation: 'card', animation: 'slide_from_right' }} />
                   <Stack.Screen name="saved" options={{ presentation: 'modal' }} />
                   {/* iClose Shares (tokenized real estate) */}
                   <Stack.Screen name="shares/[symbol]" options={{ presentation: 'card', animation: 'slide_from_right' }} />

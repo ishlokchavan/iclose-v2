@@ -116,3 +116,47 @@ export async function submitListing(
   if (error) throw new Error(error.message);
   return row.id as string;
 }
+
+export type SubmissionStatus = 'pending' | 'in_review' | 'approved' | 'rejected';
+
+export interface MyListing {
+  id: string;
+  title: string;
+  propertyType: string;
+  community: string;
+  city: string;
+  priceAed: number;
+  status: SubmissionStatus;
+  photoCount: number;
+  docCount: number;
+  createdAt: string;
+  thumbUrl: string | null;
+}
+
+/** The signed-in user's submitted listings (newest first), with a signed thumbnail. */
+export async function getMyListings(): Promise<MyListing[]> {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return [];
+  const { data: rows, error } = await supabase
+    .from('listing_submissions')
+    .select('id,title,property_type,community,city,price_aed,status,photo_paths,document_paths,created_at')
+    .order('created_at', { ascending: false });
+  if (error || !rows) return [];
+  return Promise.all(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (rows as any[]).map(async (r) => {
+      const photos: string[] = r.photo_paths ?? [];
+      let thumbUrl: string | null = null;
+      if (photos[0]) {
+        const { data } = await supabase.storage.from(BUCKET).createSignedUrl(photos[0], 3600);
+        thumbUrl = data?.signedUrl ?? null;
+      }
+      return {
+        id: r.id, title: r.title, propertyType: r.property_type, community: r.community, city: r.city,
+        priceAed: Number(r.price_aed), status: r.status as SubmissionStatus,
+        photoCount: photos.length, docCount: (r.document_paths ?? []).length,
+        createdAt: r.created_at, thumbUrl,
+      };
+    }),
+  );
+}
