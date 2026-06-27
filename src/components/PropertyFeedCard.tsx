@@ -9,6 +9,7 @@ import { router } from 'expo-router';
 import { SwipeGallery } from './SwipeGallery';
 import { LikeBurst } from './LikeBurst';
 import { formatAed, formatCredits } from '@/data/experience-data';
+import { listingUrl } from '@/lib/config';
 import { deterministicReason } from '@/lib/explain';
 import { useSaved } from '@/store/saved';
 import { useSignals } from '@/store/signals';
@@ -60,7 +61,7 @@ function PropertyFeedCardImpl({
   function onShare() {
     track('share', listing);
     Share.share({
-      message: `${listing.title} — ${formatAed(listing.priceAed)} on iClose (${listing.reference})`,
+      message: `${listing.title} — ${formatAed(listing.priceAed)} on iClose\n${listingUrl(listing.reference)}`,
     }).catch(() => {});
   }
 

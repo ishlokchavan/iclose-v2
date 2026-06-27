@@ -20,7 +20,7 @@ import { facetsOf } from '@/lib/recommender';
 import { deterministicReason } from '@/lib/explain';
 import { slugifyDeveloper } from '@/lib/slug';
 import { bedLabel } from '@/lib/format';
-import { CONTACT_WHATSAPP, CONTACT_PHONE } from '@/lib/config';
+import { CONTACT_WHATSAPP, CONTACT_PHONE, listingUrl } from '@/lib/config';
 import { Glass, GlassBg } from '@/components/Glass';
 import { colors } from '@/theme/tokens';
 
@@ -55,7 +55,9 @@ export default function PropertyScreen() {
 
   function openWhatsApp() {
     track('whatsapp', listing!);
-    const text = encodeURIComponent(`Hi, I'm interested in ${listing!.title} (${listing!.reference}) on iClose.`);
+    const text = encodeURIComponent(
+      `Hi, I'm interested in ${listing!.title} (${listing!.reference}) on iClose.\n${listingUrl(listing!.reference)}`,
+    );
     Linking.openURL(`https://wa.me/${CONTACT_WHATSAPP.replace(/[^0-9]/g, '')}?text=${text}`).catch(() => {});
   }
   function call() {
@@ -88,7 +90,7 @@ export default function PropertyScreen() {
           </Pressable>
           <View style={{ top: insets.top + 8 }} className="absolute right-4 flex-row gap-2">
             <Pressable
-              onPress={() => { track('share', listing); Share.share({ message: `${listing.title} — ${formatAed(listing.priceAed)} on iClose (${listing.reference})` }).catch(() => {}); }}
+              onPress={() => { track('share', listing); Share.share({ message: `${listing.title} — ${formatAed(listing.priceAed)} on iClose\n${listingUrl(listing.reference)}` }).catch(() => {}); }}
               className="h-11 w-11 items-center justify-center rounded-full bg-black/35">
               <Share2 size={20} color="#fff" />
             </Pressable>

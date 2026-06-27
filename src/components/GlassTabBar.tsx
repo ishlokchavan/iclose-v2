@@ -45,6 +45,8 @@ const CAP_H = 44;
 const PAD = 6;
 const BAR_H = 56;
 const SPRING = { damping: 18, stiffness: 220, mass: 0.6 };
+/** Routes that exist but should not appear in the tab bar. */
+const HIDDEN_TABS = new Set(['trending']);
 
 /**
  * Apple liquid-glass tab bar: a floating frosted pill (genuine iOS 26 Liquid
@@ -54,12 +56,16 @@ const SPRING = { damping: 18, stiffness: 220, mass: 0.6 };
  */
 export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const count = state.routes.length;
+  // Hide certain routes (e.g. trending) from the bar while keeping them navigable.
+  const routes = state.routes.filter((r) => !HIDDEN_TABS.has(r.name));
+  const count = routes.length;
+  const activeKey = state.routes[state.index]?.key;
+  const activeIndex = Math.max(0, routes.findIndex((r) => r.key === activeKey));
   const posFor = (i: number) => PAD + i * ITEM + (ITEM - CAP_W) / 2;
 
-  const tx = useSharedValue(posFor(state.index));
-  const dragIdx = useSharedValue(state.index);
-  const [preview, setPreview] = useState(state.index);
+  const tx = useSharedValue(posFor(activeIndex));
+  const dragIdx = useSharedValue(activeIndex);
+  const [preview, setPreview] = useState(activeIndex);
 
   // Profile avatar (Instagram-style).
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -75,15 +81,15 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   }, []);
 
   useEffect(() => {
-    tx.value = withSpring(posFor(state.index), SPRING);
-    dragIdx.value = state.index;
-    setPreview(state.index);
+    tx.value = withSpring(posFor(activeIndex), SPRING);
+    dragIdx.value = activeIndex;
+    setPreview(activeIndex);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.index]);
+  }, [activeIndex]);
 
   function navigateTo(i: number) {
-    const route = state.routes[i];
-    const focused = state.index === i;
+    const route = routes[i];
+    const focused = activeIndex === i;
     const e = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
     if (!focused && !e.defaultPrevented) navigation.navigate(route.name);
   }
@@ -127,7 +133,7 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const items = (
     <GestureDetector gesture={gesture}>
       <View style={{ flexDirection: 'row', height: BAR_H, paddingHorizontal: PAD }}>
-        {state.routes.map((route, i) => {
+        {routes.map((route, i) => {
           const active = preview === i;
           if (route.name === 'profile') {
             return (

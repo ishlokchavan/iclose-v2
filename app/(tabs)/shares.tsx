@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { View, Text, ScrollView, Pressable, RefreshControl, TextInput, FlatList, Dimensions } from 'react-native';
+import { View, Text, ScrollView, Pressable, RefreshControl, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Landmark, Wallet, PieChart, ArrowUpRight, Search, X } from 'lucide-react-native';
@@ -10,12 +10,7 @@ import { SharesIntro } from '@/components/SharesIntro';
 import type { MarketFilter } from '@/components/SharesUI';
 import { formatAed } from '@/lib/shares';
 import { fundedPct } from '@/types/shares';
-import type { ShareAsset } from '@/types/shares';
 import { colors } from '@/theme/tokens';
-
-const { width: SCREEN_W } = Dimensions.get('window');
-const CARD_W = Math.round(SCREEN_W * 0.84);
-const GAP = 14;
 
 /** Shares — tokenized real-estate marketplace (the 6th tab). */
 export default function SharesScreen() {
@@ -117,47 +112,19 @@ export default function SharesScreen() {
         {/* Filters */}
         <FilterChips value={filter} onChange={setFilter} />
 
-        {/* Swipeable card carousel */}
-        {filtered.length ? (
-          <Carousel data={filtered} />
-        ) : (
-          <Text className="py-12 text-center text-sm text-graphite">No homes match — try another search or filter.</Text>
-        )}
+        {/* Feed */}
+        <View className="gap-3 px-4 pt-3">
+          {filtered.map((a) => <AssetCard key={a.symbol} asset={a} />)}
+          {!filtered.length ? (
+            <Text className="py-12 text-center text-sm text-graphite">No homes match — try another search or filter.</Text>
+          ) : null}
+        </View>
 
         <RegulatedNote />
       </ScrollView>
 
       {/* First-run explainer (shown once) */}
       <SharesIntro />
-    </View>
-  );
-}
-
-/** Horizontal snap carousel of offering cards with page dots. */
-function Carousel({ data }: { data: ShareAsset[] }) {
-  const [page, setPage] = useState(0);
-  const active = Math.min(page, data.length - 1);
-  return (
-    <View className="pt-3">
-      <FlatList
-        data={data}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(a) => a.symbol}
-        snapToInterval={CARD_W + GAP}
-        decelerationRate="fast"
-        snapToAlignment="start"
-        contentContainerStyle={{ paddingHorizontal: 16, gap: GAP }}
-        onMomentumScrollEnd={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / (CARD_W + GAP)))}
-        renderItem={({ item }) => <View style={{ width: CARD_W }}><AssetCard asset={item} /></View>}
-      />
-      {data.length > 1 ? (
-        <View className="mt-3 flex-row items-center justify-center gap-1.5">
-          {data.map((_, i) => (
-            <View key={i} style={{ height: 6, width: i === active ? 16 : 6, borderRadius: 3 }} className={i === active ? 'bg-accent' : 'bg-black/15'} />
-          ))}
-        </View>
-      ) : null}
     </View>
   );
 }

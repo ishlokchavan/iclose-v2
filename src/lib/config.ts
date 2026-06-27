@@ -22,3 +22,8 @@ export const SUPABASE_ANON_KEY =
 /** Contact channels for listing enquiries (WhatsApp / call). */
 export const CONTACT_WHATSAPP = process.env.EXPO_PUBLIC_WHATSAPP_NUMBER || '971585530429';
 export const CONTACT_PHONE = process.env.EXPO_PUBLIC_CONTACT_PHONE || '+971585530429';
+
+/** Public web URL for a listing, so shared/WhatsApp messages are referable. */
+export function listingUrl(reference: string): string {
+  return `${API_BASE_URL.replace(/\/$/, '')}/property/${reference}`;
+}
