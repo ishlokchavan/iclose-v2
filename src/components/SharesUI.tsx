@@ -2,14 +2,11 @@ import { View, Text, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import {
-  ShieldCheck, Landmark, BadgeCheck, Building2, Info, TrendingUp, ArrowUpRight,
-  Users, BadgePercent,
+  ShieldCheck, Landmark, BadgeCheck, Building2, Info, TrendingUp, BadgePercent,
 } from 'lucide-react-native';
 import { colors } from '@/theme/tokens';
 import { formatAed } from '@/lib/shares';
-import {
-  availableTokens, fundedPct, minInvestmentAed, discountedTokenPrice, marketUpliftPct,
-} from '@/types/shares';
+import { availableTokens, fundedPct, minInvestmentAed } from '@/types/shares';
 import type { ShareAsset } from '@/types/shares';
 
 /** Persistent, unmissable disclaimer — this module is a demonstration. */
@@ -56,22 +53,22 @@ export function RegulatedNote() {
   );
 }
 
-/** Funding progress bar with a "X sold / out of Y" counter. */
+/** Simple funding progress bar. */
 export function FundingBar({ asset }: { asset: ShareAsset }) {
   const pct = fundedPct(asset);
   const funded = asset.status !== 'funding';
   return (
     <View>
-      <View className="h-2 overflow-hidden rounded-full bg-black/8">
+      <View className="h-1.5 overflow-hidden rounded-full bg-black/8">
         <View
           style={{ width: `${Math.max(3, pct)}%`, backgroundColor: funded ? colors.journey.listing : colors.accent }}
           className="h-full rounded-full"
         />
       </View>
       <View className="mt-1.5 flex-row items-center justify-between">
-        <Text className="text-[12px] font-medium text-ink">{asset.tokensSold.toLocaleString()} sold</Text>
+        <Text className="text-[12px] font-medium text-ink">{pct.toFixed(0)}% funded</Text>
         <Text className="text-[12px] text-graphite">
-          {funded ? 'Fully funded' : `of ${asset.totalTokens.toLocaleString()} · ${availableTokens(asset).toLocaleString()} left`}
+          {funded ? 'Fully funded' : `${availableTokens(asset).toLocaleString()} shares left`}
         </Text>
       </View>
     </View>
@@ -131,10 +128,8 @@ export function FilterChips({ value, onChange }: { value: MarketFilter; onChange
   );
 }
 
-/** Offering card used on the market + portfolio screens. */
+/** Clean offering card — photo, name, funding, then "From price" + yield. */
 export function AssetCard({ asset }: { asset: ShareAsset }) {
-  const uplift = marketUpliftPct(asset);
-  const price = discountedTokenPrice(asset);
   return (
     <Pressable
       onPress={() => router.push(`/shares/${asset.symbol}`)}
@@ -142,54 +137,28 @@ export function AssetCard({ asset }: { asset: ShareAsset }) {
       style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
     >
       <View className="relative">
-        <Image source={{ uri: asset.coverImageUrl ?? undefined }} style={{ width: '100%', aspectRatio: 1.7 }} contentFit="cover" />
-        {asset.investorCount > 0 ? (
-          <View className="absolute left-3 top-3 flex-row items-center gap-1 rounded-full bg-white/90 px-2.5 py-1">
-            <Users size={12} color={colors.accent} />
-            <Text className="text-[11px] font-semibold text-ink700">Listed by {asset.investorCount} investors</Text>
+        <Image source={{ uri: asset.coverImageUrl ?? undefined }} style={{ width: '100%', aspectRatio: 1.8 }} contentFit="cover" />
+        {asset.discountPct > 0 ? (
+          <View className="absolute right-3 top-3"><DiscountBadge pct={asset.discountPct} /></View>
+        ) : null}
+        {asset.status === 'funded' ? (
+          <View className="absolute left-3 top-3 rounded-full bg-emerald-600/90 px-2.5 py-1">
+            <Text className="text-[11px] font-semibold text-white">Fully funded</Text>
           </View>
         ) : null}
-        <View className="absolute right-3 top-3">
-          {asset.discountPct > 0 ? <DiscountBadge pct={asset.discountPct} /> : <YieldChip asset={asset} />}
-        </View>
-        <View className="absolute bottom-3 left-3 flex-row items-center gap-2">
-          <View className="rounded-full bg-black/45 px-2.5 py-1">
-            <Text className="text-[11px] font-semibold tracking-wide text-white">{asset.symbol}</Text>
-          </View>
-          {asset.status === 'funded' ? (
-            <View className="rounded-full bg-emerald-600/90 px-2.5 py-1">
-              <Text className="text-[11px] font-semibold text-white">Fully funded</Text>
-            </View>
-          ) : null}
-        </View>
       </View>
       <View className="p-4">
-        <Text className="text-[15.5px] font-semibold text-ink" numberOfLines={1}>{asset.name}</Text>
+        <Text className="text-[16px] font-semibold text-ink" numberOfLines={1}>{asset.name}</Text>
         <Text className="text-[13px] text-graphite">{asset.community}, {asset.city}</Text>
 
         <View className="mt-3"><FundingBar asset={asset} /></View>
 
         <View className="mt-3.5 flex-row items-center justify-between border-t border-hairline/60 pt-3">
           <View>
-            <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">Price / share</Text>
-            <View className="flex-row items-baseline gap-1.5">
-              <Text className="text-[15px] font-semibold text-ink">{formatAed(price)}</Text>
-              {asset.discountPct > 0 ? (
-                <Text className="text-[11px] text-graphiteLight line-through">{formatAed(asset.tokenPriceAed)}</Text>
-              ) : null}
-            </View>
+            <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">From</Text>
+            <Text className="text-[16px] font-semibold text-ink">{formatAed(minInvestmentAed(asset))}</Text>
           </View>
-          <View className="items-end">
-            <Text className="text-[11px] uppercase tracking-wide text-graphiteLight">Market value</Text>
-            <View className="flex-row items-baseline gap-1.5">
-              <Text className="text-[15px] font-semibold text-ink">{formatAed(asset.marketValueAed ?? asset.propertyValueAed, { compact: true })}</Text>
-              {uplift > 0 ? <Text className="text-[11.5px] font-semibold text-emerald-700">+{uplift.toFixed(0)}%</Text> : null}
-            </View>
-          </View>
-          <View className="flex-row items-center gap-0.5 self-end">
-            <Text className="text-[12.5px] font-medium text-accent">View</Text>
-            <ArrowUpRight size={13} color={colors.accent} />
-          </View>
+          <YieldChip asset={asset} />
         </View>
       </View>
     </Pressable>
