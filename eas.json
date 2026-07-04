@@ -11,17 +11,23 @@
     },
     "preview": {
       "distribution": "internal",
-      "ios": { "simulator": true }
+      "ios": { "simulator": true },
+      "android": { "buildType": "apk" }
     },
     "production": {
       "autoIncrement": true,
-      "ios": { "resourceClass": "m-medium" }
+      "ios": { "resourceClass": "m-medium" },
+      "android": { "autoIncrement": "versionCode" }
     }
   },
   "submit": {
     "production": {
       "ios": {
         "ascAppId": "6783816832"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
       }
     }
   }
