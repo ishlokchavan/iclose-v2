@@ -1,0 +1,7 @@
+# Supabase CLI config. Run `supabase link --project-ref nnkicmfsdbfpucfcnutn`
+# then `supabase db pull` to regenerate migrations, or `supabase db dump` to
+# back up. See docs/BACKUP.md for the full backup + restore runbook.
+project_id = "nnkicmfsdbfpucfcnutn"
+
+[db]
+major_version = 17
