@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Alert, ActivityIndicator, Switch, Linking } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, Alert, ActivityIndicator, Linking } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,6 +13,7 @@ import type { Emirate } from '@/data/locations';
 import { CONTACT_WHATSAPP } from '@/lib/config';
 import { GlassBg } from '@/components/Glass';
 import { LocationPicker } from '@/components/LocationPicker';
+import { AmountField } from '@/components/AmountField';
 import { formatAed } from '@/lib/format';
 import { colors } from '@/theme/tokens';
 
@@ -34,13 +35,12 @@ export default function NewInquiryScreen() {
   const [project, setProject] = useState('');
   const [emirate, setEmirate] = useState<Emirate>('Dubai');
   const [area, setArea] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(''); // raw digits
   const [note, setNote] = useState('');
-  const [isReferral, setIsReferral] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const isResidential = category === 'Residential';
-  const amt = amount ? Number(amount.replace(/[^0-9.]/g, '')) : 0;
+  const amt = amount ? Number(amount) : 0;
 
   async function submit() {
     if (!area.trim()) return Alert.alert('Add a location', 'Please pick where.');
@@ -54,7 +54,7 @@ export default function NewInquiryScreen() {
           ? { kind, deal_type: dealType, emirate, area, property_type: typeLabel, bedrooms: beds, budget_aed: amt || null, note: note.trim() || null, title: [propertyType, area].filter(Boolean).join(' in ') || 'Buying inquiry' }
           : kind === 'sell'
           ? { kind, deal_type: dealType, emirate, area, project: project.trim(), deal_value_aed: amt || null, note: note.trim() || null, title: project.trim() || area || 'Property to sell' }
-          : { kind, deal_type: dealType, is_referral: isReferral, emirate, area, project: project.trim(), deal_value_aed: amt || null, note: note.trim() || null, title: project.trim() || area || 'Deal to close' };
+          : { kind, deal_type: dealType, emirate, area, project: project.trim(), deal_value_aed: amt || null, note: note.trim() || null, title: project.trim() || area || 'Deal to close' };
       const { ref_code } = await submitInquiry(input);
       await openWhatsApp(ref_code);
       router.back();
@@ -67,7 +67,7 @@ export default function NewInquiryScreen() {
 
   async function openWhatsApp(inquiryRef: string) {
     const L = [`*New iClose inquiry*`, `Inquiry ref: ${inquiryRef}`, `My ref: ${profile?.ref_code ?? '—'} (${ROLE_LABEL[role]})`, ''];
-    L.push(kind === 'buy' ? 'Looking to buy:' : kind === 'sell' ? 'Property to sell:' : isReferral ? 'Deal to refer:' : 'Deal to close:');
+    L.push(kind === 'buy' ? 'Looking to buy:' : kind === 'sell' ? 'Property to sell:' : 'Deal to close:');
     L.push(`• Type: ${dealType === 'offplan' ? 'Off-plan' : 'Ready / Secondary'}`);
     if (kind === 'buy' && propertyType) L.push(`• Property: ${category} · ${propertyType}`);
     if (project.trim()) L.push(`• Property: ${project.trim()}`);
@@ -91,7 +91,6 @@ export default function NewInquiryScreen() {
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
         <View className="gap-4">
-          {/* Deal type */}
           <View>
             <Label>Property status</Label>
             <View className="flex-row gap-2">
@@ -130,35 +129,25 @@ export default function NewInquiryScreen() {
                 </View>
               ) : null}
               <View><Label>Location</Label><LocationPicker emirate={emirate} area={area} onChange={(e, a) => { setEmirate(e); setArea(a); }} /></View>
-              <Input label="Budget (approx. AED)" value={amount} onChangeText={setAmount} placeholder="e.g. 2,000,000" keyboardType="number-pad" />
+              <AmountField label="Budget (approx.)" value={amount} onChange={setAmount} />
             </>
           ) : (
             <>
               <Input label="Project / property" value={project} onChangeText={setProject} placeholder={kind === 'sell' ? 'e.g. Marina Gate, Tower 1' : 'e.g. Emaar Beachfront'} />
               <View><Label>Location</Label><LocationPicker emirate={emirate} area={area} onChange={(e, a) => { setEmirate(e); setArea(a); }} /></View>
-              <Input label={kind === 'sell' ? 'Asking price (AED)' : 'Deal value (AED)'} value={amount} onChangeText={setAmount} placeholder="e.g. 2,500,000" keyboardType="number-pad" />
+              <AmountField label={kind === 'sell' ? 'Asking price' : 'Deal value'} value={amount} onChange={setAmount} />
             </>
           )}
 
-          {/* Live calculator */}
+          {/* Live net calculator */}
           {kind === 'close' && pocket ? (
-            <CalcCard icon={Wallet} label={`You keep 100% commission (${pocket.pct}% ${dealType === 'offplan' ? 'off-plan' : 'secondary'})`} value={pocket.amount} sub="In your pocket — no split with iClose" />
+            <CalcCard icon={Wallet} label={`You keep (${pocket.pct}% ${dealType === 'offplan' ? 'off-plan' : 'secondary'})`} net={pocket.net} breakdown={`${formatAed(pocket.gross)} commission − ${formatAed(pocket.fee)} admin fee`} />
           ) : null}
           {kind === 'buy' && benefit ? (
-            <CalcCard icon={TrendingUp} label={benefit.label} value={benefit.amount} sub={dealType === 'secondary' ? '0% commission on secondary — you just pay the AED 8,250 fee' : 'Estimated credit back on off-plan (after SPA)'} />
+            <CalcCard icon={TrendingUp} label={benefit.label} net={benefit.net} breakdown={`${formatAed(benefit.gross)} ${dealType === 'secondary' ? 'commission avoided' : 'credit'} − ${formatAed(benefit.fee)} fee`} />
           ) : null}
 
           <Input label="Notes" value={note} onChangeText={setNote} placeholder="Anything we should know" multiline />
-
-          {kind === 'close' ? (
-            <View className="flex-row items-center justify-between rounded-2xl border border-white/50 bg-white/60 px-4 py-3">
-              <View className="flex-1 pr-3">
-                <Text className="text-[14.5px] font-medium text-ink">Refer this deal to iClose</Text>
-                <Text className="text-[12.5px] text-graphite">We close it for you and you earn a referral commission.</Text>
-              </View>
-              <Switch value={isReferral} onValueChange={setIsReferral} trackColor={{ true: colors.accent }} />
-            </View>
-          ) : null}
         </View>
 
         <Pressable disabled={busy} onPress={submit} className="mt-6 h-[52px] items-center justify-center rounded-full bg-ink">
@@ -173,7 +162,6 @@ export default function NewInquiryScreen() {
 function Label({ children }: { children: React.ReactNode }) {
   return <Text className="mb-1.5 text-[13px] font-medium text-graphite">{children}</Text>;
 }
-
 function IconSeg({ icon: Icon, label, active, onPress }: { icon: typeof Home; label: string; active: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} className={`flex-1 flex-row items-center justify-center gap-2 rounded-2xl border py-3.5 ${active ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
@@ -182,7 +170,6 @@ function IconSeg({ icon: Icon, label, active, onPress }: { icon: typeof Home; la
     </Pressable>
   );
 }
-
 function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} className={`rounded-full border px-4 py-2.5 ${active ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
@@ -190,19 +177,17 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
     </Pressable>
   );
 }
-
-function CalcCard({ icon: Icon, label, value, sub }: { icon: typeof Home; label: string; value: number; sub: string }) {
+function CalcCard({ icon: Icon, label, net, breakdown }: { icon: typeof Home; label: string; net: number; breakdown: string }) {
   return (
     <View className="overflow-hidden rounded-apple">
       <LinearGradient colors={['rgba(16,185,129,0.14)', 'rgba(16,185,129,0.04)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16 }}>
         <View className="flex-row items-center gap-2"><Icon size={16} color="#059669" /><Text className="text-[12.5px] font-medium text-graphite">{label}</Text></View>
-        <Text className="mt-1 text-[26px] font-bold" style={{ color: '#059669' }}>{formatAed(value)}</Text>
-        <Text className="mt-0.5 text-[12px] text-graphite">{sub}</Text>
+        <Text className="mt-1 text-[27px] font-bold" style={{ color: '#059669' }}>{formatAed(net)}</Text>
+        <Text className="mt-0.5 text-[12px] text-graphite">{breakdown}</Text>
       </LinearGradient>
     </View>
   );
 }
-
 function Input({ label, multiline, ...props }: { label: string; multiline?: boolean } & React.ComponentProps<typeof TextInput>) {
   return (
     <View>

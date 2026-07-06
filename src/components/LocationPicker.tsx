@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, Modal, FlatList } from 'react-native';
+import { View, Text, TextInput, Pressable, Modal, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { MapPin, X, Search, Check } from 'lucide-react-native';
 import { EMIRATES, DISTRICTS, type Emirate } from '@/data/locations';
 import { colors } from '@/theme/tokens';
@@ -24,8 +24,8 @@ export function LocationPicker({ emirate, area, onChange }: { emirate: Emirate; 
       </Pressable>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
-        <View className="flex-1 justify-end bg-black/30">
-          <View className="max-h-[82%] rounded-t-[28px] bg-white px-4 pt-3">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' }}>
+          <View className="max-h-[80%] rounded-t-[28px] bg-white px-4 pt-3">
             <View className="flex-row items-center justify-between py-2">
               <Text className="text-[16px] font-semibold text-ink">Location</Text>
               <Pressable onPress={() => setOpen(false)} className="h-9 w-9 items-center justify-center rounded-full bg-black/5"><X size={18} color={colors.ink} /></Pressable>
@@ -61,7 +61,7 @@ export function LocationPicker({ emirate, area, onChange }: { emirate: Emirate; 
               }
             />
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );

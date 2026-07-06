@@ -30,18 +30,35 @@ export type DealType = 'offplan' | 'secondary';
 
 /** Commission model. Off-plan ≈ 5%, secondary/ready ≈ 2%. */
 export const COMMISSION_RATE: Record<DealType, number> = { offplan: 5, secondary: 2 };
+/** iClose flat fees. */
+export const FEES = { broker: 3500, conveyancing: 8250 } as const;
 
-/** What a broker keeps on a deal (they keep 100% of commission on iClose). */
-export function brokerPocket(dealType: DealType, amount: number): { pct: number; amount: number } {
+/** Broker take-home: 100% commission minus the AED 3,500 admin fee. */
+export function brokerPocket(dealType: DealType, amount: number): { pct: number; gross: number; fee: number; net: number } {
   const pct = COMMISSION_RATE[dealType];
+  const gross = Math.round((amount * pct) / 100);
+  return { pct, gross, fee: FEES.broker, net: gross - FEES.broker };
+}
+
+/** Buyer benefit net of the AED 8,250 conveyancing fee. Secondary = commission
+ *  saved (2%); off-plan = estimated credit back (5%). */
+export function buyerBenefit(dealType: DealType, amount: number): { label: string; pct: number; gross: number; fee: number; net: number } {
+  const pct = dealType === 'secondary' ? 2 : 5;
+  const gross = Math.round((amount * pct) / 100);
+  return { label: dealType === 'secondary' ? 'You save (net)' : 'Credit back (net)', pct, gross, fee: FEES.conveyancing, net: gross - FEES.conveyancing };
+}
+
+/** Estimate commission for an inquiry whose economics aren't set yet. */
+export function estimateCommission(dealType: DealType | null, amount: number | null): { pct: number; amount: number } | null {
+  if (!amount) return null;
+  const pct = COMMISSION_RATE[dealType ?? 'secondary'];
   return { pct, amount: Math.round((amount * pct) / 100) };
 }
 
-/** What a buyer saves/earns. Secondary: 0% commission (saved). Off-plan: up to
- *  12% credit back after SPA — we show a conservative estimate. */
-export function buyerBenefit(dealType: DealType, amount: number): { label: string; amount: number } {
-  if (dealType === 'secondary') return { label: 'Commission saved', amount: Math.round(amount * 0.02) };
-  return { label: 'Est. credit back', amount: Math.round(amount * 0.05) };
+export interface DealEvent { id: string; deal_id: string; kind: string; label: string; detail: string | null; created_at: string }
+export async function getDealEvents(dealId: string): Promise<DealEvent[]> {
+  const { data } = await supabase.from('deal_events').select('*').eq('deal_id', dealId).order('created_at', { ascending: false });
+  return (data as DealEvent[]) ?? [];
 }
 
 /** Property taxonomy for the buying inquiry. */
