@@ -3,17 +3,18 @@ import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator, L
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Plus, ChevronRight, ShieldCheck, MessageCircle, Sparkles, ClipboardList, TrendingUp, Video, BookOpen, HelpCircle, Calculator } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { Plus, ChevronRight, ShieldCheck, MessageCircle, Phone, ClipboardList, TrendingUp, Play } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal, type DashboardStats } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
 import { Wordmark, StatusBadge } from '@/components/DealUI';
 import { formatAed, formatDate } from '@/lib/format';
-import { CONTACT_WHATSAPP } from '@/lib/config';
-import { HIGHLIGHTS, HUB_TILES } from '@/data/learn';
+import { CONTACT_WHATSAPP, CONTACT_PHONE } from '@/lib/config';
+import { HIGHLIGHTS, VIDEOS } from '@/data/learn';
+import { ACCOUNT_MANAGER } from '@/data/images';
 import { colors } from '@/theme/tokens';
 
-const HUB_ICON = { video: Video, book: BookOpen, help: HelpCircle, calc: Calculator } as const;
 const NEW_LABEL = { buyer: 'New buying inquiry', seller: 'List a property', broker: 'New deal inquiry' } as const;
 const SUBTITLE = { buyer: 'Track what you’re buying and your savings.', seller: 'Track your listing through to sale.', broker: 'Track your deals and commission.' } as const;
 
@@ -104,13 +105,24 @@ export default function Home() {
           <ChevronRight size={20} color="rgba(255,255,255,0.75)" />
         </Pressable>
 
-        <View className="mb-6 flex-row gap-3">
-          <Pressable onPress={() => Linking.openURL(`https://wa.me/${CONTACT_WHATSAPP}`)} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-white/60 bg-white/70 py-3.5">
-            <MessageCircle size={17} color="#25D366" /><Text className="text-[13.5px] font-semibold text-ink">Message us</Text>
-          </Pressable>
-          <Pressable onPress={() => router.push('/benefits')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-white/60 bg-white/70 py-3.5">
-            <Sparkles size={16} color={colors.accent} /><Text className="text-[13.5px] font-semibold text-ink">What you get</Text>
-          </Pressable>
+        {/* Account manager */}
+        <View className="mb-6 rounded-apple border border-white/60 bg-white/80 p-4">
+          <Text className="mb-2.5 text-[11px] font-semibold uppercase tracking-widest text-graphite-light">Account manager</Text>
+          <View className="flex-row items-center gap-3">
+            <Image source={{ uri: ACCOUNT_MANAGER.photo }} style={{ width: 54, height: 54, borderRadius: 27 }} contentFit="cover" />
+            <View className="flex-1">
+              <Text className="text-[16px] font-semibold text-ink">{ACCOUNT_MANAGER.name}</Text>
+              <View className="mt-0.5 flex-row items-center gap-1.5"><View className="h-2 w-2 rounded-full bg-emerald-500" /><Text className="text-[12.5px] font-medium" style={{ color: '#059669' }}>Online now</Text></View>
+            </View>
+          </View>
+          <View className="mt-3.5 flex-row gap-2.5">
+            <Pressable onPress={() => Linking.openURL(`https://wa.me/${CONTACT_WHATSAPP}`)} className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-[#25D366] py-3">
+              <MessageCircle size={17} color="#fff" /><Text className="text-[14px] font-semibold text-white">WhatsApp</Text>
+            </Pressable>
+            <Pressable onPress={() => Linking.openURL(`tel:${CONTACT_PHONE}`)} className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-hairline bg-white py-3">
+              <Phone size={16} color={colors.ink} /><Text className="text-[14px] font-semibold text-ink">Call</Text>
+            </Pressable>
+          </View>
         </View>
 
         {/* Highlights carousel */}
@@ -129,19 +141,22 @@ export default function Home() {
           ))}
         </ScrollView>
 
-        {/* Knowledge Hub */}
-        <Text className="mb-2 text-[15px] font-semibold text-ink">Knowledge Hub</Text>
-        <View className="mb-6 flex-row flex-wrap gap-3">
-          {HUB_TILES.map((t) => {
-            const Icon = HUB_ICON[t.icon];
-            return (
-              <Pressable key={t.id} onPress={() => t.soon ? Alert.alert('Coming soon', 'Video content is on the way.') : t.route && router.push(t.route as never)} style={{ width: '47.5%' }} className="rounded-apple border border-white/60 bg-white/75 p-4">
-                <View className="mb-6 h-10 w-10 items-center justify-center rounded-full bg-accent/10"><Icon size={20} color={colors.accent} /></View>
-                <Text className="text-[14.5px] font-semibold text-ink">{t.title}</Text>
-                <Text className="text-[12px] text-graphite">{t.soon ? 'Coming soon' : t.subtitle}</Text>
-              </Pressable>
-            );
-          })}
+        {/* Knowledge Hub — videos */}
+        <Text className="mb-3 text-[15px] font-semibold text-ink">Knowledge Hub</Text>
+        <View className="mb-6 gap-3">
+          {VIDEOS.map((v) => (
+            <Pressable key={v.id} onPress={() => Alert.alert('Coming soon', 'This video is on the way.')} className="flex-row items-center gap-3 rounded-apple border border-white/60 bg-white/75 p-2.5">
+              <View style={{ width: 100, height: 66 }} className="overflow-hidden rounded-2xl">
+                <LinearGradient colors={v.colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                  <View className="h-9 w-9 items-center justify-center rounded-full bg-white/25"><Play size={15} color="#fff" fill="#fff" /></View>
+                </LinearGradient>
+              </View>
+              <View className="flex-1 pr-1">
+                <Text className="text-[14.5px] font-semibold text-ink" numberOfLines={2}>{v.title}</Text>
+                <Text className="mt-1 text-[12px] text-graphite">{v.duration} · Video</Text>
+              </View>
+            </Pressable>
+          ))}
         </View>
 
         {/* Recent inquiries */}

@@ -40,8 +40,8 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
 function Item({ label, icon: Icon, active, onPress }: { label: string; icon: typeof Home; active: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} className="flex-1 items-center gap-1 py-1.5">
-      <Icon size={21} color={active ? colors.accent : colors.graphite} strokeWidth={active ? 2.5 : 2} fill={active ? colors.accent : 'transparent'} fillOpacity={active ? 0.12 : 0} />
-      <Text style={{ color: active ? colors.accent : colors.graphite }} className="text-[10.5px] font-semibold">{label}</Text>
+      <Icon size={21} color={active ? colors.ink : colors.graphiteLight} strokeWidth={active ? 2.5 : 2} fill={active ? colors.ink : 'transparent'} fillOpacity={active ? 0.1 : 0} />
+      <Text style={{ color: active ? colors.ink : colors.graphiteLight }} className="text-[10.5px] font-semibold">{label}</Text>
     </Pressable>
   );
 }
@@ -49,7 +49,7 @@ function Item({ label, icon: Icon, active, onPress }: { label: string; icon: typ
 function Center({ onPress }: { onPress: () => void }) {
   return (
     <Pressable onPress={onPress} className="items-center px-1" style={{ marginTop: -2 }}>
-      <View className="h-12 w-12 items-center justify-center rounded-full bg-accent" style={{ shadowColor: colors.accent, shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } }}>
+      <View className="h-12 w-12 items-center justify-center rounded-full bg-ink" style={{ shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } }}>
         <Plus size={26} color="#fff" strokeWidth={2.5} />
       </View>
     </Pressable>
