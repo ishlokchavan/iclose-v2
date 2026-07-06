@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react';
 import { View, Text, TextInput, Pressable, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { BookOpen, HelpCircle, Sparkles } from 'lucide-react-native';
+import { Apple, Sparkles, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { GlassBg } from '@/components/Glass';
 import { Wordmark } from '@/components/DealUI';
+import { GoogleIcon } from '@/components/GoogleIcon';
+import { IMAGES } from '@/data/images';
 import { colors } from '@/theme/tokens';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -24,11 +27,9 @@ export default function SignIn() {
   const [busy, setBusy] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
 
-  // Once authenticated, continue to onboarding (or dashboard if already done).
   useEffect(() => {
     if (session && profile) router.replace(profile.onboarded ? '/dashboard' : '/onboarding');
   }, [session, profile]);
-
   useEffect(() => {
     if (Platform.OS === 'ios') AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});
   }, []);
@@ -41,13 +42,9 @@ export default function SignIn() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) Alert.alert('Sign in', error.message);
       } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: name.trim() || null } },
-        });
+        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name.trim() || null } } });
         if (error) return Alert.alert('Sign up', error.message);
-        if (!data.session) Alert.alert('Check your email', 'Confirm your email address to finish creating your account, then sign in.');
+        if (!data.session) Alert.alert('Check your email', 'Confirm your email address to finish, then sign in.');
       }
     } finally {
       setBusy(false);
@@ -70,74 +67,72 @@ export default function SignIn() {
 
   async function google() {
     const redirectTo = Linking.createURL('auth-callback');
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } },
-    });
+    const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo, skipBrowserRedirect: true, queryParams: { prompt: 'select_account' } } });
     if (error || !data?.url) return Alert.alert('Google sign-in', error?.message ?? 'Could not start sign-in.');
     const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
     if (result.type !== 'success' || !result.url) return;
     const frag = result.url.includes('#') ? result.url.split('#')[1] : result.url.split('?')[1] ?? '';
     const params = new URLSearchParams(frag);
-    const access_token = params.get('access_token');
-    const refresh_token = params.get('refresh_token');
-    const code = params.get('code');
-    if (access_token && refresh_token) {
-      const { error: e } = await supabase.auth.setSession({ access_token, refresh_token });
-      if (e) Alert.alert('Google sign-in', e.message);
-    } else if (code) {
-      const { error: e } = await supabase.auth.exchangeCodeForSession(result.url);
-      if (e) Alert.alert('Google sign-in', e.message);
-    } else {
-      Alert.alert('Almost there', `Add this redirect URL in Supabase → Authentication → URL Configuration:\n\n${redirectTo}`);
-    }
+    const at = params.get('access_token'), rt = params.get('refresh_token'), code = params.get('code');
+    if (at && rt) { const { error: e } = await supabase.auth.setSession({ access_token: at, refresh_token: rt }); if (e) Alert.alert('Google sign-in', e.message); }
+    else if (code) { const { error: e } = await supabase.auth.exchangeCodeForSession(result.url); if (e) Alert.alert('Google sign-in', e.message); }
+    else Alert.alert('Almost there', `Add this redirect URL in Supabase → URL Configuration:\n\n${redirectTo}`);
   }
 
   return (
-    <View className="flex-1">
-      <GlassBg />
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: insets.top + 40, paddingHorizontal: 24, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
-        <View className="mb-6 items-center"><Wordmark size={34} /></View>
-        <Text className="-mt-3 mb-5 text-center text-[15px] text-graphite">Never pay commission to buy, sell or close again.</Text>
+    <View className="flex-1 bg-white">
+      {/* Hero */}
+      <View style={{ height: 260 }}>
+        <Image source={{ uri: IMAGES.hero }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={300} />
+        <LinearGradient colors={['rgba(0,0,0,0.25)', 'rgba(255,255,255,0)', 'rgba(255,255,255,1)']} locations={[0, 0.55, 1]} style={{ position: 'absolute', inset: 0 }} />
+        <View style={{ position: 'absolute', top: insets.top + 10, left: 24 }}>
+          <View className="flex-row items-center rounded-full bg-white/90 px-3 py-1.5"><Wordmark size={20} /></View>
+        </View>
+      </View>
 
-        <Pressable onPress={() => router.push('/benefits')} className="mb-5 flex-row items-center justify-center gap-2 rounded-full border border-accent/25 bg-accent/8 py-3">
-          <Sparkles size={16} color={colors.accent} /><Text className="text-[14px] font-semibold text-accent">See what you get →</Text>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }} keyboardShouldPersistTaps="handled">
+        <Text className="-mt-2 text-[27px] font-bold leading-tight tracking-tight text-ink">Never pay commission to buy, sell or close.</Text>
+        <Text className="mb-4 mt-1.5 text-[14.5px] text-graphite">Create your account to get started — it’s free.</Text>
+
+        <Pressable onPress={() => router.push('/benefits')} className="mb-5 flex-row items-center gap-2 self-start rounded-full border border-accent/25 bg-accent/8 px-3.5 py-2">
+          <Sparkles size={15} color={colors.accent} /><Text className="text-[13.5px] font-semibold text-accent">See what you get</Text>
         </Pressable>
 
-        <View className="gap-3 rounded-apple border border-white/60 bg-white/70 p-4">
+        <View className="gap-3">
           {mode === 'signup' ? (
-            <TextInput value={name} onChangeText={setName} placeholder="Full name" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink" />
+            <TextInput value={name} onChangeText={setName} placeholder="Full name" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-white px-4 py-3.5 text-base text-ink" />
           ) : null}
-          <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink" />
-          <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink" />
-          <Pressable disabled={busy} onPress={submitEmail} className="mt-1 rounded-full bg-accent py-3.5">
-            {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-center text-[15px] font-semibold text-white">{mode === 'login' ? 'Sign in' : 'Create account'}</Text>}
-          </Pressable>
-
-          {appleAvailable ? (
-            <AppleAuthentication.AppleAuthenticationButton
-              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-              cornerRadius={999}
-              style={{ height: 48, width: '100%' }}
-              onPress={apple}
-            />
-          ) : null}
-          <Pressable onPress={google} className="rounded-full border border-hairline bg-white/60 py-3.5"><Text className="text-center text-[15px] font-semibold text-ink">Continue with Google</Text></Pressable>
+          <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-white px-4 py-3.5 text-base text-ink" />
+          <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-white px-4 py-3.5 text-base text-ink" />
         </View>
 
-        <Pressable onPress={() => setMode(mode === 'login' ? 'signup' : 'login')} className="mt-4">
+        {/* Uniform auth buttons */}
+        <View className="mt-4 gap-3">
+          <Pressable disabled={busy} onPress={submitEmail} className="h-[52px] flex-row items-center justify-center rounded-full bg-accent">
+            {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-[15.5px] font-semibold text-white">{mode === 'login' ? 'Sign in' : 'Create account'}</Text>}
+          </Pressable>
+
+          <View className="my-1 flex-row items-center gap-3">
+            <View className="h-px flex-1 bg-hairline" /><Text className="text-[12.5px] text-graphite-light">or continue with</Text><View className="h-px flex-1 bg-hairline" />
+          </View>
+
+          {appleAvailable ? (
+            <Pressable onPress={apple} className="h-[52px] flex-row items-center justify-center gap-2 rounded-full bg-ink">
+              <Apple size={19} color="#fff" fill="#fff" /><Text className="text-[15.5px] font-semibold text-white">Continue with Apple</Text>
+            </Pressable>
+          ) : null}
+          <Pressable onPress={google} className="h-[52px] flex-row items-center justify-center gap-2.5 rounded-full border border-hairline bg-white">
+            <GoogleIcon size={19} /><Text className="text-[15.5px] font-semibold text-ink">Continue with Google</Text>
+          </Pressable>
+        </View>
+
+        <Pressable onPress={() => setMode(mode === 'login' ? 'signup' : 'login')} className="mt-5">
           <Text className="text-center text-[14.5px] text-accent">{mode === 'login' ? 'New to iClose? Create an account' : 'Already have an account? Sign in'}</Text>
         </Pressable>
 
-        <View className="mt-8 flex-row justify-center gap-3">
-          <Pressable onPress={() => router.push('/tutorial')} className="flex-row items-center gap-2 rounded-full border border-white/60 bg-white/60 px-4 py-2.5">
-            <BookOpen size={16} color={colors.graphite} /><Text className="text-[13.5px] font-medium text-ink">How it works</Text>
-          </Pressable>
-          <Pressable onPress={() => router.push('/faq')} className="flex-row items-center gap-2 rounded-full border border-white/60 bg-white/60 px-4 py-2.5">
-            <HelpCircle size={16} color={colors.graphite} /><Text className="text-[13.5px] font-medium text-ink">FAQ</Text>
-          </Pressable>
-        </View>
+        <Pressable onPress={() => router.push('/faq')} className="mt-6 flex-row items-center justify-center gap-2 self-center">
+          <HelpCircle size={15} color={colors.graphiteLight} /><Text className="text-[13.5px] text-graphite">Questions? Read the FAQ</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );

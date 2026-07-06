@@ -20,10 +20,20 @@ export interface Profile {
   phone: string | null;
   preferred_channel: ContactChannel | null;
   onboarded: boolean;
+  ref_code: string;
 }
+
+/** Property taxonomy for the buying inquiry. */
+export const PROPERTY_CATEGORIES = ['Residential', 'Commercial'] as const;
+export type PropertyCategory = (typeof PROPERTY_CATEGORIES)[number];
+export const PROPERTY_TYPES: Record<PropertyCategory, string[]> = {
+  Residential: ['Apartment', 'Villa', 'Townhouse', 'Penthouse'],
+  Commercial: ['Office Space', 'Retail', 'Land'],
+};
 
 export interface Deal {
   id: string;
+  ref_code: string;
   user_id: string;
   kind: InquiryKind;
   is_referral: boolean;
@@ -78,7 +88,7 @@ export async function getMyProfile(): Promise<Profile | null> {
   if (!auth.user) return null;
   const { data } = await supabase
     .from('profiles')
-    .select('id,role,full_name,email,phone,preferred_channel,onboarded')
+    .select('id,role,full_name,email,phone,preferred_channel,onboarded,ref_code')
     .eq('id', auth.user.id)
     .maybeSingle();
   return (data as Profile) ?? null;
@@ -111,16 +121,16 @@ export interface NewInquiry {
   note?: string | null;
 }
 
-export async function submitInquiry(input: NewInquiry): Promise<string> {
+export async function submitInquiry(input: NewInquiry): Promise<{ id: string; ref_code: string }> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) throw new Error('Please sign in first.');
   const { data, error } = await supabase
     .from('deals')
     .insert({ ...input, user_id: auth.user.id })
-    .select('id')
+    .select('id,ref_code')
     .single();
   if (error) throw new Error(error.message);
-  return data.id as string;
+  return { id: data.id as string, ref_code: data.ref_code as string };
 }
 
 export async function getMyDeals(): Promise<Deal[]> {

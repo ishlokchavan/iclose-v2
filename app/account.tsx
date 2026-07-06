@@ -1,29 +1,31 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, LogOut, Trash2, BookOpen, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { updateMyProfile, CHANNEL_LABEL, ROLE_LABEL, type UserRole, type ContactChannel } from '@/lib/deals';
+import { VISIBLE_ROLES } from '@/data/benefits';
 import { GlassBg } from '@/components/Glass';
+import { PhoneField } from '@/components/PhoneField';
+import { BottomNav } from '@/components/BottomNav';
 import { colors } from '@/theme/tokens';
 
 const CHANNELS: ContactChannel[] = ['whatsapp', 'call', 'telegram'];
-const ROLES: UserRole[] = ['buyer', 'seller', 'broker'];
 
 export default function Account() {
   const insets = useSafeAreaInsets();
   const { session, profile, isAdmin, refresh } = useAuth();
   const [role, setRole] = useState<UserRole>('buyer');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+971 ');
   const [channel, setChannel] = useState<ContactChannel | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (profile) {
       setRole(profile.role);
-      setPhone(profile.phone ?? '');
+      if (profile.phone) setPhone(profile.phone);
       setChannel(profile.preferred_channel);
     }
   }, [profile]);
@@ -31,7 +33,7 @@ export default function Account() {
   async function save() {
     setBusy(true);
     try {
-      await updateMyProfile({ role, phone: phone.trim() || null, preferred_channel: channel });
+      await updateMyProfile({ role, phone: phone.trim() || null, preferred_channel: channel ?? undefined });
       await refresh();
       Alert.alert('Saved', 'Your details are up to date.');
     } catch (e) {
@@ -65,7 +67,7 @@ export default function Account() {
         <Text className="text-[17px] font-semibold text-ink">Account</Text>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120 }} keyboardShouldPersistTaps="handled">
         {/* Identity */}
         <View className="mb-4 flex-row items-center gap-4">
           <View className="h-16 w-16 items-center justify-center rounded-full bg-ink"><Text className="text-[22px] font-semibold text-white">{name.charAt(0).toUpperCase()}</Text></View>
@@ -80,7 +82,7 @@ export default function Account() {
         <View className="mb-4 rounded-apple border border-white/60 bg-white/70 p-4">
           <Text className="mb-2 text-[13px] font-medium text-graphite">I am a…</Text>
           <View className="flex-row gap-2">
-            {ROLES.map((r) => (
+            {VISIBLE_ROLES.map((r) => (
               <Pressable key={r} onPress={() => setRole(r)} className={`flex-1 items-center rounded-2xl border py-3 ${role === r ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
                 <Text className={`text-[14px] font-semibold ${role === r ? 'text-accent' : 'text-ink'}`}>{ROLE_LABEL[r]}</Text>
               </Pressable>
@@ -92,7 +94,7 @@ export default function Account() {
         {/* Contact */}
         <View className="mb-4 rounded-apple border border-white/60 bg-white/70 p-4">
           <Text className="mb-1.5 text-[13px] font-medium text-graphite">Phone number</Text>
-          <TextInput value={phone} onChangeText={setPhone} placeholder="+971…" keyboardType="phone-pad" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink" />
+          <PhoneField value={phone} onChange={setPhone} />
           <Text className="mb-2 mt-3 text-[13px] font-medium text-graphite">Preferred contact</Text>
           <View className="flex-row gap-2">
             {CHANNELS.map((c) => (
@@ -117,13 +119,15 @@ export default function Account() {
           </Pressable>
         </View>
 
-        <Pressable onPress={() => supabase.auth.signOut()} className="mt-6 flex-row items-center justify-center gap-2 rounded-apple border border-hairline py-4">
+        <Pressable onPress={async () => { await supabase.auth.signOut(); router.replace('/sign-in'); }} className="mt-6 flex-row items-center justify-center gap-2 rounded-apple border border-hairline py-4">
           <LogOut size={18} color={colors.ink} /><Text className="font-semibold text-ink">Sign out</Text>
         </Pressable>
         <Pressable onPress={confirmDelete} className="mt-3 flex-row items-center justify-center gap-2 py-3">
           <Trash2 size={16} color="#e11d48" /><Text className="font-semibold" style={{ color: '#e11d48' }}>Delete account</Text>
         </Pressable>
       </ScrollView>
+
+      <BottomNav active="account" />
     </View>
   );
 }

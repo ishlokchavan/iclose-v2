@@ -55,3 +55,5 @@ export const ROLE_BENEFITS: Record<UserRole, RoleBenefit> = {
 };
 
 export const ROLE_ORDER: UserRole[] = ['buyer', 'seller', 'broker'];
+/** Roles surfaced in the UI right now (Sellers hidden for launch). */
+export const VISIBLE_ROLES: UserRole[] = ['buyer', 'broker'];
