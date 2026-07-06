@@ -43,6 +43,7 @@ const config: ExpoConfig = {
   plugins: [
     'expo-router',
     'expo-secure-store',
+    ['expo-image-picker', { photosPermission: 'iClose needs access to your photos so you can upload your profile picture and verification documents.' }],
     ['expo-splash-screen', { backgroundColor: '#ffffff', image: './assets/splash.png', resizeMode: 'contain' }],
   ],
   experiments: { typedRoutes: true },

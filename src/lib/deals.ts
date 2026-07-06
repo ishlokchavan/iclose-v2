@@ -24,6 +24,9 @@ export interface Profile {
   bank_name: string | null;
   bank_account_name: string | null;
   iban: string | null;
+  avatar_path: string | null;
+  id_doc_type: string | null;
+  id_doc_path: string | null;
 }
 
 export type DealType = 'offplan' | 'secondary';
@@ -128,13 +131,13 @@ export async function getMyProfile(): Promise<Profile | null> {
   if (!auth.user) return null;
   const { data } = await supabase
     .from('profiles')
-    .select('id,role,full_name,email,phone,preferred_channel,onboarded,ref_code,bank_name,bank_account_name,iban')
+    .select('id,role,full_name,email,phone,preferred_channel,onboarded,ref_code,bank_name,bank_account_name,iban,avatar_path,id_doc_type,id_doc_path')
     .eq('id', auth.user.id)
     .maybeSingle();
   return (data as Profile) ?? null;
 }
 
-export async function updateMyProfile(patch: Partial<Pick<Profile, 'role' | 'full_name' | 'phone' | 'preferred_channel' | 'onboarded' | 'bank_name' | 'bank_account_name' | 'iban'>>): Promise<void> {
+export async function updateMyProfile(patch: Partial<Pick<Profile, 'role' | 'full_name' | 'phone' | 'preferred_channel' | 'onboarded' | 'bank_name' | 'bank_account_name' | 'iban' | 'avatar_path' | 'id_doc_type' | 'id_doc_path'>>): Promise<void> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) throw new Error('Not signed in');
   const { error } = await supabase.from('profiles').update(patch).eq('id', auth.user.id);

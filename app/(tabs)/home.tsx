@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator, Linking, Alert } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Plus, ChevronRight, ShieldCheck, MessageCircle, Sparkles, ClipboardList, TrendingUp } from 'lucide-react-native';
+import { Plus, ChevronRight, ShieldCheck, MessageCircle, Sparkles, ClipboardList, TrendingUp, Video, BookOpen, HelpCircle, Calculator } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal, type DashboardStats } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
 import { Wordmark, StatusBadge } from '@/components/DealUI';
 import { formatAed, formatDate } from '@/lib/format';
 import { CONTACT_WHATSAPP } from '@/lib/config';
+import { HIGHLIGHTS, HUB_TILES } from '@/data/learn';
 import { colors } from '@/theme/tokens';
 
+const HUB_ICON = { video: Video, book: BookOpen, help: HelpCircle, calc: Calculator } as const;
 const NEW_LABEL = { buyer: 'New buying inquiry', seller: 'List a property', broker: 'New deal inquiry' } as const;
 const SUBTITLE = { buyer: 'Track what you’re buying and your savings.', seller: 'Track your listing through to sale.', broker: 'Track your deals and commission.' } as const;
 
@@ -109,6 +111,37 @@ export default function Home() {
           <Pressable onPress={() => router.push('/benefits')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-white/60 bg-white/70 py-3.5">
             <Sparkles size={16} color={colors.accent} /><Text className="text-[13.5px] font-semibold text-ink">What you get</Text>
           </Pressable>
+        </View>
+
+        {/* Highlights carousel */}
+        <Text className="mb-2 text-[15px] font-semibold text-ink">Highlights</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 -mx-4" contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
+          {HIGHLIGHTS.map((h) => (
+            <Pressable key={h.id} onPress={() => h.route && router.push(h.route as never)} style={{ width: 250 }} className="overflow-hidden rounded-[20px]">
+              <LinearGradient colors={h.colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 18, minHeight: 120, justifyContent: 'space-between' }}>
+                <Text className="text-[17px] font-bold leading-tight text-white">{h.title}</Text>
+                <View>
+                  <Text className="text-[12.5px] text-white/85">{h.subtitle}</Text>
+                  <Text className="mt-1.5 text-[12.5px] font-semibold text-white">Learn more →</Text>
+                </View>
+              </LinearGradient>
+            </Pressable>
+          ))}
+        </ScrollView>
+
+        {/* Knowledge Hub */}
+        <Text className="mb-2 text-[15px] font-semibold text-ink">Knowledge Hub</Text>
+        <View className="mb-6 flex-row flex-wrap gap-3">
+          {HUB_TILES.map((t) => {
+            const Icon = HUB_ICON[t.icon];
+            return (
+              <Pressable key={t.id} onPress={() => t.soon ? Alert.alert('Coming soon', 'Video content is on the way.') : t.route && router.push(t.route as never)} style={{ width: '47.5%' }} className="rounded-apple border border-white/60 bg-white/75 p-4">
+                <View className="mb-6 h-10 w-10 items-center justify-center rounded-full bg-accent/10"><Icon size={20} color={colors.accent} /></View>
+                <Text className="text-[14.5px] font-semibold text-ink">{t.title}</Text>
+                <Text className="text-[12px] text-graphite">{t.soon ? 'Coming soon' : t.subtitle}</Text>
+              </Pressable>
+            );
+          })}
         </View>
 
         {/* Recent inquiries */}

@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Pressable, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { History as HistoryIcon, CheckCircle2, XCircle } from 'lucide-react-native';
+import { History as HistoryIcon, Search, CheckCircle2, XCircle } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
-import { formatAed, formatDate, dayGroup } from '@/lib/format';
+import { formatAed, formatDate } from '@/lib/format';
 import { colors } from '@/theme/tokens';
+
+const MONTH = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+const amountOf = (d: Deal) => d.commission_amount_aed ?? d.deal_value_aed ?? 0;
 
 export default function HistoryTab() {
   const insets = useSafeAreaInsets();
@@ -16,74 +18,87 @@ export default function HistoryTab() {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [q, setQ] = useState('');
 
   const load = useCallback(async () => { setDeals(await getMyDeals()); }, []);
   useEffect(() => { if (session) load().finally(() => setLoading(false)); }, [session, load]);
   useFocusEffect(useCallback(() => { if (session) load(); }, [session, load]));
   const onRefresh = useCallback(async () => { setRefreshing(true); try { await load(); } finally { setRefreshing(false); } }, [load]);
 
-  const closed = useMemo(() => deals.filter((d) => d.status === 'closed_won' || d.status === 'closed_lost'), [deals]);
-  const stats = computeStats(deals);
   const isBuyer = profile?.role === 'buyer';
+  const stats = computeStats(deals);
 
   const groups = useMemo(() => {
+    let closed = deals.filter((d) => d.status === 'closed_won' || d.status === 'closed_lost');
+    if (q.trim()) { const n = q.toLowerCase(); closed = closed.filter((d) => [d.title, d.area, d.ref_code].filter(Boolean).some((s) => s!.toLowerCase().includes(n))); }
+    closed.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     const map = new Map<string, Deal[]>();
-    for (const d of closed) {
-      const k = dayGroup(d.created_at);
-      (map.get(k) ?? map.set(k, []).get(k)!).push(d);
-    }
+    for (const d of closed) { const k = MONTH(d.created_at); (map.get(k) ?? map.set(k, []).get(k)!).push(d); }
     return Array.from(map.entries());
-  }, [closed]);
+  }, [deals, q]);
 
   return (
     <View className="flex-1">
       <GlassBg />
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 110 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}>
-        <Text className="mb-4 text-[24px] font-bold text-ink">History</Text>
-
-        {/* Summary */}
-        <View className="mb-5 overflow-hidden rounded-[22px]">
-          <LinearGradient colors={['#0f172a', '#334155']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 20 }}>
-            <Text className="text-[13px] text-white/75">{stats.closedCount} deal{stats.closedCount === 1 ? '' : 's'} closed · {formatAed(stats.closedValue)} total</Text>
-            <Text className="mt-2 text-[13px] text-white/75">{isBuyer ? 'Commission saved' : 'Commission earned'}</Text>
-            <Text className="text-[30px] font-bold text-white">{formatAed(isBuyer ? stats.closedValue * 0.02 : stats.commissionEarned)}</Text>
-            {!isBuyer && stats.commissionPending > 0 ? <Text className="mt-1 text-[12.5px] text-amber-300">{formatAed(stats.commissionPending)} pending payout</Text> : null}
-          </LinearGradient>
+      <View style={{ paddingTop: insets.top + 12 }} className="px-4 pb-1">
+        <Text className="mb-3 text-[24px] font-bold text-ink">History</Text>
+        <View className="flex-row items-center gap-2 rounded-full border border-white/60 bg-white/70 px-4 py-2.5">
+          <Search size={17} color={colors.graphiteLight} />
+          <TextInput value={q} onChangeText={setQ} placeholder="Search transactions" placeholderTextColor={colors.graphiteLight} className="flex-1 text-[15px] text-ink" />
         </View>
+      </View>
 
-        {loading ? (
-          <ActivityIndicator className="mt-8" color={colors.accent} />
-        ) : closed.length === 0 ? (
-          <View className="mt-6 items-center gap-3 rounded-apple border border-white/60 bg-white/60 px-8 py-10">
-            <View className="h-16 w-16 items-center justify-center rounded-full bg-accent/10"><HistoryIcon size={28} color={colors.accent} /></View>
-            <Text className="text-center text-[15px] text-graphite">No closed deals yet. Your completed transactions will appear here.</Text>
-          </View>
-        ) : (
-          groups.map(([label, items]) => (
-            <View key={label} className="mb-4">
-              <Text className="mb-2 text-[13px] font-semibold text-graphite-light">{label}</Text>
-              <View className="gap-3">
-                {items.map((d) => {
-                  const won = d.status === 'closed_won';
-                  return (
-                    <Pressable key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className="flex-row items-center gap-3 rounded-apple border border-white/60 bg-white/75 p-4">
-                      <View className={`h-10 w-10 items-center justify-center rounded-full ${won ? 'bg-emerald-500/12' : 'bg-black/5'}`}>
-                        {won ? <CheckCircle2 size={20} color="#059669" /> : <XCircle size={20} color={colors.graphite} />}
-                      </View>
-                      <View className="flex-1">
-                        <Text className="text-[15px] font-semibold text-ink" numberOfLines={1}>{d.title || d.area || 'Deal'}</Text>
-                        <Text className="text-[12.5px] text-graphite" numberOfLines={1}>{d.ref_code} · {won ? 'Closed' : 'Not closed'} · {formatDate(d.created_at)}</Text>
-                      </View>
-                      <Text className="text-[14px] font-semibold text-ink">{d.commission_amount_aed != null ? formatAed(d.commission_amount_aed) : d.deal_value_aed != null ? formatAed(d.deal_value_aed) : ''}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+      {loading ? (
+        <ActivityIndicator className="mt-16" color={colors.accent} />
+      ) : (
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 110 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}>
+          {/* Light summary card */}
+          <View className="mb-5 rounded-[22px] border border-white/70 bg-white/80 p-5">
+            <Text className="text-[13px] text-graphite">{isBuyer ? 'Commission saved' : 'Commission earned'}</Text>
+            <Text className="mt-1 text-[32px] font-bold text-accent">{formatAed(isBuyer ? stats.closedValue * 0.02 : stats.commissionEarned)}</Text>
+            <View className="mt-3 flex-row gap-6">
+              <View><Text className="text-[18px] font-bold text-ink">{stats.closedCount}</Text><Text className="text-[12px] text-graphite">Deals closed</Text></View>
+              <View><Text className="text-[18px] font-bold text-ink">{formatAed(stats.closedValue)}</Text><Text className="text-[12px] text-graphite">Total value</Text></View>
+              {!isBuyer && stats.commissionPending > 0 ? <View><Text className="text-[18px] font-bold" style={{ color: '#b45309' }}>{formatAed(stats.commissionPending)}</Text><Text className="text-[12px] text-graphite">Pending</Text></View> : null}
             </View>
-          ))
-        )}
-      </ScrollView>
+          </View>
+
+          {groups.length === 0 ? (
+            <View className="mt-6 items-center gap-3 rounded-apple border border-white/60 bg-white/60 px-8 py-10">
+              <View className="h-16 w-16 items-center justify-center rounded-full bg-accent/10"><HistoryIcon size={28} color={colors.accent} /></View>
+              <Text className="text-center text-[15px] text-graphite">{q ? 'No transactions match.' : 'No closed deals yet. Your completed transactions will appear here.'}</Text>
+            </View>
+          ) : (
+            groups.map(([month, items]) => (
+              <View key={month} className="mb-5">
+                {/* Month header with total (GPay style) */}
+                <View className="mb-2 flex-row items-end justify-between px-1">
+                  <Text className="text-[15px] font-semibold text-graphite">{month}</Text>
+                  <Text className="text-[15px] font-bold text-ink">{formatAed(items.reduce((s, d) => s + amountOf(d), 0))}</Text>
+                </View>
+                <View className="overflow-hidden rounded-apple border border-white/60 bg-white/75">
+                  {items.map((d, i) => {
+                    const won = d.status === 'closed_won';
+                    return (
+                      <Pressable key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className={`flex-row items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-black/5' : ''}`}>
+                        <View className={`h-10 w-10 items-center justify-center rounded-full ${won ? 'bg-emerald-500/12' : 'bg-black/5'}`}>
+                          {won ? <CheckCircle2 size={20} color="#059669" /> : <XCircle size={20} color={colors.graphite} />}
+                        </View>
+                        <View className="flex-1">
+                          <Text className="text-[14.5px] font-semibold text-ink" numberOfLines={1}>{d.title || d.area || 'Deal'}</Text>
+                          <Text className="text-[12px] text-graphite" numberOfLines={1}>{formatDate(d.created_at)} · {won ? 'Closed' : 'Not closed'}</Text>
+                        </View>
+                        <Text className="text-[14.5px] font-bold text-ink">{formatAed(amountOf(d))}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            ))
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
