@@ -1,33 +1,24 @@
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import { Redirect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/lib/auth';
-import { GlassBg } from '@/components/Glass';
-import { colors } from '@/theme/tokens';
+import { Splash } from '@/components/Splash';
 
-/** Entry gate: signed-in → dashboard; first launch → tutorial; else → sign-in. */
+/** Entry gate: signed-in → home/onboarding; first launch → intro; else → sign-in. */
 export default function Index() {
   const { session, profile, loading } = useAuth();
-  const [seenTutorial, setSeenTutorial] = useState<boolean | null>(null);
+  const [seenIntro, setSeenIntro] = useState<boolean | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem('seen_tutorial').then((v) => setSeenTutorial(v === '1'));
+    AsyncStorage.getItem('seen_intro').then((v) => setSeenIntro(v === '1'));
   }, []);
 
-  if (loading || seenTutorial === null) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <GlassBg />
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
-  }
+  if (loading || seenIntro === null) return <Splash />;
+
   if (session) {
-    // Signed in but profile still loading — wait a beat.
-    if (!profile) return <View className="flex-1 items-center justify-center"><GlassBg /><ActivityIndicator color={colors.accent} /></View>;
+    if (!profile) return <Splash />;
     return <Redirect href={profile.onboarded ? '/home' : '/onboarding'} />;
   }
-  if (!seenTutorial) return <Redirect href="/tutorial" />;
+  if (!seenIntro) return <Redirect href="/intro" />;
   return <Redirect href="/sign-in" />;
 }

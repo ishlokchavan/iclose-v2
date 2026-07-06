@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Check, ShoppingBag, Briefcase, MessageCircle, Phone, Send } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { updateMyProfile, type UserRole, type ContactChannel } from '@/lib/deals';
@@ -35,6 +36,11 @@ export default function Onboarding() {
     if (!session) router.replace('/sign-in');
     else if (profile?.onboarded) router.replace('/home');
   }, [session, profile]);
+
+  // Pre-select the role the user picked pre-login in the intro.
+  useEffect(() => {
+    AsyncStorage.getItem('intent_role').then((r) => { if (r === 'buyer' || r === 'broker' || r === 'seller') setRole(r as UserRole); });
+  }, []);
 
   async function finish() {
     if (phone.replace(/[^0-9]/g, '').length < 8) return Alert.alert('Add your phone', 'We need a phone number so our team can reach you.');
