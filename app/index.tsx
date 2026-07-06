@@ -26,7 +26,7 @@ export default function Index() {
   if (session) {
     // Signed in but profile still loading — wait a beat.
     if (!profile) return <View className="flex-1 items-center justify-center"><GlassBg /><ActivityIndicator color={colors.accent} /></View>;
-    return <Redirect href={profile.onboarded ? '/dashboard' : '/onboarding'} />;
+    return <Redirect href={profile.onboarded ? '/home' : '/onboarding'} />;
   }
   if (!seenTutorial) return <Redirect href="/tutorial" />;
   return <Redirect href="/sign-in" />;

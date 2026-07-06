@@ -46,7 +46,7 @@ export default function AdminDeal() {
       setCommissionPct(d.commission_pct != null ? String(d.commission_pct) : '');
       setCommissionAmount(d.commission_amount_aed != null ? String(d.commission_amount_aed) : '');
       setCommissionStatus(d.commission_status);
-      const { data: p } = await supabase.from('profiles').select('id,role,full_name,email,phone,preferred_channel').eq('id', d.user_id).maybeSingle();
+      const { data: p } = await supabase.from('profiles').select('*').eq('id', d.user_id).maybeSingle();
       setSubmitter((p as Profile) ?? null);
     }
   }, [id]);
@@ -80,7 +80,7 @@ export default function AdminDeal() {
     if (v != null && p != null) setCommissionAmount(String(Math.round((v * p) / 100)));
   }
 
-  if (!authLoading && !isAdmin) return <Redirect href="/dashboard" />;
+  if (!authLoading && !isAdmin) return <Redirect href="/home" />;
 
   const phone = submitter?.phone?.replace(/[^0-9]/g, '');
 

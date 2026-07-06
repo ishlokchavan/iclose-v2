@@ -33,7 +33,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (!session) router.replace('/sign-in');
-    else if (profile?.onboarded) router.replace('/dashboard');
+    else if (profile?.onboarded) router.replace('/home');
   }, [session, profile]);
 
   async function finish() {
@@ -42,7 +42,7 @@ export default function Onboarding() {
     try {
       await updateMyProfile({ role, phone: phone.trim(), preferred_channel: channel, onboarded: true });
       await refresh();
-      router.replace('/dashboard');
+      router.replace('/home');
     } catch (e) {
       Alert.alert('Could not save', (e as Error).message);
     } finally {

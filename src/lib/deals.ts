@@ -21,6 +21,27 @@ export interface Profile {
   preferred_channel: ContactChannel | null;
   onboarded: boolean;
   ref_code: string;
+  bank_name: string | null;
+  bank_account_name: string | null;
+  iban: string | null;
+}
+
+export type DealType = 'offplan' | 'secondary';
+
+/** Commission model. Off-plan ≈ 5%, secondary/ready ≈ 2%. */
+export const COMMISSION_RATE: Record<DealType, number> = { offplan: 5, secondary: 2 };
+
+/** What a broker keeps on a deal (they keep 100% of commission on iClose). */
+export function brokerPocket(dealType: DealType, amount: number): { pct: number; amount: number } {
+  const pct = COMMISSION_RATE[dealType];
+  return { pct, amount: Math.round((amount * pct) / 100) };
+}
+
+/** What a buyer saves/earns. Secondary: 0% commission (saved). Off-plan: up to
+ *  12% credit back after SPA — we show a conservative estimate. */
+export function buyerBenefit(dealType: DealType, amount: number): { label: string; amount: number } {
+  if (dealType === 'secondary') return { label: 'Commission saved', amount: Math.round(amount * 0.02) };
+  return { label: 'Est. credit back', amount: Math.round(amount * 0.05) };
 }
 
 /** Property taxonomy for the buying inquiry. */
@@ -40,6 +61,8 @@ export interface Deal {
   title: string | null;
   project: string | null;
   area: string | null;
+  emirate: string | null;
+  deal_type: DealType | null;
   property_type: string | null;
   bedrooms: number | null;
   budget_aed: number | null;
@@ -88,13 +111,13 @@ export async function getMyProfile(): Promise<Profile | null> {
   if (!auth.user) return null;
   const { data } = await supabase
     .from('profiles')
-    .select('id,role,full_name,email,phone,preferred_channel,onboarded,ref_code')
+    .select('id,role,full_name,email,phone,preferred_channel,onboarded,ref_code,bank_name,bank_account_name,iban')
     .eq('id', auth.user.id)
     .maybeSingle();
   return (data as Profile) ?? null;
 }
 
-export async function updateMyProfile(patch: Partial<Pick<Profile, 'role' | 'full_name' | 'phone' | 'preferred_channel' | 'onboarded'>>): Promise<void> {
+export async function updateMyProfile(patch: Partial<Pick<Profile, 'role' | 'full_name' | 'phone' | 'preferred_channel' | 'onboarded' | 'bank_name' | 'bank_account_name' | 'iban'>>): Promise<void> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) throw new Error('Not signed in');
   const { error } = await supabase.from('profiles').update(patch).eq('id', auth.user.id);
@@ -114,6 +137,8 @@ export interface NewInquiry {
   title?: string | null;
   project?: string | null;
   area?: string | null;
+  emirate?: string | null;
+  deal_type?: DealType | null;
   property_type?: string | null;
   bedrooms?: number | null;
   budget_aed?: number | null;

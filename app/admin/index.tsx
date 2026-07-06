@@ -33,7 +33,7 @@ export default function AdminList() {
     try { await load(); } finally { setRefreshing(false); }
   }, [load]);
 
-  if (!authLoading && !isAdmin) return <Redirect href="/dashboard" />;
+  if (!authLoading && !isAdmin) return <Redirect href="/home" />;
 
   const active = FILTERS.find((f) => f.key === filter)!;
   const shown = deals.filter(active.match);

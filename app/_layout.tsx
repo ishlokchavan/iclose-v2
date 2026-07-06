@@ -27,10 +27,9 @@ export default function RootLayout() {
             <Stack.Screen name="onboarding" />
             <Stack.Screen name="benefits" options={{ presentation: 'modal' }} />
             <Stack.Screen name="faq" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="dashboard" />
+            <Stack.Screen name="(tabs)" />
             <Stack.Screen name="new-inquiry" options={{ presentation: 'modal' }} />
             <Stack.Screen name="deal/[id]" options={{ presentation: 'card', animation: 'slide_from_right' }} />
-            <Stack.Screen name="account" options={{ presentation: 'card', animation: 'slide_from_right' }} />
             <Stack.Screen name="admin/index" options={{ presentation: 'card', animation: 'slide_from_right' }} />
             <Stack.Screen name="admin/[id]" options={{ presentation: 'card', animation: 'slide_from_right' }} />
           </Stack>

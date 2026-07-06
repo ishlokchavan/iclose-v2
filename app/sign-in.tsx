@@ -28,7 +28,7 @@ export default function SignIn() {
   const [appleAvailable, setAppleAvailable] = useState(false);
 
   useEffect(() => {
-    if (session && profile) router.replace(profile.onboarded ? '/dashboard' : '/onboarding');
+    if (session && profile) router.replace(profile.onboarded ? '/home' : '/onboarding');
   }, [session, profile]);
   useEffect(() => {
     if (Platform.OS === 'ios') AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});

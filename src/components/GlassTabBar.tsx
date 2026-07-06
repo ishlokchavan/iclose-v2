@@ -1,36 +1,44 @@
 import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Home, Plus, User, ShieldCheck } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
-import { useAuth } from '@/lib/auth';
+import { Home, ClipboardList, User, Plus } from 'lucide-react-native';
 import { colors } from '@/theme/tokens';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-type Tab = 'home' | 'account' | 'admin';
-
-/** Floating glass bottom navigation. Items are chosen by priority + role:
- *  Home, a prominent New-inquiry action, Account, and Admin (admins only). */
-export function BottomNav({ active }: { active: Tab }) {
+/**
+ * Persistent Liquid-Glass tab bar. Because it's a real Tabs navigator bar, the
+ * bar itself never re-mounts — only the screen content swaps when you switch.
+ * Layout: Home · Inquiries · [＋ New] · Account.
+ */
+export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { isAdmin } = useAuth();
+  const activeName = state.routes[state.index]?.name;
+
+  const go = (name: string) => {
+    const route = state.routes.find((r) => r.name === name);
+    if (!route) return;
+    const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+    if (!event.defaultPrevented) navigation.navigate(name);
+  };
 
   return (
     <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingBottom: insets.bottom + 8, paddingHorizontal: 20 }} pointerEvents="box-none">
       <BlurView intensity={40} tint="light" style={{ borderRadius: 28, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' }}>
         <View className="flex-row items-center justify-around bg-white/55 px-2 py-2">
-          <NavItem icon={Home} label="Home" active={active === 'home'} onPress={() => router.replace('/dashboard')} />
-          {isAdmin ? <NavItem icon={ShieldCheck} label="Admin" active={active === 'admin'} onPress={() => router.replace('/admin')} /> : null}
+          <Item label="Home" icon={Home} active={activeName === 'home'} onPress={() => go('home')} />
+          <Item label="Inquiries" icon={ClipboardList} active={activeName === 'inquiries'} onPress={() => go('inquiries')} />
           <Center onPress={() => router.push('/new-inquiry')} />
-          <NavItem icon={User} label="Account" active={active === 'account'} onPress={() => router.replace('/account')} />
+          <Item label="Account" icon={User} active={activeName === 'account'} onPress={() => go('account')} />
         </View>
       </BlurView>
     </View>
   );
 }
 
-function NavItem({ icon: Icon, label, active, onPress }: { icon: typeof Home; label: string; active: boolean; onPress: () => void }) {
+function Item({ label, icon: Icon, active, onPress }: { label: string; icon: typeof Home; active: boolean; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} className="min-w-[64px] items-center gap-1 py-1.5">
+    <Pressable onPress={onPress} className="min-w-[62px] items-center gap-1 py-1.5">
       <Icon size={22} color={active ? colors.accent : colors.graphite} strokeWidth={active ? 2.5 : 2} fill={active ? colors.accent : 'transparent'} fillOpacity={active ? 0.12 : 0} />
       <Text style={{ color: active ? colors.accent : colors.graphite }} className="text-[11px] font-semibold">{label}</Text>
     </Pressable>
