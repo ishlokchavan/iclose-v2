@@ -31,10 +31,6 @@ const config: ExpoConfig = {
       'com.apple.developer.applesignin': ['Default'],
     },
     config: { usesNonExemptEncryption: false },
-    infoPlist: {
-      NSLocationWhenInUseUsageDescription:
-        'iClose uses your location to show nearby homes on the map.',
-    },
   },
   android: {
     package: 'ae.iclose.app',
@@ -42,36 +38,24 @@ const config: ExpoConfig = {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#ffffff',
     },
-    config: {
-      googleMaps: { apiKey: process.env.GOOGLE_MAPS_API_KEY ?? '' },
-    },
-    permissions: ['ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION'],
   },
   web: { bundler: 'metro', output: 'static', favicon: './assets/favicon.png' },
   plugins: [
     'expo-router',
     'expo-secure-store',
-    'expo-video',
-    ['expo-image-picker', { photosPermission: 'iClose needs access to your photos so you can add them to your property listing.' }],
     ['expo-splash-screen', { backgroundColor: '#ffffff', image: './assets/splash.png', resizeMode: 'contain' }],
   ],
   experiments: { typedRoutes: true },
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://iclose.ae',
-    // Live iClose database (iclose-academy-db). The anon key is a publishable,
-    // RLS-protected client key — safe to ship, same as the web app.
+    // iClose deal-closing database (project `iclose`, ref jvdmwvzlunmouvlvtebg).
+    // The anon key is a publishable, RLS-protected client key — safe to ship.
     supabaseUrl:
-      process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://nnkicmfsdbfpucfcnutn.supabase.co',
+      process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://jvdmwvzlunmouvlvtebg.supabase.co',
     supabaseAnonKey:
       process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ??
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ua2ljbWZzZGJmcHVjZmNudXRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODkyMDcsImV4cCI6MjA5NDI2NTIwN30.liASHVfCZQsB4OFwhY6uBYuv99IWXaMBbGGgbuFiKTs',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2ZG13dnpsdW5tb3V2bHZ0ZWJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTUyNDYsImV4cCI6MjA5NTk3MTI0Nn0.QLrklMFP8zpYkhwWXs9l5zNgAzTLsXMFm29hs-UGX_8',
     eas: { projectId: '329eea7c-7a6a-4abf-bf2c-a5ed6aaf817a' },
-    // Feature flags. `shares` gates the tokenized real-estate module (6th tab +
-    // /shares routes). Off => the module is fully hidden; the build under App
-    // Store review ships with it off and is never affected.
-    features: {
-      shares: process.env.EXPO_PUBLIC_FEATURE_SHARES !== 'false',
-    },
   },
 };
 

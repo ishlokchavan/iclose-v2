@@ -3,14 +3,14 @@ import Constants from 'expo-constants';
 const extra = (Constants.expoConfig?.extra ?? {}) as Record<string, string>;
 
 /**
- * Defaults point at the live iClose database (iclose-academy-db). The Supabase
- * anon key is a publishable client key — protected by row-level security — so it
- * ships in the app the same way it does on the web. Override any value via .env
- * (EXPO_PUBLIC_*) for a different environment.
+ * Defaults point at the iClose deal-closing database (project `iclose`,
+ * ref jvdmwvzlunmouvlvtebg). The Supabase anon key is a publishable client key —
+ * protected by row-level security — so it ships in the app the same way it does
+ * on the web. Override any value via .env (EXPO_PUBLIC_*) for a different env.
  */
-const DEFAULT_SUPABASE_URL = 'https://nnkicmfsdbfpucfcnutn.supabase.co';
+const DEFAULT_SUPABASE_URL = 'https://jvdmwvzlunmouvlvtebg.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ua2ljbWZzZGJmcHVjZmNudXRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODkyMDcsImV4cCI6MjA5NDI2NTIwN30.liASHVfCZQsB4OFwhY6uBYuv99IWXaMBbGGgbuFiKTs';
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2ZG13dnpsdW5tb3V2bHZ0ZWJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzOTUyNDYsImV4cCI6MjA5NTk3MTI0Nn0.QLrklMFP8zpYkhwWXs9l5zNgAzTLsXMFm29hs-UGX_8';
 
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL || extra.apiBaseUrl || 'https://iclose.ae';
