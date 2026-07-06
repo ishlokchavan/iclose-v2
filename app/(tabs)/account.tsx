@@ -61,11 +61,7 @@ export default function Account() {
       const url = await signedUrl(path);
       if (kind === 'avatar') setAvatarUrl(url); else setIdUrl(url);
       await refresh();
-    } catch (e) {
-      Alert.alert('Upload failed', (e as Error).message);
-    } finally {
-      setUploading(null);
-    }
+    } catch (e) { Alert.alert('Upload failed', (e as Error).message); } finally { setUploading(null); }
   }
 
   async function save() {
@@ -91,35 +87,36 @@ export default function Account() {
   return (
     <View className="flex-1">
       <GlassBg />
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 120 }} keyboardShouldPersistTaps="handled">
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 140 }} keyboardShouldPersistTaps="handled">
         <Text className="mb-4 text-[24px] font-bold text-ink">Account</Text>
 
-        {/* Identity + avatar */}
-        <View className="mb-4 flex-row items-center gap-4">
-          <Pressable onPress={() => pickAndUpload('avatar')} className="h-[68px] w-[68px] items-center justify-center overflow-hidden rounded-full bg-ink">
-            {avatarUrl ? <Image source={{ uri: avatarUrl }} style={{ width: 68, height: 68 }} contentFit="cover" /> : <Text className="text-[24px] font-semibold text-white">{name.charAt(0).toUpperCase()}</Text>}
-            <View className="absolute bottom-0 right-0 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-accent">
-              {uploading === 'avatar' ? <ActivityIndicator size="small" color="#fff" /> : <Camera size={12} color="#fff" />}
+        {/* Identity */}
+        <View className="mb-6 flex-row items-center gap-4">
+          <Pressable onPress={() => pickAndUpload('avatar')} className="h-[64px] w-[64px] items-center justify-center overflow-hidden rounded-full bg-ink">
+            {avatarUrl ? <Image source={{ uri: avatarUrl }} style={{ width: 64, height: 64 }} contentFit="cover" /> : <Text className="text-[24px] font-semibold text-white">{name.charAt(0).toUpperCase()}</Text>}
+            <View className="absolute bottom-0 right-0 h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-accent">
+              {uploading === 'avatar' ? <ActivityIndicator size="small" color="#fff" /> : <Camera size={11} color="#fff" />}
             </View>
           </Pressable>
           <View className="flex-1">
-            <Text className="text-[20px] font-semibold text-ink" numberOfLines={1}>{name}</Text>
-            <Text className="text-[13.5px] text-graphite" numberOfLines={1}>{session?.user.email}</Text>
-            <View className="mt-1 flex-row items-center gap-1.5">
+            <Text className="text-[19px] font-semibold text-ink" numberOfLines={1}>{name}</Text>
+            <Text className="text-[13px] text-graphite" numberOfLines={1}>{session?.user.email}</Text>
+            <View className="mt-1.5 flex-row items-center gap-1.5">
               <View className="rounded-full bg-accent/10 px-2 py-0.5"><Text className="text-[11.5px] font-semibold text-accent">{profile ? ROLE_LABEL[profile.role] : ''}</Text></View>
               <Text className="text-[11.5px] text-graphite-light">{profile?.ref_code}{isAdmin ? ' · Admin' : ''}</Text>
             </View>
           </View>
         </View>
 
-        {/* Contact us */}
+        {/* Support */}
+        <SectionLabel>Support</SectionLabel>
         <Card>
-          <Label>Need help? Talk to our team</Label>
+          <Text className="mb-2.5 text-[13px] text-graphite">Need help? Talk to our team.</Text>
           <View className="flex-row gap-2.5">
             {CONTACTS.map((c) => {
               const Icon = c.icon;
               return (
-                <Pressable key={c.key} onPress={() => Linking.openURL(c.url)} className="flex-1 items-center gap-1.5 rounded-2xl border border-white/60 bg-white/60 py-3">
+                <Pressable key={c.key} onPress={() => Linking.openURL(c.url)} className="flex-1 items-center gap-1.5 rounded-2xl bg-mist py-3">
                   <Icon size={20} color={c.color} /><Text className="text-[12.5px] font-semibold text-ink">{c.label}</Text>
                 </Pressable>
               );
@@ -127,83 +124,89 @@ export default function Account() {
           </View>
         </Card>
 
-        {/* Phone */}
-        <Card><Label>Phone number</Label><PhoneField value={phone} onChange={setPhone} /></Card>
-
-        {/* Verification documents */}
+        {/* Your details */}
+        <SectionLabel>Your details</SectionLabel>
         <Card>
-          <View className="mb-2 flex-row items-center gap-2"><ShieldCheck size={16} color={colors.graphite} /><Text className="text-[14px] font-semibold text-ink">Verification</Text></View>
-          <Text className="mb-3 text-[12px] text-graphite">Upload your Emirates ID or passport so we can verify you faster. Stored privately.</Text>
+          <FieldLabel>Phone number</FieldLabel>
+          <PhoneField value={phone} onChange={setPhone} />
+        </Card>
+
+        {/* Verification */}
+        <Card>
+          <View className="mb-1 flex-row items-center gap-2"><ShieldCheck size={16} color={colors.graphite} /><Text className="text-[14.5px] font-semibold text-ink">Verification</Text>{profile?.id_doc_path ? <View className="ml-auto flex-row items-center gap-1"><CheckCircle2 size={13} color="#059669" /><Text className="text-[11.5px] text-graphite">On file</Text></View> : null}</View>
+          <Text className="mb-3 text-[12px] text-graphite">Upload your Emirates ID or passport to verify faster. Stored privately.</Text>
           <View className="mb-3 flex-row gap-2">
             {(['emirates_id', 'passport'] as const).map((t) => (
-              <Pressable key={t} onPress={() => setIdType(t)} className={`flex-1 items-center rounded-2xl border py-2.5 ${idType === t ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
+              <Pressable key={t} onPress={() => setIdType(t)} className={`flex-1 items-center rounded-2xl border py-2.5 ${idType === t ? 'border-accent bg-accent/10' : 'border-hairline bg-white/60'}`}>
                 <Text className={`text-[13px] font-semibold ${idType === t ? 'text-accent' : 'text-ink'}`}>{t === 'emirates_id' ? 'Emirates ID' : 'Passport'}</Text>
               </Pressable>
             ))}
           </View>
-          {idUrl ? (
-            <View className="mb-2 overflow-hidden rounded-2xl border border-white/60">
-              <Image source={{ uri: idUrl }} style={{ width: '100%', height: 160 }} contentFit="cover" />
-            </View>
-          ) : null}
+          {idUrl ? <View className="mb-2 overflow-hidden rounded-2xl border border-hairline"><Image source={{ uri: idUrl }} style={{ width: '100%', height: 150 }} contentFit="cover" /></View> : null}
           <Pressable onPress={() => pickAndUpload('id')} className="flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-accent/40 bg-accent/5 py-3.5">
             {uploading === 'id' ? <ActivityIndicator color={colors.accent} /> : <><Upload size={17} color={colors.accent} /><Text className="text-[14px] font-semibold text-accent">{idUrl ? 'Replace document' : 'Upload document'}</Text></>}
           </Pressable>
-          {profile?.id_doc_path ? <View className="mt-2 flex-row items-center gap-1.5"><CheckCircle2 size={14} color="#059669" /><Text className="text-[12px] text-graphite">Document on file</Text></View> : null}
         </Card>
 
-        {/* Bank details (collapsible, optional) */}
+        {/* Bank details (collapsible) */}
+        <SectionLabel>Payouts</SectionLabel>
         <Pressable onPress={() => setBankOpen((o) => !o)} className="mb-4 rounded-apple border border-white/60 bg-white/70 p-4">
-          <View className="flex-row items-center gap-2">
-            <Landmark size={16} color={colors.graphite} />
-            <View className="flex-1"><Text className="text-[14px] font-semibold text-ink">Bank details (optional)</Text><Text className="text-[12px] text-graphite">For commission payouts — used internally.</Text></View>
+          <View className="flex-row items-center gap-2.5">
+            <Landmark size={17} color={colors.graphite} />
+            <View className="flex-1"><Text className="text-[14.5px] font-semibold text-ink">Bank details (optional)</Text><Text className="text-[12px] text-graphite">For commission payouts — used internally.</Text></View>
             <ChevronDown size={18} color={colors.graphiteLight} style={{ transform: [{ rotate: bankOpen ? '180deg' : '0deg' }] }} />
           </View>
           {bankOpen ? (
-            <View className="mt-3 gap-2.5">
+            <View className="mt-4 gap-3">
               <View>
-                <Label>IBAN</Label>
-                <TextInput value={formatIban(iban)} onChangeText={(t) => setIban(t)} placeholder="AE__ ____ ____ ____ ____ ___" autoCapitalize="characters" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-base text-ink" />
+                <FieldLabel>IBAN</FieldLabel>
+                <TextInput value={formatIban(iban)} onChangeText={setIban} placeholder="AE__ ____ ____ ____ ____ ___" autoCapitalize="characters" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-white/60 px-4 py-3 text-base text-ink" />
                 {ibanCheck ? (
                   <View className="mt-1.5 flex-row items-center gap-1.5">
-                    {ibanCheck.valid
-                      ? <><CheckCircle2 size={13} color="#059669" /><Text className="text-[12px] text-graphite">Valid UAE IBAN · bank code {ibanCheck.bankCode}</Text></>
-                      : <Text className="text-[12px]" style={{ color: '#e11d48' }}>Not a valid UAE IBAN yet</Text>}
+                    {ibanCheck.valid ? <><CheckCircle2 size={13} color="#059669" /><Text className="text-[12px] text-graphite">Valid UAE IBAN · bank code {ibanCheck.bankCode}</Text></> : <Text className="text-[12px]" style={{ color: '#e11d48' }}>Not a valid UAE IBAN yet</Text>}
                   </View>
                 ) : null}
               </View>
-              <Input label="Bank name" value={bankName} onChangeText={setBankName} placeholder="e.g. Emirates NBD" />
-              <Input label="Account holder name" value={accountName} onChangeText={setAccountName} placeholder="As on your bank account" />
+              <View><FieldLabel>Bank name</FieldLabel><TextInput value={bankName} onChangeText={setBankName} placeholder="e.g. Emirates NBD" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-white/60 px-4 py-3 text-base text-ink" /></View>
+              <View><FieldLabel>Account holder name</FieldLabel><TextInput value={accountName} onChangeText={setAccountName} placeholder="As on your bank account" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-white/60 px-4 py-3 text-base text-ink" /></View>
             </View>
           ) : null}
         </Pressable>
 
         <Pressable disabled={busy} onPress={save} className="h-[52px] items-center justify-center rounded-full bg-ink">
-          {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-[15px] font-semibold text-white">Save details</Text>}
+          {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-[15px] font-semibold text-white">Save changes</Text>}
         </Pressable>
 
-        <View className="mt-6 flex-row gap-3">
-          <Pressable onPress={() => router.push('/benefits')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-white/60 bg-white/60 py-3">
+        {/* More */}
+        <View className="mt-5 flex-row gap-3">
+          <Pressable onPress={() => router.push('/benefits')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-white/60 bg-white/60 py-3.5">
             <Sparkles size={16} color={colors.accent} /><Text className="text-[13.5px] font-medium text-ink">What you get</Text>
           </Pressable>
-          <Pressable onPress={() => router.push('/faq')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-white/60 bg-white/60 py-3">
+          <Pressable onPress={() => router.push('/faq')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-white/60 bg-white/60 py-3.5">
             <HelpCircle size={16} color={colors.graphite} /><Text className="text-[13.5px] font-medium text-ink">FAQ</Text>
           </Pressable>
         </View>
 
-        <Pressable onPress={async () => { await supabase.auth.signOut(); router.replace('/sign-in'); }} className="mt-6 flex-row items-center justify-center gap-2 rounded-apple border border-hairline py-4">
-          <LogOut size={18} color={colors.ink} /><Text className="font-semibold text-ink">Sign out</Text>
-        </Pressable>
-        <Pressable onPress={confirmDelete} className="mt-3 flex-row items-center justify-center gap-2 py-3">
-          <Trash2 size={16} color="#e11d48" /><Text className="font-semibold" style={{ color: '#e11d48' }}>Delete account</Text>
-        </Pressable>
+        {/* Account actions */}
+        <View className="mt-8 gap-3">
+          <Pressable onPress={async () => { await supabase.auth.signOut(); router.replace('/sign-in'); }} className="h-[50px] flex-row items-center justify-center gap-2 rounded-full border border-hairline bg-white/60">
+            <LogOut size={18} color={colors.ink} /><Text className="text-[15px] font-semibold text-ink">Sign out</Text>
+          </Pressable>
+          <Pressable onPress={confirmDelete} className="h-[50px] flex-row items-center justify-center gap-2 rounded-full" style={{ backgroundColor: 'rgba(225,29,72,0.08)' }}>
+            <Trash2 size={17} color="#e11d48" /><Text className="text-[15px] font-semibold" style={{ color: '#e11d48' }}>Delete account</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </View>
   );
 }
 
-function Card({ children }: { children: React.ReactNode }) { return <View className="mb-4 rounded-apple border border-white/60 bg-white/70 p-4">{children}</View>; }
-function Label({ children }: { children: React.ReactNode }) { return <Text className="mb-1.5 text-[13px] font-medium text-graphite">{children}</Text>; }
-function Input({ label, ...props }: { label: string } & React.ComponentProps<typeof TextInput>) {
-  return <View><Label>{label}</Label><TextInput {...props} placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3 text-base text-ink" /></View>;
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <Text className="mb-2 ml-1 text-[12px] font-semibold uppercase tracking-wide text-graphite-light">{children}</Text>;
+}
+function Card({ children }: { children: React.ReactNode }) {
+  return <View className="mb-4 rounded-apple border border-white/60 bg-white/75 p-4">{children}</View>;
+}
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <Text className="mb-1.5 text-[13px] font-medium text-graphite">{children}</Text>;
 }
