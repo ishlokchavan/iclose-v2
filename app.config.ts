@@ -15,11 +15,6 @@ const config: ExpoConfig = {
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   newArchEnabled: true,
-  // Over-the-air updates (EAS Update). A build only accepts JS updates whose
-  // native fingerprint matches — so JS-only changes ship instantly, and native
-  // changes correctly require a fresh build.
-  runtimeVersion: { policy: 'fingerprint' },
-  updates: { url: 'https://u.expo.dev/329eea7c-7a6a-4abf-bf2c-a5ed6aaf817a' },
   splash: {
     image: './assets/splash.png',
     resizeMode: 'contain',
