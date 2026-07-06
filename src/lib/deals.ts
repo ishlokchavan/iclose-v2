@@ -6,8 +6,8 @@ import { supabase } from './supabase';
  * All access is enforced by RLS — this module is a thin, typed wrapper.
  */
 
-export type UserRole = 'agent' | 'buyer';
-export type InquiryKind = 'close' | 'buy';
+export type UserRole = 'buyer' | 'seller' | 'broker';
+export type InquiryKind = 'buy' | 'sell' | 'close';
 export type DealStatus = 'submitted' | 'in_discussion' | 'closed_won' | 'closed_lost';
 export type CommissionStatus = 'pending' | 'paid' | 'not_applicable';
 export type ContactChannel = 'whatsapp' | 'call' | 'telegram';
@@ -19,6 +19,7 @@ export interface Profile {
   email: string | null;
   phone: string | null;
   preferred_channel: ContactChannel | null;
+  onboarded: boolean;
 }
 
 export interface Deal {
@@ -65,6 +66,11 @@ export const CHANNEL_LABEL: Record<ContactChannel, string> = {
   call: 'Call',
   telegram: 'Telegram',
 };
+export const ROLE_LABEL: Record<UserRole, string> = {
+  buyer: 'Buyer',
+  seller: 'Seller',
+  broker: 'Broker',
+};
 
 // ---- Profile ------------------------------------------------
 export async function getMyProfile(): Promise<Profile | null> {
@@ -72,13 +78,13 @@ export async function getMyProfile(): Promise<Profile | null> {
   if (!auth.user) return null;
   const { data } = await supabase
     .from('profiles')
-    .select('id,role,full_name,email,phone,preferred_channel')
+    .select('id,role,full_name,email,phone,preferred_channel,onboarded')
     .eq('id', auth.user.id)
     .maybeSingle();
   return (data as Profile) ?? null;
 }
 
-export async function updateMyProfile(patch: Partial<Pick<Profile, 'role' | 'full_name' | 'phone' | 'preferred_channel'>>): Promise<void> {
+export async function updateMyProfile(patch: Partial<Pick<Profile, 'role' | 'full_name' | 'phone' | 'preferred_channel' | 'onboarded'>>): Promise<void> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) throw new Error('Not signed in');
   const { error } = await supabase.from('profiles').update(patch).eq('id', auth.user.id);

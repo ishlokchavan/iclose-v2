@@ -5,16 +5,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, LogOut, Trash2, BookOpen, HelpCircle } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
-import { updateMyProfile, CHANNEL_LABEL, type UserRole, type ContactChannel } from '@/lib/deals';
+import { updateMyProfile, CHANNEL_LABEL, ROLE_LABEL, type UserRole, type ContactChannel } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
 import { colors } from '@/theme/tokens';
 
 const CHANNELS: ContactChannel[] = ['whatsapp', 'call', 'telegram'];
+const ROLES: UserRole[] = ['buyer', 'seller', 'broker'];
 
 export default function Account() {
   const insets = useSafeAreaInsets();
   const { session, profile, isAdmin, refresh } = useAuth();
-  const [role, setRole] = useState<UserRole>('agent');
+  const [role, setRole] = useState<UserRole>('buyer');
   const [phone, setPhone] = useState('');
   const [channel, setChannel] = useState<ContactChannel | null>(null);
   const [busy, setBusy] = useState(false);
@@ -78,13 +79,14 @@ export default function Account() {
         {/* Role */}
         <View className="mb-4 rounded-apple border border-white/60 bg-white/70 p-4">
           <Text className="mb-2 text-[13px] font-medium text-graphite">I am a…</Text>
-          <View className="flex-row gap-3">
-            {(['agent', 'buyer'] as UserRole[]).map((r) => (
+          <View className="flex-row gap-2">
+            {ROLES.map((r) => (
               <Pressable key={r} onPress={() => setRole(r)} className={`flex-1 items-center rounded-2xl border py-3 ${role === r ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
-                <Text className={`text-[15px] font-semibold ${role === r ? 'text-accent' : 'text-ink'}`}>{r === 'agent' ? 'Agent' : 'Buyer'}</Text>
+                <Text className={`text-[14px] font-semibold ${role === r ? 'text-accent' : 'text-ink'}`}>{ROLE_LABEL[r]}</Text>
               </Pressable>
             ))}
           </View>
+          <Pressable onPress={() => router.push('/benefits')} className="mt-3 self-start"><Text className="text-[13px] font-medium text-accent">See what you get →</Text></Pressable>
         </View>
 
         {/* Contact */}

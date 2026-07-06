@@ -1,14 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator, Linking } from 'react-native';
 import { router, useFocusEffect, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Plus, ChevronRight, ShieldCheck, Inbox } from 'lucide-react-native';
+import { Plus, ChevronRight, ShieldCheck, Inbox, MessageCircle, Sparkles } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal, type DashboardStats } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
 import { Wordmark, StatusBadge } from '@/components/DealUI';
 import { formatAed, formatAedShort, formatDate } from '@/lib/format';
+import { CONTACT_WHATSAPP } from '@/lib/config';
 import { colors } from '@/theme/tokens';
+
+const NEW_LABEL = { buyer: 'New buying inquiry', seller: 'List a property', broker: 'New deal inquiry' } as const;
+const SUBTITLE = {
+  buyer: 'Track what you’re buying and your savings.',
+  seller: 'Track your listing through to sale.',
+  broker: 'Track your deals and commission.',
+} as const;
 
 export default function Dashboard() {
   const insets = useSafeAreaInsets();
@@ -35,6 +43,7 @@ export default function Dashboard() {
   if (!authLoading && !session) return <Redirect href="/sign-in" />;
 
   const firstName = (profile?.full_name || session?.user.email?.split('@')[0] || 'there').split(' ')[0];
+  const role = profile?.role ?? 'buyer';
 
   return (
     <View className="flex-1">
@@ -60,7 +69,7 @@ export default function Dashboard() {
         </View>
 
         <Text className="text-[26px] font-semibold text-ink">Hi {firstName} 👋</Text>
-        <Text className="mb-5 text-[14.5px] text-graphite">{profile?.role === 'buyer' ? 'Track what you’re buying and your savings.' : 'Track your deals and commission.'}</Text>
+        <Text className="mb-5 text-[14.5px] text-graphite">{SUBTITLE[role]}</Text>
 
         {/* KPIs */}
         <View className="mb-3 flex-row gap-3">
@@ -73,14 +82,24 @@ export default function Dashboard() {
         </View>
 
         {/* New inquiry */}
-        <Pressable onPress={() => router.push('/new-inquiry')} className="mb-6 flex-row items-center gap-3 rounded-apple bg-accent p-4">
+        <Pressable onPress={() => router.push('/new-inquiry')} className="mb-3 flex-row items-center gap-3 rounded-apple bg-accent p-4">
           <View className="h-11 w-11 items-center justify-center rounded-full bg-white/20"><Plus size={24} color="#fff" /></View>
           <View className="flex-1">
-            <Text className="text-[15.5px] font-semibold text-white">{profile?.role === 'buyer' ? 'New buying inquiry' : 'New deal inquiry'}</Text>
+            <Text className="text-[15.5px] font-semibold text-white">{NEW_LABEL[role]}</Text>
             <Text className="text-[13px] text-white/80">Tell us what you want — we’ll take it from there.</Text>
           </View>
           <ChevronRight size={20} color="rgba(255,255,255,0.75)" />
         </Pressable>
+
+        {/* Message us + benefits */}
+        <View className="mb-6 flex-row gap-3">
+          <Pressable onPress={() => Linking.openURL(`https://wa.me/${CONTACT_WHATSAPP}`)} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-white/60 bg-white/70 py-3.5">
+            <MessageCircle size={17} color="#25D366" /><Text className="text-[14px] font-semibold text-ink">Message us</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push('/benefits')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-white/60 bg-white/70 py-3.5">
+            <Sparkles size={16} color={colors.accent} /><Text className="text-[14px] font-semibold text-ink">What you get</Text>
+          </Pressable>
+        </View>
 
         <Text className="mb-3 text-[15px] font-semibold text-ink">Your inquiries</Text>
         {loading ? (

@@ -9,7 +9,7 @@ import { Wordmark } from '@/components/DealUI';
 import { colors } from '@/theme/tokens';
 
 const STEPS = [
-  { icon: PencilLine, title: 'Tell us what you want', body: 'Agents log a deal to close. Buyers say what they want to buy and skip paying commission. It takes a minute.' },
+  { icon: PencilLine, title: 'Tell us what you want', body: 'Buying, selling, or closing a deal — tell us in a minute. Never pay commission again; just one flat fee.' },
   { icon: MessagesSquare, title: 'We handle it for you', body: 'Our team picks it up and works your deal directly with you — on WhatsApp, a call, or Telegram.' },
   { icon: LineChart, title: 'Track everything live', body: 'Watch each deal move from submitted to closed right here, with your commission and its status always visible.' },
   { icon: BadgeCheck, title: 'Get paid', body: 'When a deal closes, your commission appears in your dashboard — pending, then paid. No chasing.' },

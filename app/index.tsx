@@ -8,7 +8,7 @@ import { colors } from '@/theme/tokens';
 
 /** Entry gate: signed-in → dashboard; first launch → tutorial; else → sign-in. */
 export default function Index() {
-  const { session, loading } = useAuth();
+  const { session, profile, loading } = useAuth();
   const [seenTutorial, setSeenTutorial] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -23,7 +23,11 @@ export default function Index() {
       </View>
     );
   }
-  if (session) return <Redirect href="/dashboard" />;
+  if (session) {
+    // Signed in but profile still loading — wait a beat.
+    if (!profile) return <View className="flex-1 items-center justify-center"><GlassBg /><ActivityIndicator color={colors.accent} /></View>;
+    return <Redirect href={profile.onboarded ? '/dashboard' : '/onboarding'} />;
+  }
   if (!seenTutorial) return <Redirect href="/tutorial" />;
   return <Redirect href="/sign-in" />;
 }

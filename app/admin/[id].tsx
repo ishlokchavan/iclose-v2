@@ -102,7 +102,7 @@ export default function AdminDeal() {
           <View className="mb-4 rounded-apple border border-white/60 bg-white/75 p-4">
             <Text className="text-[15px] font-semibold text-ink">{deal.title || deal.project || deal.area || 'Inquiry'}</Text>
             <Text className="mt-0.5 text-[13px] text-graphite">
-              {submitter?.full_name || submitter?.email || 'Unknown'} · {deal.kind === 'buy' ? 'Buyer' : deal.is_referral ? 'Referral' : 'Agent'}
+              {submitter?.full_name || submitter?.email || 'Unknown'} · {deal.kind === 'buy' ? 'Buyer' : deal.kind === 'sell' ? 'Seller' : deal.is_referral ? 'Referral' : 'Broker'}
               {submitter?.preferred_channel ? ` · prefers ${CHANNEL_LABEL[submitter.preferred_channel]}` : ''}
             </Text>
             {deal.area || deal.property_type || deal.bedrooms != null || deal.budget_aed != null ? (

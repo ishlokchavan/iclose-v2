@@ -4,49 +4,41 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
-import { submitInquiry, type NewInquiry } from '@/lib/deals';
+import { submitInquiry, type NewInquiry, type InquiryKind } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
 import { colors } from '@/theme/tokens';
+
+const KIND_FOR_ROLE = { buyer: 'buy', seller: 'sell', broker: 'close' } as const;
+const TITLE: Record<InquiryKind, string> = { buy: 'New buying inquiry', sell: 'List your property', close: 'New deal inquiry' };
 
 export default function NewInquiryScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
-  const isBuyer = profile?.role === 'buyer';
+  const role = profile?.role ?? 'buyer';
+  const kind: InquiryKind = KIND_FOR_ROLE[role];
 
   const [project, setProject] = useState('');
   const [area, setArea] = useState('');
   const [propertyType, setPropertyType] = useState('');
   const [bedrooms, setBedrooms] = useState('');
-  const [amount, setAmount] = useState(''); // deal value (agent) or budget (buyer)
+  const [amount, setAmount] = useState(''); // budget (buy) / asking (sell) / deal value (close)
   const [note, setNote] = useState('');
   const [isReferral, setIsReferral] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function submit() {
-    if (isBuyer && !area.trim()) return Alert.alert('Add an area', 'Where do you want to buy?');
-    if (!isBuyer && !project.trim() && !area.trim()) return Alert.alert('Add details', 'Tell us the project or area of the deal.');
+    if (kind === 'buy' && !area.trim()) return Alert.alert('Add an area', 'Where do you want to buy?');
+    if (kind !== 'buy' && !project.trim() && !area.trim()) return Alert.alert('Add details', 'Tell us the property or area.');
     setBusy(true);
     try {
       const amt = amount ? Number(amount.replace(/[^0-9.]/g, '')) : null;
-      const input: NewInquiry = isBuyer
-        ? {
-            kind: 'buy',
-            area: area.trim() || null,
-            property_type: propertyType.trim() || null,
-            bedrooms: bedrooms ? Number(bedrooms) : null,
-            budget_aed: amt,
-            note: note.trim() || null,
-            title: [propertyType.trim(), area.trim()].filter(Boolean).join(' in ') || 'Buying inquiry',
-          }
-        : {
-            kind: 'close',
-            is_referral: isReferral,
-            project: project.trim() || null,
-            area: area.trim() || null,
-            deal_value_aed: amt,
-            note: note.trim() || null,
-            title: project.trim() || area.trim() || 'Deal inquiry',
-          };
+      const base = { kind, note: note.trim() || null };
+      const input: NewInquiry =
+        kind === 'buy'
+          ? { ...base, area: area.trim() || null, property_type: propertyType.trim() || null, bedrooms: bedrooms ? Number(bedrooms) : null, budget_aed: amt, title: [propertyType.trim(), area.trim()].filter(Boolean).join(' in ') || 'Buying inquiry' }
+          : kind === 'sell'
+          ? { ...base, project: project.trim() || null, area: area.trim() || null, deal_value_aed: amt, title: project.trim() || area.trim() || 'Property to sell' }
+          : { ...base, is_referral: isReferral, project: project.trim() || null, area: area.trim() || null, deal_value_aed: amt, title: project.trim() || area.trim() || 'Deal to close' };
       await submitInquiry(input);
       router.back();
       setTimeout(() => Alert.alert('Submitted ✅', 'Our team will reach out to you shortly to take it forward.'), 250);
@@ -61,18 +53,24 @@ export default function NewInquiryScreen() {
     <View className="flex-1">
       <GlassBg />
       <View style={{ paddingTop: insets.top + 8 }} className="flex-row items-center justify-between px-4 pb-2">
-        <Text className="text-[17px] font-semibold text-ink">{isBuyer ? 'New buying inquiry' : 'New deal inquiry'}</Text>
+        <Text className="text-[17px] font-semibold text-ink">{TITLE[kind]}</Text>
         <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-black/5"><X size={20} color={colors.ink} /></Pressable>
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
         <View className="gap-3 rounded-apple border border-white/60 bg-white/70 p-4">
-          {isBuyer ? (
+          {kind === 'buy' ? (
             <>
               <Field label="Where do you want to buy?" value={area} onChangeText={setArea} placeholder="e.g. Dubai Marina" />
               <Field label="Property type" value={propertyType} onChangeText={setPropertyType} placeholder="Apartment, villa, townhouse…" />
               <Field label="Bedrooms" value={bedrooms} onChangeText={setBedrooms} placeholder="e.g. 2" keyboardType="number-pad" />
               <Field label="Budget (AED)" value={amount} onChangeText={setAmount} placeholder="e.g. 2000000" keyboardType="number-pad" />
+            </>
+          ) : kind === 'sell' ? (
+            <>
+              <Field label="Property / project" value={project} onChangeText={setProject} placeholder="e.g. Marina Gate, Tower 1" />
+              <Field label="Area" value={area} onChangeText={setArea} placeholder="e.g. Dubai Marina" />
+              <Field label="Asking price (AED)" value={amount} onChangeText={setAmount} placeholder="e.g. 2500000" keyboardType="number-pad" />
             </>
           ) : (
             <>
@@ -83,7 +81,7 @@ export default function NewInquiryScreen() {
           )}
           <Field label="Notes" value={note} onChangeText={setNote} placeholder="Anything we should know" multiline />
 
-          {!isBuyer ? (
+          {kind === 'close' ? (
             <View className="mt-1 flex-row items-center justify-between rounded-2xl border border-white/50 bg-white/60 px-4 py-3">
               <View className="flex-1 pr-3">
                 <Text className="text-[14.5px] font-medium text-ink">Refer this deal to iClose</Text>
@@ -95,7 +93,7 @@ export default function NewInquiryScreen() {
         </View>
 
         <Pressable disabled={busy} onPress={submit} className="mt-5 rounded-full bg-ink py-4">
-          {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-center text-[16px] font-semibold text-white">Submit inquiry</Text>}
+          {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-center text-[16px] font-semibold text-white">{kind === 'sell' ? 'List property' : 'Submit inquiry'}</Text>}
         </Pressable>
         <Text className="mt-3 px-2 text-center text-[12px] text-graphite-light">Our team handles the rest over WhatsApp, call or Telegram.</Text>
       </ScrollView>

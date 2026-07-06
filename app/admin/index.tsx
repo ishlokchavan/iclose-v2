@@ -68,7 +68,7 @@ export default function AdminList() {
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-2">
                       <StatusBadge status={d.status} />
-                      <Text className="text-[11.5px] font-medium uppercase text-graphite">{d.kind === 'buy' ? 'Buyer' : d.is_referral ? 'Referral' : 'Agent'}</Text>
+                      <Text className="text-[11.5px] font-medium uppercase text-graphite">{d.kind === 'buy' ? 'Buyer' : d.kind === 'sell' ? 'Seller' : d.is_referral ? 'Referral' : 'Broker'}</Text>
                     </View>
                     <ChevronRight size={18} color={colors.graphiteLight} />
                   </View>
