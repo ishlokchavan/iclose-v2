@@ -28,7 +28,8 @@ export default function SignIn() {
   const [appleAvailable, setAppleAvailable] = useState(false);
 
   useEffect(() => {
-    if (session && profile) router.replace(profile.onboarded ? '/home' : '/onboarding');
+    // Route through the index gate so admins land in the admin console.
+    if (session && profile) router.replace('/');
   }, [session, profile]);
   useEffect(() => {
     if (Platform.OS === 'ios') AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});

@@ -3,7 +3,7 @@ import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator, L
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { Plus, ChevronRight, ShieldCheck, MessageCircle, Phone, ClipboardList, TrendingUp, Bell } from 'lucide-react-native';
+import { Plus, ChevronRight, MessageCircle, Phone, ClipboardList, TrendingUp, Bell } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal, type DashboardStats } from '@/lib/deals';
 import { getMyManager } from '@/lib/managers';
@@ -23,7 +23,7 @@ type ManagerCard = { name: string; title: string; photo: string | null };
 
 export default function Home() {
   const insets = useSafeAreaInsets();
-  const { session, profile, isAdmin } = useAuth();
+  const { session, profile } = useAuth();
   const settings = useAppSettings();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -73,11 +73,6 @@ export default function Home() {
         <View className="mb-4 flex-row items-center justify-between">
           <Wordmark size={24} />
           <View className="flex-row items-center gap-2">
-            {isAdmin ? (
-              <Pressable onPress={() => router.push('/admin')} className="flex-row items-center gap-1.5 rounded-full bg-accent px-3 py-2">
-                <ShieldCheck size={15} color={colors.onAccent} /><Text className="text-[13px] font-semibold" style={{ color: colors.onAccent }}>Admin</Text>
-              </Pressable>
-            ) : null}
             <Press onPress={() => router.push('/notifications')} className="h-10 w-10 items-center justify-center rounded-full border border-hairline bg-surface2">
               <Bell size={18} color={colors.ink} />
               {unread > 0 ? (

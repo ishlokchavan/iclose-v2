@@ -69,8 +69,8 @@ export async function getDealEvents(dealId: string): Promise<DealEvent[]> {
 export const PROPERTY_CATEGORIES = ['Residential', 'Commercial'] as const;
 export type PropertyCategory = (typeof PROPERTY_CATEGORIES)[number];
 export const PROPERTY_TYPES: Record<PropertyCategory, string[]> = {
-  Residential: ['Apartment', 'Villa', 'Townhouse', 'Penthouse'],
-  Commercial: ['Office Space', 'Retail', 'Land'],
+  Residential: ['Apartment', 'Villa', 'Townhouse', 'Penthouse', 'Other'],
+  Commercial: ['Office Space', 'Retail', 'Land', 'Other'],
 };
 
 export interface Deal {

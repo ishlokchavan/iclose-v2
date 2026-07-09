@@ -1,5 +1,7 @@
+import { decode } from 'base64-arraybuffer';
+import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from './supabase';
-import type { UserRole, DealStatus, CommissionStatus, ContactChannel } from './deals';
+import type { UserRole, DealStatus, CommissionStatus, ContactChannel, Deal } from './deals';
 
 /**
  * Admin console data layer. All access is RLS-gated to admins (is_admin()).
@@ -60,6 +62,32 @@ export async function adminUpdateUser(id: string, patch: Partial<Pick<AdminUser,
   await writeAudit('update', 'user', id, `Updated user ${Object.keys(patch).join(', ')}`, patch as Record<string, unknown>);
 }
 
+/** Full user detail for the admin user screen: complete profile + docs, banks, deals. */
+export interface AdminUserDetail {
+  profile: (AdminUser & {
+    bank_name: string | null; bank_account_name: string | null; iban: string | null;
+    avatar_path: string | null; id_doc_type: string | null; id_doc_path: string | null;
+  }) | null;
+  documents: { id: string; kind: string; name: string | null; path: string; mime: string | null; created_at: string }[];
+  banks: { id: string; bank_name: string | null; account_name: string | null; iban: string; is_primary: boolean }[];
+  deals: Deal[];
+}
+
+export async function adminGetUserDetail(id: string): Promise<AdminUserDetail> {
+  const [{ data: profile }, { data: documents }, { data: banks }, { data: deals }] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', id).maybeSingle(),
+    supabase.from('documents').select('id,kind,name,path,mime,created_at').eq('user_id', id).order('created_at', { ascending: false }),
+    supabase.from('bank_accounts').select('id,bank_name,account_name,iban,is_primary').eq('user_id', id).order('is_primary', { ascending: false }),
+    supabase.from('deals').select('*').eq('user_id', id).order('created_at', { ascending: false }),
+  ]);
+  return {
+    profile: (profile as AdminUserDetail['profile']) ?? null,
+    documents: documents ?? [],
+    banks: banks ?? [],
+    deals: (deals as Deal[]) ?? [],
+  };
+}
+
 // ---- Account managers --------------------------------------
 export interface ManagerRow {
   id: string;
@@ -93,6 +121,29 @@ export async function adminDeleteManager(id: string, name: string): Promise<void
   const { error } = await supabase.from('account_managers').delete().eq('id', id);
   if (error) throw new Error(error.message);
   await writeAudit('delete', 'account_manager', id, `Removed manager ${name}`);
+}
+
+/** Upload a manager headshot to the public team-photos bucket; returns its public URL. */
+export async function uploadManagerPhoto(file: { uri: string; base64?: string | null; mimeType?: string | null }): Promise<string> {
+  const b64 = file.base64 ?? (await FileSystem.readAsStringAsync(file.uri, { encoding: 'base64' }));
+  const ext = file.mimeType?.includes('png') ? 'png' : 'jpg';
+  const path = `managers/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage.from('team-photos').upload(path, decode(b64), {
+    contentType: file.mimeType ?? 'image/jpeg',
+    upsert: false,
+  });
+  if (error) throw new Error(error.message);
+  return supabase.storage.from('team-photos').getPublicUrl(path).data.publicUrl;
+}
+
+/** Swap two managers' positions (list reorder via up/down arrows). */
+export async function adminSwapManagerOrder(a: ManagerRow, b: ManagerRow): Promise<void> {
+  const [r1, r2] = await Promise.all([
+    supabase.from('account_managers').update({ position: b.position }).eq('id', a.id),
+    supabase.from('account_managers').update({ position: a.position }).eq('id', b.id),
+  ]);
+  if (r1.error || r2.error) throw new Error((r1.error ?? r2.error)!.message);
+  await writeAudit('update', 'account_manager', a.id, `Reordered ${a.name} ↔ ${b.name}`);
 }
 
 // ---- FAQ ----------------------------------------------------

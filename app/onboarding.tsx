@@ -26,7 +26,7 @@ const CHANNELS: { key: ContactChannel; icon: typeof MessageCircle; label: string
 /** One-time profile completion — role + phone + channel — before the dashboard. */
 export default function Onboarding() {
   const insets = useSafeAreaInsets();
-  const { session, profile, refresh } = useAuth();
+  const { session, profile, isAdmin, refresh } = useAuth();
   const [role, setRole] = useState<UserRole>('buyer');
   const [phone, setPhone] = useState('+971 ');
   const [channel, setChannel] = useState<ContactChannel>('whatsapp');
@@ -34,8 +34,9 @@ export default function Onboarding() {
 
   useEffect(() => {
     if (!session) router.replace('/sign-in');
+    else if (isAdmin) router.replace('/admin');
     else if (profile?.onboarded) router.replace('/home');
-  }, [session, profile]);
+  }, [session, profile, isAdmin]);
 
   // Pre-select the role the user picked pre-login in the intro.
   useEffect(() => {
@@ -48,7 +49,7 @@ export default function Onboarding() {
     try {
       await updateMyProfile({ role, phone: phone.trim(), preferred_channel: channel, onboarded: true });
       await refresh();
-      router.replace('/home');
+      router.replace(isAdmin ? '/admin' : '/home');
     } catch (e) {
       Alert.alert('Could not save', (e as Error).message);
     } finally {

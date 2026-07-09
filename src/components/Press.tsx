@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, type PressableProps, type ViewStyle } from 'react-native';
+import { cssInterop } from 'nativewind';
 import * as Haptics from 'expo-haptics';
 
 /**
@@ -9,38 +10,41 @@ import * as Haptics from 'expo-haptics';
  * Both are drop-in: swap <Pressable> → <Press>, wrap rows in <FadeIn delay={i*40}>.
  */
 
+// One animated pressable, no wrapper view: the caller's className (flex-1, gap,
+// self-*, …) applies to the actual touchable, so row/grid layouts stay intact.
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+cssInterop(AnimatedPressable, { className: 'style' });
+
 interface PressProps extends PressableProps {
   scaleTo?: number;
   haptic?: boolean;
   children?: React.ReactNode;
+  className?: string;
   style?: ViewStyle | ViewStyle[];
 }
 
-export function Press({ scaleTo = 0.96, haptic = true, onPressIn, onPressOut, onPress, children, style, ...rest }: PressProps) {
+export function Press({ scaleTo = 0.96, haptic = true, onPressIn, onPressOut, onPress, children, className, style, ...rest }: PressProps) {
   const scale = useRef(new Animated.Value(1)).current;
-  // The transform lives on an outer wrapper so the Pressable keeps the caller's
-  // className/style layout (flex-row, gap, padding) around the real children.
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
-      <Pressable
-        style={style}
-        onPressIn={(e) => {
-          Animated.spring(scale, { toValue: scaleTo, useNativeDriver: true, speed: 40, bounciness: 0 }).start();
-          onPressIn?.(e);
-        }}
-        onPressOut={(e) => {
-          Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 6 }).start();
-          onPressOut?.(e);
-        }}
-        onPress={(e) => {
-          if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-          onPress?.(e);
-        }}
-        {...rest}
-      >
-        {children}
-      </Pressable>
-    </Animated.View>
+    <AnimatedPressable
+      className={className}
+      style={[style as ViewStyle, { transform: [{ scale }] }]}
+      onPressIn={(e) => {
+        Animated.spring(scale, { toValue: scaleTo, useNativeDriver: true, speed: 40, bounciness: 0 }).start();
+        onPressIn?.(e);
+      }}
+      onPressOut={(e) => {
+        Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 6 }).start();
+        onPressOut?.(e);
+      }}
+      onPress={(e) => {
+        if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        onPress?.(e);
+      }}
+      {...rest}
+    >
+      {children}
+    </AnimatedPressable>
   );
 }
 
