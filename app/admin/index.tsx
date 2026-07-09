@@ -10,6 +10,7 @@ import { inPeriod, type PeriodState } from '@/lib/dates';
 import { GlassBg } from '@/components/Glass';
 import { Wordmark } from '@/components/DealUI';
 import { Press, FadeIn } from '@/components/Press';
+import { Tour, ADMIN_TOUR } from '@/components/Tour';
 import { PeriodFilter } from '@/components/ListKit';
 import { formatAedShort, formatDate, formatTime } from '@/lib/format';
 import { colors } from '@/theme/tokens';
@@ -242,6 +243,7 @@ export default function AdminDashboard() {
           </>
         )}
       </ScrollView>
+      {session && profile ? <Tour steps={ADMIN_TOUR} storageKey="tour_v1_admin" /> : null}
     </View>
   );
 }

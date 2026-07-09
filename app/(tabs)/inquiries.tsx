@@ -8,7 +8,7 @@ import { getMyDeals, type Deal, type DealStatus } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
 import { StatusBadge } from '@/components/DealUI';
-import { PeriodFilter, SortToggle, DayHeader } from '@/components/ListKit';
+import { FilterControl, DayHeader } from '@/components/ListKit';
 import { groupByDay, inPeriod, sortByDate, type PeriodState, type SortDir } from '@/lib/dates';
 import { formatAed, formatDate } from '@/lib/format';
 import { colors } from '@/theme/tokens';
@@ -60,18 +60,15 @@ export default function Inquiries() {
             <Search size={17} color={colors.graphiteLight} />
             <TextInput value={q} onChangeText={setQ} placeholder="Search by name, area, ref…" placeholderTextColor={colors.graphiteLight} className="flex-1 text-[15px] text-ink" />
           </View>
-          <SortToggle value={sort} onChange={setSort} />
+          <FilterControl period={period} onPeriod={setPeriod} sort={sort} onSort={setSort} />
         </View>
-        <View className="mt-3 flex-row gap-2">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-4 mt-3" contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}>
           {FILTERS.map((f) => (
             <Press key={f.key} onPress={() => setFilter(f.key)} className={`rounded-full px-3.5 py-2 ${filter === f.key ? 'bg-accent' : 'border border-hairline bg-surface2'}`}>
               <Text className="text-[13px] font-semibold" style={{ color: filter === f.key ? colors.onAccent : colors.ink }}>{f.label}</Text>
             </Press>
           ))}
-        </View>
-        <View className="mt-3">
-          <PeriodFilter value={period} onChange={setPeriod} />
-        </View>
+        </ScrollView>
       </View>
 
       {loading ? (

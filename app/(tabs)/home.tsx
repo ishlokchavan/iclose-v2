@@ -12,6 +12,7 @@ import { useAppSettings, whatsappLink, telLink } from '@/lib/settings';
 import { GlassBg } from '@/components/Glass';
 import { Wordmark, StatusBadge } from '@/components/DealUI';
 import { Press, FadeIn } from '@/components/Press';
+import { Tour, BUYER_TOUR, BROKER_TOUR } from '@/components/Tour';
 import { formatAed } from '@/lib/format';
 import { HIGHLIGHTS } from '@/data/learn';
 import { colors } from '@/theme/tokens';
@@ -196,6 +197,7 @@ export default function Home() {
           </View>
         )}
       </ScrollView>
+      {session && profile ? <Tour steps={role === 'broker' ? BROKER_TOUR : BUYER_TOUR} storageKey={'tour_v1_' + role} /> : null}
     </View>
   );
 }

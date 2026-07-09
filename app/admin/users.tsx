@@ -15,7 +15,7 @@ import { maskIban } from '@/lib/iban';
 import { GlassBg } from '@/components/Glass';
 import { StatusBadge } from '@/components/DealUI';
 import { Press, FadeIn } from '@/components/Press';
-import { PeriodFilter, SortToggle, DayHeader, SecureNote } from '@/components/ListKit';
+import { FilterControl, DayHeader, SecureNote } from '@/components/ListKit';
 import { inPeriod, groupByDay, sortByDate, type PeriodState, type SortDir } from '@/lib/dates';
 import { formatAed, formatDate } from '@/lib/format';
 import { colors } from '@/theme/tokens';
@@ -129,8 +129,8 @@ export default function AdminUsers() {
       <GlassBg />
       <AdminHeader title="Users" insetTop={insets.top} />
 
-      <View className="px-4 pb-2">
-        <View className="flex-row items-center gap-2 rounded-2xl border border-hairline bg-surface2 px-3.5">
+      <View className="flex-row items-center gap-2 px-4 pb-2">
+        <View className="flex-1 flex-row items-center gap-2 rounded-2xl border border-hairline bg-surface2 px-3.5">
           <Search size={17} color={colors.graphiteLight} />
           <TextInput
             value={query}
@@ -140,27 +140,26 @@ export default function AdminUsers() {
             className="flex-1 py-3 text-[15px] text-ink"
           />
         </View>
+        <FilterControl period={period} onPeriod={setPeriod} sort={sort} onSort={setSort} />
       </View>
 
       <View className="gap-2 px-4 pb-2">
-        <View className="flex-row gap-2">
-          {ROLE_FILTERS.map(({ key, label, Icon }) => {
-            const active = roleFilter === key;
-            return (
-              <Press
-                key={key}
-                onPress={() => setRoleFilter(key)}
-                className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-2 ${active ? 'bg-accent' : 'border border-hairline bg-surface2'}`}
-              >
-                {Icon ? <Icon size={13} color={active ? colors.onAccent : colors.graphite} /> : null}
-                <Text className="text-[13px] font-semibold" style={{ color: active ? colors.onAccent : colors.ink }}>{label}</Text>
-              </Press>
-            );
-          })}
-        </View>
-        <PeriodFilter value={period} onChange={setPeriod} />
         <View className="flex-row items-center justify-between">
-          <SortToggle value={sort} onChange={setSort} />
+          <View className="flex-row gap-2">
+            {ROLE_FILTERS.map(({ key, label, Icon }) => {
+              const active = roleFilter === key;
+              return (
+                <Press
+                  key={key}
+                  onPress={() => setRoleFilter(key)}
+                  className={`flex-row items-center gap-1.5 rounded-full px-3.5 py-2 ${active ? 'bg-accent' : 'border border-hairline bg-surface2'}`}
+                >
+                  {Icon ? <Icon size={13} color={active ? colors.onAccent : colors.graphite} /> : null}
+                  <Text className="text-[13px] font-semibold" style={{ color: active ? colors.onAccent : colors.ink }}>{label}</Text>
+                </Press>
+              );
+            })}
+          </View>
           <Text className="text-[12.5px] text-graphite">{shown.length} {shown.length === 1 ? 'user' : 'users'}</Text>
         </View>
       </View>

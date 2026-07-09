@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
-import { PeriodFilter, SortToggle, DayHeader } from '@/components/ListKit';
+import { FilterControl, DayHeader } from '@/components/ListKit';
 import { groupByDay, inPeriod, sortByDate, type Period, type PeriodState, type SortDir } from '@/lib/dates';
 import { formatAed, formatDate } from '@/lib/format';
 import { colors } from '@/theme/tokens';
@@ -64,10 +64,7 @@ export default function HistoryTab() {
             <Search size={17} color={colors.graphiteLight} />
             <TextInput value={q} onChangeText={setQ} placeholder="Search transactions" placeholderTextColor={colors.graphiteLight} className="flex-1 text-[15px] text-ink" />
           </View>
-          <SortToggle value={sort} onChange={setSort} />
-        </View>
-        <View className="mt-3">
-          <PeriodFilter value={period} onChange={setPeriod} />
+          <FilterControl period={period} onPeriod={setPeriod} sort={sort} onSort={setSort} />
         </View>
       </View>
 

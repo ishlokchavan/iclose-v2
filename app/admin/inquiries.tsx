@@ -8,7 +8,7 @@ import { adminGetDeals, STATUS_LABEL, type DealWithUser, type DealStatus } from 
 import { GlassBg } from '@/components/Glass';
 import { StatusBadge } from '@/components/DealUI';
 import { Press, FadeIn } from '@/components/Press';
-import { PeriodFilter, SortToggle, DayHeader } from '@/components/ListKit';
+import { FilterControl, DayHeader } from '@/components/ListKit';
 import { inPeriod, groupByDay, sortByDate, type PeriodState, type SortDir } from '@/lib/dates';
 import { formatAed, formatTime } from '@/lib/format';
 import { colors } from '@/theme/tokens';
@@ -66,8 +66,8 @@ export default function AdminInquiries() {
       <GlassBg />
       <AdminHeader title="Inquiries" insetTop={insets.top} />
 
-      <View className="px-4 pb-2">
-        <View className="flex-row items-center gap-2 rounded-2xl border border-hairline bg-surface2 px-3.5">
+      <View className="flex-row items-center gap-2 px-4 pb-2">
+        <View className="flex-1 flex-row items-center gap-2 rounded-2xl border border-hairline bg-surface2 px-3.5">
           <Search size={17} color={colors.graphiteLight} />
           <TextInput
             value={query}
@@ -77,6 +77,7 @@ export default function AdminInquiries() {
             className="flex-1 py-3 text-[15px] text-ink"
           />
         </View>
+        <FilterControl period={period} onPeriod={setPeriod} sort={sort} onSort={setSort} />
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-[44px]" contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 6 }}>
@@ -85,12 +86,8 @@ export default function AdminInquiries() {
         ))}
       </ScrollView>
 
-      <View className="gap-2 px-4 pb-2 pt-1">
-        <PeriodFilter value={period} onChange={setPeriod} />
-        <View className="flex-row items-center justify-between">
-          <SortToggle value={sort} onChange={setSort} />
-          <Text className="text-[12.5px] text-graphite">{shown.length} {shown.length === 1 ? 'inquiry' : 'inquiries'}</Text>
-        </View>
+      <View className="flex-row justify-end px-4 pb-2 pt-1">
+        <Text className="text-[12.5px] text-graphite">{shown.length} {shown.length === 1 ? 'inquiry' : 'inquiries'}</Text>
       </View>
 
       {loading ? (

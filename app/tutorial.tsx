@@ -1,26 +1,59 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PencilLine, MessagesSquare, LineChart, BadgeCheck } from 'lucide-react-native';
+import { PencilLine, MessagesSquare, LineChart, BadgeCheck, Sparkles, type LucideIcon } from 'lucide-react-native';
 import { GlassBg } from '@/components/Glass';
 import { Wordmark } from '@/components/DealUI';
+import { useAuth } from '@/lib/auth';
+import { ROLE_BENEFITS } from '@/data/benefits';
 import { colors } from '@/theme/tokens';
 
-const STEPS = [
-  { icon: PencilLine, title: 'Tell us what you want', body: 'Buying, selling, or closing a deal — tell us in a minute. Never pay commission again; just one flat fee.' },
-  { icon: MessagesSquare, title: 'We handle it for you', body: 'Our team picks it up and works your deal directly with you — on WhatsApp, a call, or Telegram.' },
-  { icon: LineChart, title: 'Track everything live', body: 'Watch each deal move from submitted to closed right here, with your commission and its status always visible.' },
-  { icon: BadgeCheck, title: 'Get paid', body: 'When a deal closes, your commission appears in your dashboard — pending, then paid. No chasing.' },
-] as const;
+/**
+ * Role-aware "How iClose works" tutorial. Buyers get the "never pay
+ * commission" story; brokers get "save 100% of your commission". Role comes
+ * from the profile when signed in, else the pre-auth 'intent_role' choice.
+ */
+type Step = { icon: LucideIcon; title: string; body: string };
+
+const BUYER_STEPS: Step[] = [
+  { icon: Sparkles, title: ROLE_BENEFITS.buyer.headline, body: 'iClose replaces agent commission with one flat AED 8,250 conveyance fee. Here’s how it works.' },
+  { icon: PencilLine, title: 'Tell us what you want to buy', body: 'Area, budget, property type — share it in a minute and we take it from there.' },
+  { icon: MessagesSquare, title: 'We handle it for you', body: 'Our team works your purchase with you on WhatsApp or a call. 0% commission on secondary, up to 12% credit back on off-plan.' },
+  { icon: LineChart, title: 'Track everything in the app', body: 'Watch every inquiry move from submitted to closed, with the commission you’re saving always visible.' },
+];
+
+const BROKER_STEPS: Step[] = [
+  { icon: Sparkles, title: ROLE_BENEFITS.broker.headline, body: 'Close your deals through iClose and keep every dirham of commission for a flat AED 3,500 admin fee.' },
+  { icon: PencilLine, title: 'Submit your deal', body: 'Secondary or off-plan — send us the deal details in a minute.' },
+  { icon: MessagesSquare, title: 'We process it with you', body: 'Our team runs the paperwork alongside you. You keep 100% of the commission, plus priority EOI booking.' },
+  { icon: BadgeCheck, title: 'Track deals & payouts', body: 'Follow each deal from submitted to closed and watch your commission move from pending to paid.' },
+];
 
 export default function Tutorial() {
   const insets = useSafeAreaInsets();
+  const { profile } = useAuth();
   const { width } = useWindowDimensions();
   const [page, setPage] = useState(0);
+  const [role, setRole] = useState<'buyer' | 'broker'>(profile?.role === 'broker' ? 'broker' : 'buyer');
   const scroller = useRef<ScrollView>(null);
-  const last = page === STEPS.length - 1;
+
+  // No profile yet (pre-auth)? Fall back to the intent picked on the welcome screen.
+  useEffect(() => {
+    if (profile?.role) {
+      setRole(profile.role === 'broker' ? 'broker' : 'buyer');
+      return;
+    }
+    let alive = true;
+    AsyncStorage.getItem('intent_role')
+      .then((v) => { if (alive && v === 'broker') setRole('broker'); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [profile?.role]);
+
+  const steps = role === 'broker' ? BROKER_STEPS : BUYER_STEPS;
+  const last = page === steps.length - 1;
 
   async function finish() {
     await AsyncStorage.setItem('seen_tutorial', '1');
@@ -48,7 +81,7 @@ export default function Tutorial() {
         onMomentumScrollEnd={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / width))}
         className="flex-1"
       >
-        {STEPS.map((s, i) => {
+        {steps.map((s, i) => {
           const Icon = s.icon;
           return (
             <View key={i} style={{ width }} className="flex-1 items-center justify-center px-10">
@@ -65,7 +98,7 @@ export default function Tutorial() {
 
       <View style={{ paddingBottom: insets.bottom + 20 }} className="px-6">
         <View className="mb-6 flex-row items-center justify-center gap-2">
-          {STEPS.map((_, i) => (
+          {steps.map((_, i) => (
             <View key={i} style={{ width: i === page ? 22 : 7, backgroundColor: i === page ? colors.accent : colors.hairline }} className="h-[7px] rounded-full" />
           ))}
         </View>
