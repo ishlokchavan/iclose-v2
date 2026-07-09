@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, ScrollView, Alert, ActivityIndicator, Modal, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -62,31 +62,46 @@ export default function Documents() {
     }
   }
 
-  async function pickPhoto(kind: DocKind) {
+  // The system pickers can't present while the add-sheet Modal is still
+  // animating away (on iOS the presentation silently fails and the picker
+  // wedges with "Different document picking in progress"). So: close the
+  // sheet, wait for its dismissal, and guard against double-taps.
+  const pickingRef = useRef(false);
+  async function launchAfterSheet(fn: () => Promise<void>) {
+    if (pickingRef.current) return;
+    pickingRef.current = true;
     setAddOpen(false);
-    try {
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) return Alert.alert('Permission needed', 'Allow photo access to upload.');
-      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7, base64: true });
-      if (res.canceled) return;
-      const a = res.assets[0];
-      await upload({ uri: a.uri, base64: a.base64, mimeType: a.mimeType, name: a.fileName }, kind);
-    } catch (e) {
-      Alert.alert('Could not pick photo', (e as Error).message);
-    }
+    await new Promise((r) => setTimeout(r, 700));
+    try { await fn(); } finally { pickingRef.current = false; }
   }
 
-  async function pickFile(kind: DocKind) {
-    setAddOpen(false);
-    try {
-      const res = await DocumentPicker.getDocumentAsync({ type: ['image/*', 'application/pdf'], copyToCacheDirectory: true });
-      if (res.canceled) return;
-      const a = res.assets[0];
-      // No base64 here — addDocument reads the cached file itself.
-      await upload({ uri: a.uri, mimeType: a.mimeType, name: a.name }, kind);
-    } catch (e) {
-      Alert.alert('Could not pick file', (e as Error).message);
-    }
+  function pickPhoto(kind: DocKind) {
+    launchAfterSheet(async () => {
+      try {
+        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) return Alert.alert('Permission needed', 'Allow photo access to upload.');
+        const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7, base64: true });
+        if (res.canceled) return;
+        const a = res.assets[0];
+        await upload({ uri: a.uri, base64: a.base64, mimeType: a.mimeType, name: a.fileName }, kind);
+      } catch (e) {
+        Alert.alert('Could not pick photo', (e as Error).message);
+      }
+    });
+  }
+
+  function pickFile(kind: DocKind) {
+    launchAfterSheet(async () => {
+      try {
+        const res = await DocumentPicker.getDocumentAsync({ type: ['image/*', 'application/pdf'], copyToCacheDirectory: true });
+        if (res.canceled) return;
+        const a = res.assets[0];
+        // No base64 here — addDocument reads the cached file itself.
+        await upload({ uri: a.uri, mimeType: a.mimeType, name: a.name }, kind);
+      } catch (e) {
+        Alert.alert('Could not pick file', (e as Error).message);
+      }
+    });
   }
 
   function confirmDelete(doc: UserDocument) {
