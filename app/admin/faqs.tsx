@@ -9,6 +9,7 @@ import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
 import { colors } from '@/theme/tokens';
 import { AdminHeader, Loading, Empty, Field, Chip, PrimaryButton } from './_ui';
+import { SecureNote } from '@/components/ListKit';
 
 type Audience = FaqRow['audience'];
 const AUDIENCES: Audience[] = ['all', 'buyer', 'broker', 'seller'];
@@ -94,7 +95,7 @@ export default function AdminFaqs() {
       ) : (
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         >
           {rows.length === 0 ? (
@@ -168,6 +169,7 @@ export default function AdminFaqs() {
               </ScrollView>
             ) : null}
             <PrimaryButton label="Save FAQ" onPress={save} busy={busy} />
+            <SecureNote text="Published FAQs go live for the selected audience immediately." />
           </View>
         </View>
       </Modal>

@@ -54,7 +54,7 @@ export default function AdminEmails() {
       ) : (
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         >
           {rows.length === 0 ? (

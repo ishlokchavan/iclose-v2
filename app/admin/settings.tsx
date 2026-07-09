@@ -8,6 +8,7 @@ import { writeAudit } from '@/lib/admin';
 import { GlassBg } from '@/components/Glass';
 import { colors } from '@/theme/tokens';
 import { AdminHeader, Field, PrimaryButton } from './_ui';
+import { SecureNote } from '@/components/ListKit';
 
 export default function AdminSettings() {
   const insets = useSafeAreaInsets();
@@ -52,7 +53,7 @@ export default function AdminSettings() {
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110 }}
         keyboardShouldPersistTaps="handled"
       >
         <Text className="mb-4 text-[13.5px] text-graphite">
@@ -70,6 +71,7 @@ export default function AdminSettings() {
 
         <View className="mt-5">
           <PrimaryButton label="Save settings" onPress={save} busy={busy} />
+          <SecureNote text="Changes apply instantly across the app. Every update is logged in the audit trail." />
         </View>
       </ScrollView>
     </View>
