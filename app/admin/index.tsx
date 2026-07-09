@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Inbox, Banknote, TrendingUp, ChevronRight, CheckCircle2 } from 'lucide-react-native';
+import { Inbox, Banknote, TrendingUp, ChevronRight, CheckCircle2, Bell } from 'lucide-react-native';
+import { useUnreadCount } from '@/lib/notifications';
 import { useAuth } from '@/lib/auth';
 import { adminGetStats, adminListAudit, type AdminStats, type AuditEntry } from '@/lib/admin';
 import { adminGetDeals, STATUS_LABEL, type DealWithUser, type DealStatus } from '@/lib/deals';
@@ -41,6 +42,7 @@ export default function AdminDashboard() {
   const [period, setPeriod] = useState<PeriodState>({ period: 'all' });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [unread, refreshUnread] = useUnreadCount();
 
   const load = useCallback(async () => {
     const [d, s, a] = await Promise.all([adminGetDeals(), adminGetStats(), adminListAudit(6)]);
@@ -49,7 +51,7 @@ export default function AdminDashboard() {
     setAudit(a);
   }, []);
   useEffect(() => { load().finally(() => setLoading(false)); }, [load]);
-  useFocusEffect(useCallback(() => { load(); }, [load]));
+  useFocusEffect(useCallback(() => { load(); refreshUnread(); }, [load, refreshUnread]));
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -97,8 +99,18 @@ export default function AdminDashboard() {
         {/* Header */}
         <View className="mb-4 flex-row items-center justify-between">
           <Wordmark size={24} />
-          <View className="rounded-full bg-accent/10 px-2.5 py-1">
-            <Text className="text-[11.5px] font-semibold text-accent">Admin</Text>
+          <View className="flex-row items-center gap-2">
+            <View className="rounded-full bg-accent/10 px-2.5 py-1">
+              <Text className="text-[11.5px] font-semibold text-accent">Admin</Text>
+            </View>
+            <Press onPress={() => router.push('/notifications')} className="h-10 w-10 items-center justify-center rounded-full border border-hairline bg-surface2">
+              <Bell size={18} color={colors.ink} />
+              {unread > 0 ? (
+                <View className="absolute -right-0.5 -top-0.5 h-[18px] min-w-[18px] items-center justify-center rounded-full px-1" style={{ backgroundColor: colors.accent }}>
+                  <Text className="text-[10px] font-bold" style={{ color: colors.onAccent }}>{unread > 9 ? '9+' : unread}</Text>
+                </View>
+              ) : null}
+            </Press>
           </View>
         </View>
         <Text className="text-[26px] font-semibold text-ink">Hi {firstName}</Text>
