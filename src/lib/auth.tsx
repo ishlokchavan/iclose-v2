@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { checkIsAdmin, getMyProfile, type Profile } from './deals';
+import { registerPushToken } from './notifications';
 
 /**
  * Central auth state: the Supabase session, the user's profile, and whether
@@ -36,6 +37,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const [p, admin] = await Promise.all([getMyProfile(), checkIsAdmin()]);
       setProfile(p);
       setIsAdmin(admin);
+      // Register this device for push (best-effort, fire-and-forget).
+      registerPushToken();
     } else {
       setProfile(null);
       setIsAdmin(false);

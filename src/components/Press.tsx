@@ -18,24 +18,29 @@ interface PressProps extends PressableProps {
 
 export function Press({ scaleTo = 0.96, haptic = true, onPressIn, onPressOut, onPress, children, style, ...rest }: PressProps) {
   const scale = useRef(new Animated.Value(1)).current;
+  // The transform lives on an outer wrapper so the Pressable keeps the caller's
+  // className/style layout (flex-row, gap, padding) around the real children.
   return (
-    <Pressable
-      onPressIn={(e) => {
-        Animated.spring(scale, { toValue: scaleTo, useNativeDriver: true, speed: 40, bounciness: 0 }).start();
-        onPressIn?.(e);
-      }}
-      onPressOut={(e) => {
-        Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 6 }).start();
-        onPressOut?.(e);
-      }}
-      onPress={(e) => {
-        if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-        onPress?.(e);
-      }}
-      {...rest}
-    >
-      <Animated.View style={[{ transform: [{ scale }] }, style]}>{children}</Animated.View>
-    </Pressable>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        style={style}
+        onPressIn={(e) => {
+          Animated.spring(scale, { toValue: scaleTo, useNativeDriver: true, speed: 40, bounciness: 0 }).start();
+          onPressIn?.(e);
+        }}
+        onPressOut={(e) => {
+          Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 6 }).start();
+          onPressOut?.(e);
+        }}
+        onPress={(e) => {
+          if (haptic) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          onPress?.(e);
+        }}
+        {...rest}
+      >
+        {children}
+      </Pressable>
+    </Animated.View>
   );
 }
 

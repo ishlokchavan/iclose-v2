@@ -3,10 +3,11 @@ import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator, L
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { Plus, ChevronRight, ShieldCheck, MessageCircle, Phone, ClipboardList, TrendingUp } from 'lucide-react-native';
+import { Plus, ChevronRight, ShieldCheck, MessageCircle, Phone, ClipboardList, TrendingUp, Bell } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal, type DashboardStats } from '@/lib/deals';
 import { getMyManager } from '@/lib/managers';
+import { useUnreadCount } from '@/lib/notifications';
 import { useAppSettings, whatsappLink, telLink } from '@/lib/settings';
 import { GlassBg } from '@/components/Glass';
 import { Wordmark, StatusBadge } from '@/components/DealUI';
@@ -29,6 +30,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [manager, setManager] = useState<ManagerCard | null>(null);
+  const [unread, refreshUnread] = useUnreadCount();
 
   const load = useCallback(async () => {
     const d = await getMyDeals();
@@ -36,7 +38,7 @@ export default function Home() {
     setStats(computeStats(d));
   }, []);
   useEffect(() => { if (session) load().finally(() => setLoading(false)); }, [session, load]);
-  useFocusEffect(useCallback(() => { if (session) load(); }, [session, load]));
+  useFocusEffect(useCallback(() => { if (session) { load(); refreshUnread(); } }, [session, load, refreshUnread]));
 
   // Resolve the user's account manager (DB-backed, falls back gracefully).
   useEffect(() => {
@@ -76,6 +78,14 @@ export default function Home() {
                 <ShieldCheck size={15} color={colors.onAccent} /><Text className="text-[13px] font-semibold" style={{ color: colors.onAccent }}>Admin</Text>
               </Pressable>
             ) : null}
+            <Press onPress={() => router.push('/notifications')} className="h-10 w-10 items-center justify-center rounded-full border border-hairline bg-surface2">
+              <Bell size={18} color={colors.ink} />
+              {unread > 0 ? (
+                <View className="absolute -right-0.5 -top-0.5 h-[18px] min-w-[18px] items-center justify-center rounded-full px-1" style={{ backgroundColor: colors.accent }}>
+                  <Text className="text-[10px] font-bold" style={{ color: colors.onAccent }}>{unread > 9 ? '9+' : unread}</Text>
+                </View>
+              ) : null}
+            </Press>
             <Pressable onPress={() => router.navigate('/account')} className="h-10 w-10 items-center justify-center rounded-full bg-accent">
               <Text className="text-[16px] font-semibold" style={{ color: colors.onAccent }}>{firstName.charAt(0).toUpperCase()}</Text>
             </Pressable>
