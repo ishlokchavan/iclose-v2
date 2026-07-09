@@ -49,9 +49,9 @@ export function Glass({
   return (
     <BlurView
       intensity={Platform.OS === 'android' ? intensity + 30 : intensity}
-      tint={tint === 'light' ? 'systemChromeMaterialLight' : tint === 'dark' ? 'systemChromeMaterialDark' : 'default'}
+      tint={tint === 'light' ? 'systemChromeMaterialDark' : tint === 'dark' ? 'systemChromeMaterialDark' : 'default'}
       style={[
-        { borderRadius: rounded, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)', backgroundColor: 'rgba(255,255,255,0.45)' },
+        { borderRadius: rounded, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', backgroundColor: 'rgba(20,20,22,0.55)' },
         style,
       ]}
     >
@@ -60,24 +60,24 @@ export function Glass({
   );
 }
 
-/** Soft ambient backdrop for light screens — a subtle tinted gradient. */
+/** Ambient backdrop — black with a faint neon-lime glow (matches the poster). */
 export function GlassBg() {
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000000' }]} pointerEvents="none">
       <LinearGradient
-        colors={['#eaf0ff', '#fbfbfd', '#f4edff']}
+        colors={['#0a0a0a', '#000000', '#000000']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
       <LinearGradient
-        colors={['rgba(0,113,227,0.10)', 'rgba(0,113,227,0)']}
+        colors={['rgba(158,255,0,0.10)', 'rgba(158,255,0,0)']}
         start={{ x: 0, y: 0 }}
-        end={{ x: 0.7, y: 0.5 }}
+        end={{ x: 0.75, y: 0.55 }}
         style={StyleSheet.absoluteFill}
       />
       <LinearGradient
-        colors={['rgba(163,188,255,0)', 'rgba(163,188,255,0.16)']}
+        colors={['rgba(158,255,0,0)', 'rgba(158,255,0,0.05)']}
         start={{ x: 0.4, y: 0.6 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
