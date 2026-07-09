@@ -18,9 +18,9 @@ const ROLE_UI: Record<UserRole, { icon: typeof ShoppingBag; label: string; sub: 
   seller: { icon: Briefcase, label: 'I want to sell', sub: 'List your property for a flat fee' },
 };
 const CHANNELS: { key: ContactChannel; icon: typeof MessageCircle; label: string; color: string }[] = [
-  { key: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', color: '#25D366' },
-  { key: 'call', icon: Phone, label: 'Call', color: '#0071e3' },
-  { key: 'telegram', icon: Send, label: 'Telegram', color: '#229ED9' },
+  { key: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', color: colors.accent },
+  { key: 'call', icon: Phone, label: 'Call', color: colors.accent },
+  { key: 'telegram', icon: Send, label: 'Telegram', color: colors.accent },
 ];
 
 /** One-time profile completion — role + phone + channel — before the dashboard. */
@@ -72,13 +72,13 @@ export default function Onboarding() {
             const Icon = ui.icon;
             const active = role === r;
             return (
-              <Pressable key={r} onPress={() => setRole(r)} className={`flex-row items-center gap-3 rounded-apple border p-4 ${active ? 'border-accent bg-accent/8' : 'border-white/60 bg-white/70'}`}>
-                <View className={`h-11 w-11 items-center justify-center rounded-full ${active ? 'bg-accent' : 'bg-mist'}`}><Icon size={22} color={active ? '#fff' : colors.graphite} /></View>
+              <Pressable key={r} onPress={() => setRole(r)} className={`flex-row items-center gap-3 rounded-apple border p-4 ${active ? 'border-accent bg-accent/8' : 'border-hairline bg-surface'}`}>
+                <View className={`h-11 w-11 items-center justify-center rounded-full ${active ? 'bg-accent' : 'bg-mist'}`}><Icon size={22} color={active ? colors.onAccent : colors.graphite} /></View>
                 <View className="flex-1">
                   <Text className={`text-[15.5px] font-semibold ${active ? 'text-accent' : 'text-ink'}`}>{ui.label}</Text>
                   <Text className="text-[12.5px] text-graphite">{ui.sub}</Text>
                 </View>
-                <View className={`h-6 w-6 items-center justify-center rounded-full border ${active ? 'border-accent bg-accent' : 'border-hairline'}`}>{active ? <Check size={15} color="#fff" /> : null}</View>
+                <View className={`h-6 w-6 items-center justify-center rounded-full border ${active ? 'border-accent bg-accent' : 'border-hairline'}`}>{active ? <Check size={15} color={colors.onAccent} /> : null}</View>
               </Pressable>
             );
           })}
@@ -95,7 +95,7 @@ export default function Onboarding() {
             const Icon = c.icon;
             const active = channel === c.key;
             return (
-              <Pressable key={c.key} onPress={() => setChannel(c.key)} className={`flex-1 items-center gap-1.5 rounded-apple border py-3.5 ${active ? 'border-accent bg-accent/8' : 'border-white/60 bg-white/70'}`}>
+              <Pressable key={c.key} onPress={() => setChannel(c.key)} className={`flex-1 items-center gap-1.5 rounded-apple border py-3.5 ${active ? 'border-accent bg-accent/8' : 'border-hairline bg-surface'}`}>
                 <Icon size={22} color={active ? c.color : colors.graphite} />
                 <Text className={`text-[13px] font-semibold ${active ? 'text-ink' : 'text-graphite'}`}>{c.label}</Text>
               </Pressable>
@@ -103,8 +103,8 @@ export default function Onboarding() {
           })}
         </View>
 
-        <Pressable disabled={busy} onPress={finish} className="mt-8 h-[52px] items-center justify-center rounded-full bg-ink">
-          {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-[16px] font-semibold text-white">Continue</Text>}
+        <Pressable disabled={busy} onPress={finish} className="mt-8 h-[52px] items-center justify-center rounded-full bg-accent">
+          {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text className="text-[16px] font-semibold" style={{ color: colors.onAccent }}>Continue</Text>}
         </Pressable>
       </ScrollView>
     </View>

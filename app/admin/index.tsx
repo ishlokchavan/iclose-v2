@@ -42,14 +42,14 @@ export default function AdminList() {
     <View className="flex-1">
       <GlassBg />
       <View style={{ paddingTop: insets.top + 8 }} className="flex-row items-center gap-2 px-4 pb-2">
-        <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-black/5"><ChevronLeft size={22} color={colors.ink} /></Pressable>
+        <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-surface2"><ChevronLeft size={22} color={colors.ink} /></Pressable>
         <Text className="text-[17px] font-semibold text-ink">Admin · Deals</Text>
       </View>
 
       <View className="flex-row gap-2 px-4 pb-2 pt-1">
         {FILTERS.map((f) => (
-          <Pressable key={f.key} onPress={() => setFilter(f.key)} className={`rounded-full px-4 py-2 ${filter === f.key ? 'bg-ink' : 'bg-black/5'}`}>
-            <Text className={`text-[13px] font-semibold ${filter === f.key ? 'text-white' : 'text-ink'}`}>{f.label}</Text>
+          <Pressable key={f.key} onPress={() => setFilter(f.key)} className={`rounded-full px-4 py-2 ${filter === f.key ? 'bg-accent' : 'border border-hairline bg-surface2'}`}>
+            <Text className="text-[13px] font-semibold" style={{ color: filter === f.key ? colors.onAccent : colors.ink }}>{f.label}</Text>
           </Pressable>
         ))}
       </View>
@@ -64,7 +64,7 @@ export default function AdminList() {
           ) : (
             <View className="gap-3">
               {shown.map((d) => (
-                <Pressable key={d.id} onPress={() => router.push(`/admin/${d.id}`)} className="rounded-apple border border-white/60 bg-white/75 p-4">
+                <Pressable key={d.id} onPress={() => router.push(`/admin/${d.id}`)} className="rounded-apple border border-hairline bg-surface p-4">
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-2">
                       <StatusBadge status={d.status} />

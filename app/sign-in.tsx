@@ -80,13 +80,13 @@ export default function SignIn() {
   }
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-paper">
       {/* Hero */}
       <View style={{ height: 260 }}>
         <Image source={{ uri: IMAGES.hero }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={300} />
-        <LinearGradient colors={['rgba(0,0,0,0.25)', 'rgba(255,255,255,0)', 'rgba(255,255,255,1)']} locations={[0, 0.55, 1]} style={{ position: 'absolute', inset: 0 }} />
+        <LinearGradient colors={['rgba(0,0,0,0.25)', 'rgba(0,0,0,0)', 'rgba(0,0,0,1)']} locations={[0, 0.55, 1]} style={{ position: 'absolute', inset: 0 }} />
         <View style={{ position: 'absolute', top: insets.top + 10, left: 24 }}>
-          <View className="flex-row items-center rounded-full bg-white/90 px-3 py-1.5"><Wordmark size={20} /></View>
+          <View className="flex-row items-center rounded-full bg-surface px-3 py-1.5"><Wordmark size={20} /></View>
         </View>
       </View>
 
@@ -100,16 +100,16 @@ export default function SignIn() {
 
         <View className="gap-3">
           {mode === 'signup' ? (
-            <TextInput value={name} onChangeText={setName} placeholder="Full name" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-white px-4 py-3.5 text-base text-ink" />
+            <TextInput value={name} onChangeText={setName} placeholder="Full name" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface px-4 py-3.5 text-base text-ink" />
           ) : null}
-          <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-white px-4 py-3.5 text-base text-ink" />
-          <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-white px-4 py-3.5 text-base text-ink" />
+          <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface px-4 py-3.5 text-base text-ink" />
+          <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface px-4 py-3.5 text-base text-ink" />
         </View>
 
         {/* Uniform auth buttons */}
         <View className="mt-4 gap-3">
           <Pressable disabled={busy} onPress={submitEmail} className="h-[52px] flex-row items-center justify-center rounded-full bg-accent">
-            {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-[15.5px] font-semibold text-white">{mode === 'login' ? 'Sign in' : 'Create account'}</Text>}
+            {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text className="text-[15.5px] font-semibold" style={{ color: colors.onAccent }}>{mode === 'login' ? 'Sign in' : 'Create account'}</Text>}
           </Pressable>
 
           <View className="my-1 flex-row items-center gap-3">
@@ -117,12 +117,12 @@ export default function SignIn() {
           </View>
 
           {appleAvailable ? (
-            <Pressable onPress={apple} className="h-[52px] flex-row items-center justify-center gap-2 rounded-full bg-ink">
+            <Pressable onPress={apple} className="h-[52px] flex-row items-center justify-center gap-2 rounded-full bg-black">
               <Apple size={19} color="#fff" fill="#fff" /><Text className="text-[15.5px] font-semibold text-white">Continue with Apple</Text>
             </Pressable>
           ) : null}
-          <Pressable onPress={google} className="h-[52px] flex-row items-center justify-center gap-2.5 rounded-full border border-hairline bg-white">
-            <GoogleIcon size={19} /><Text className="text-[15.5px] font-semibold text-ink">Continue with Google</Text>
+          <Pressable onPress={google} className="h-[52px] flex-row items-center justify-center gap-2.5 rounded-full bg-white">
+            <GoogleIcon size={19} /><Text className="text-[15.5px] font-semibold" style={{ color: colors.onAccent }}>Continue with Google</Text>
           </Pressable>
         </View>
 

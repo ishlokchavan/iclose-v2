@@ -13,12 +13,12 @@ const config: ExpoConfig = {
   version: '1.1.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
-  userInterfaceStyle: 'light',
+  userInterfaceStyle: 'dark',
   newArchEnabled: true,
   splash: {
     image: './assets/splash.png',
     resizeMode: 'contain',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#000000',
   },
   assetBundlePatterns: ['**/*'],
   ios: {
@@ -36,7 +36,7 @@ const config: ExpoConfig = {
     package: 'ae.iclose.app',
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
-      backgroundColor: '#ffffff',
+      backgroundColor: '#000000',
     },
   },
   web: { bundler: 'metro', output: 'static', favicon: './assets/favicon.png' },
@@ -44,7 +44,7 @@ const config: ExpoConfig = {
     'expo-router',
     'expo-secure-store',
     ['expo-image-picker', { photosPermission: 'iClose needs access to your photos so you can upload your profile picture and verification documents.' }],
-    ['expo-splash-screen', { backgroundColor: '#ffffff', image: './assets/splash.png', resizeMode: 'contain' }],
+    ['expo-splash-screen', { backgroundColor: '#000000', image: './assets/splash.png', resizeMode: 'contain' }],
   ],
   experiments: { typedRoutes: true },
   extra: {

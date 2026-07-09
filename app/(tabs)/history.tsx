@@ -42,7 +42,7 @@ export default function HistoryTab() {
       <GlassBg />
       <View style={{ paddingTop: insets.top + 12 }} className="px-4 pb-1">
         <Text className="mb-3 text-[24px] font-bold text-ink">History</Text>
-        <View className="flex-row items-center gap-2 rounded-full border border-white/60 bg-white/70 px-4 py-2.5">
+        <View className="flex-row items-center gap-2 rounded-full border border-hairline bg-surface px-4 py-2.5">
           <Search size={17} color={colors.graphiteLight} />
           <TextInput value={q} onChangeText={setQ} placeholder="Search transactions" placeholderTextColor={colors.graphiteLight} className="flex-1 text-[15px] text-ink" />
         </View>
@@ -54,18 +54,18 @@ export default function HistoryTab() {
         <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 110 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}>
           {/* Light summary card */}
-          <View className="mb-5 rounded-[22px] border border-white/70 bg-white/80 p-5">
+          <View className="mb-5 rounded-[22px] border border-hairline bg-surface p-5">
             <Text className="text-[13px] text-graphite">{isBuyer ? 'Commission saved' : 'Commission earned'}</Text>
             <Text className="mt-1 text-[32px] font-bold text-accent">{formatAed(isBuyer ? stats.closedValue * 0.02 : stats.commissionEarned)}</Text>
             <View className="mt-3 flex-row gap-6">
               <View><Text className="text-[18px] font-bold text-ink">{stats.closedCount}</Text><Text className="text-[12px] text-graphite">Deals closed</Text></View>
               <View><Text className="text-[18px] font-bold text-ink">{formatAed(stats.closedValue)}</Text><Text className="text-[12px] text-graphite">Total value</Text></View>
-              {!isBuyer && stats.commissionPending > 0 ? <View><Text className="text-[18px] font-bold" style={{ color: '#b45309' }}>{formatAed(stats.commissionPending)}</Text><Text className="text-[12px] text-graphite">Pending</Text></View> : null}
+              {!isBuyer && stats.commissionPending > 0 ? <View><Text className="text-[18px] font-bold" style={{ color: '#fbbf24' }}>{formatAed(stats.commissionPending)}</Text><Text className="text-[12px] text-graphite">Pending</Text></View> : null}
             </View>
           </View>
 
           {groups.length === 0 ? (
-            <View className="mt-6 items-center gap-3 rounded-apple border border-white/60 bg-white/60 px-8 py-10">
+            <View className="mt-6 items-center gap-3 rounded-apple border border-hairline bg-surface px-8 py-10">
               <View className="h-16 w-16 items-center justify-center rounded-full bg-accent/10"><HistoryIcon size={28} color={colors.accent} /></View>
               <Text className="text-center text-[15px] text-graphite">{q ? 'No transactions match.' : 'No closed deals yet. Your completed transactions will appear here.'}</Text>
             </View>
@@ -77,13 +77,13 @@ export default function HistoryTab() {
                   <Text className="text-[15px] font-semibold text-graphite">{month}</Text>
                   <Text className="text-[15px] font-bold text-ink">{formatAed(items.reduce((s, d) => s + amountOf(d), 0))}</Text>
                 </View>
-                <View className="overflow-hidden rounded-apple border border-white/60 bg-white/75">
+                <View className="overflow-hidden rounded-apple border border-hairline bg-surface">
                   {items.map((d, i) => {
                     const won = d.status === 'closed_won';
                     return (
-                      <Pressable key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className={`flex-row items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-black/5' : ''}`}>
-                        <View className={`h-10 w-10 items-center justify-center rounded-full ${won ? 'bg-emerald-500/12' : 'bg-black/5'}`}>
-                          {won ? <CheckCircle2 size={20} color="#059669" /> : <XCircle size={20} color={colors.graphite} />}
+                      <Pressable key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className={`flex-row items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-hairline' : ''}`}>
+                        <View className={`h-10 w-10 items-center justify-center rounded-full ${won ? 'bg-accent/12' : 'bg-surface2'}`}>
+                          {won ? <CheckCircle2 size={20} color={colors.accent} /> : <XCircle size={20} color={colors.graphite} />}
                         </View>
                         <View className="flex-1">
                           <Text className="text-[14.5px] font-semibold text-ink" numberOfLines={1}>{d.title || d.area || 'Deal'}</Text>

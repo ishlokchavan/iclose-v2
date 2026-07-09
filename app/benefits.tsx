@@ -30,13 +30,13 @@ export default function Benefits() {
   const Icon = ROLE_ICON[b.role];
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-surface">
       <View style={{ height: 230 }}>
         <Image source={{ uri: IMAGES.hero }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={300} />
-        <LinearGradient colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.15)', 'rgba(255,255,255,1)']} locations={[0, 0.5, 1]} style={{ position: 'absolute', inset: 0 }} />
+        <LinearGradient colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0.15)', '#000000']} locations={[0, 0.5, 1]} style={{ position: 'absolute', inset: 0 }} />
         <Pressable onPress={() => router.back()} style={{ position: 'absolute', top: insets.top + 8, right: 16 }} className="h-9 w-9 items-center justify-center rounded-full bg-black/30"><X size={20} color="#fff" /></Pressable>
         <View style={{ position: 'absolute', left: 20, bottom: 20, right: 20 }}>
-          <View className="mb-2 flex-row items-center self-start rounded-full bg-white/90 px-2.5 py-1"><Wordmark size={17} /></View>
+          <View className="mb-2 flex-row items-center self-start rounded-full bg-surface px-2.5 py-1"><Wordmark size={17} /></View>
           <Text className="text-[26px] font-bold leading-[1.1] text-white">{b.role === 'buyer' ? 'Buy without paying commission.' : 'Close deals, keep 100%.'}</Text>
         </View>
       </View>
@@ -44,8 +44,8 @@ export default function Benefits() {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: insets.bottom + 32 }}>
         <Text className="mb-5 px-1 text-[15px] text-graphite">One flat fee. Zero commission. Here's exactly what you pay — and what you get as a {b.title.toLowerCase().replace(/s$/, '')}.</Text>
 
-        <View className="overflow-hidden rounded-[24px] border border-white/70 bg-white" style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }}>
-          <LinearGradient colors={['rgba(0,113,227,0.10)', 'rgba(0,113,227,0)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
+        <View className="overflow-hidden rounded-[24px] border border-hairline bg-surface" style={{ shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 18, shadowOffset: { width: 0, height: 8 } }}>
+          <LinearGradient colors={['rgba(158,255,0,0.10)', 'rgba(158,255,0,0)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
           <View className="flex-row items-center gap-3 px-5 pt-5">
             <View className="h-12 w-12 items-center justify-center rounded-full bg-accent/12"><Icon size={24} color={colors.accent} /></View>
             <Text className="flex-1 text-[20px] font-bold text-ink">{b.title}</Text>
@@ -57,7 +57,7 @@ export default function Benefits() {
           <View className="gap-3 px-5 pb-6 pt-5">
             {b.points.map((p, i) => (
               <View key={i} className="flex-row items-start gap-3">
-                <View className="mt-0.5 h-[22px] w-[22px] items-center justify-center rounded-full bg-accent"><Check size={14} color="#fff" /></View>
+                <View className="mt-0.5 h-[22px] w-[22px] items-center justify-center rounded-full bg-accent"><Check size={14} color={colors.onAccent} /></View>
                 <Text className="flex-1 text-[15.5px] leading-snug text-ink">{p}</Text>
               </View>
             ))}
@@ -68,7 +68,7 @@ export default function Benefits() {
         <View className="mt-6 items-center rounded-apple bg-mist px-5 py-5">
           <Text className="text-center text-[15px] font-semibold text-ink">Ready to save?</Text>
           <Text className="mb-3 mt-1 text-center text-[13.5px] text-graphite">Submit an inquiry — our team takes it from there.</Text>
-          <Pressable onPress={() => router.back()} className="rounded-full bg-ink px-8 py-3"><Text className="text-[15px] font-semibold text-white">Got it</Text></Pressable>
+          <Pressable onPress={() => router.back()} className="rounded-full bg-accent px-8 py-3"><Text className="text-[15px] font-semibold" style={{ color: colors.onAccent }}>Got it</Text></Pressable>
         </View>
       </ScrollView>
     </View>

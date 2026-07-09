@@ -28,12 +28,12 @@ export default function FaqScreen() {
       <GlassBg />
       <View style={{ paddingTop: insets.top + 8 }} className="flex-row items-center justify-between px-4 pb-2">
         <Text className="text-[17px] font-semibold text-ink">FAQ</Text>
-        <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-black/5"><X size={20} color={colors.ink} /></Pressable>
+        <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-surface2"><X size={20} color={colors.ink} /></Pressable>
       </View>
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}>
         <View className="gap-3">
           {faqs.map((f) => (
-            <Pressable key={f.id} onPress={() => toggle(f.id)} className="rounded-apple border border-white/60 bg-white/75 p-4">
+            <Pressable key={f.id} onPress={() => toggle(f.id)} className="rounded-apple border border-hairline bg-surface p-4">
               <View className="flex-row items-center justify-between gap-3">
                 <Text className="flex-1 text-[15.5px] font-semibold text-ink">{f.question}</Text>
                 <ChevronDown size={18} color={colors.graphiteLight} style={{ transform: [{ rotate: open === f.id ? '180deg' : '0deg' }] }} />

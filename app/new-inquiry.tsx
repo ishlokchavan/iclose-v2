@@ -86,7 +86,7 @@ export default function NewInquiryScreen() {
       <GlassBg />
       <View style={{ paddingTop: insets.top + 8 }} className="flex-row items-center justify-between px-4 pb-2">
         <Text className="text-[17px] font-semibold text-ink">{TITLE[kind]}</Text>
-        <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-black/5"><X size={20} color={colors.ink} /></Pressable>
+        <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-surface2"><X size={20} color={colors.ink} /></Pressable>
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
@@ -115,8 +115,8 @@ export default function NewInquiryScreen() {
                     const Icon = TYPE_ICON[t] ?? Building2;
                     const active = propertyType === t;
                     return (
-                      <Pressable key={t} onPress={() => setPropertyType(t)} className={`flex-row items-center gap-1.5 rounded-full border px-3.5 py-2.5 ${active ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
-                        <Icon size={15} color={active ? colors.accent : colors.graphite} /><Text className={`text-[13.5px] font-semibold ${active ? 'text-accent' : 'text-ink'}`}>{t}</Text>
+                      <Pressable key={t} onPress={() => setPropertyType(t)} className={`flex-row items-center gap-1.5 rounded-full border px-3.5 py-2.5 ${active ? 'border-accent bg-accent' : 'border-hairline bg-surface2'}`}>
+                        <Icon size={15} color={active ? colors.onAccent : colors.graphite} /><Text className={`text-[13.5px] font-semibold ${active ? '' : 'text-ink'}`} style={active ? { color: colors.onAccent } : undefined}>{t}</Text>
                       </Pressable>
                     );
                   })}
@@ -150,8 +150,8 @@ export default function NewInquiryScreen() {
           <Input label="Notes" value={note} onChangeText={setNote} placeholder="Anything we should know" multiline />
         </View>
 
-        <Pressable disabled={busy} onPress={submit} className="mt-6 h-[52px] items-center justify-center rounded-full bg-ink">
-          {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-[16px] font-semibold text-white">Submit & send on WhatsApp</Text>}
+        <Pressable disabled={busy} onPress={submit} className="mt-6 h-[52px] items-center justify-center rounded-full bg-accent">
+          {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text className="text-[16px] font-semibold" style={{ color: colors.onAccent }}>Submit & send on WhatsApp</Text>}
         </Pressable>
         <Text className="mt-3 px-2 text-center text-[12px] text-graphite-light">Saved to your inquiries and shared with our team — with your reference numbers.</Text>
       </ScrollView>
@@ -164,25 +164,25 @@ function Label({ children }: { children: React.ReactNode }) {
 }
 function IconSeg({ icon: Icon, label, active, onPress }: { icon: typeof Home; label: string; active: boolean; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} className={`flex-1 flex-row items-center justify-center gap-2 rounded-2xl border py-3.5 ${active ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
-      <Icon size={17} color={active ? colors.accent : colors.graphite} />
-      <Text className={`text-[13.5px] font-semibold ${active ? 'text-accent' : 'text-ink'}`}>{label}</Text>
+    <Pressable onPress={onPress} className={`flex-1 flex-row items-center justify-center gap-2 rounded-2xl border py-3.5 ${active ? 'border-accent bg-accent' : 'border-hairline bg-surface2'}`}>
+      <Icon size={17} color={active ? colors.onAccent : colors.graphite} />
+      <Text className={`text-[13.5px] font-semibold ${active ? '' : 'text-ink'}`} style={active ? { color: colors.onAccent } : undefined}>{label}</Text>
     </Pressable>
   );
 }
 function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} className={`rounded-full border px-4 py-2.5 ${active ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
-      <Text className={`text-[13.5px] font-semibold ${active ? 'text-accent' : 'text-ink'}`}>{label}</Text>
+    <Pressable onPress={onPress} className={`rounded-full border px-4 py-2.5 ${active ? 'border-accent bg-accent' : 'border-hairline bg-surface2'}`}>
+      <Text className={`text-[13.5px] font-semibold ${active ? '' : 'text-ink'}`} style={active ? { color: colors.onAccent } : undefined}>{label}</Text>
     </Pressable>
   );
 }
 function CalcCard({ icon: Icon, label, net, breakdown }: { icon: typeof Home; label: string; net: number; breakdown: string }) {
   return (
-    <View className="overflow-hidden rounded-apple">
-      <LinearGradient colors={['rgba(16,185,129,0.14)', 'rgba(16,185,129,0.04)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16 }}>
-        <View className="flex-row items-center gap-2"><Icon size={16} color="#059669" /><Text className="text-[12.5px] font-medium text-graphite">{label}</Text></View>
-        <Text className="mt-1 text-[27px] font-bold" style={{ color: '#059669' }}>{formatAed(net)}</Text>
+    <View className="overflow-hidden rounded-apple border border-hairline bg-surface">
+      <LinearGradient colors={['rgba(158,255,0,0.14)', 'rgba(158,255,0,0.04)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16 }}>
+        <View className="flex-row items-center gap-2"><Icon size={16} color={colors.accent} /><Text className="text-[12.5px] font-medium text-graphite">{label}</Text></View>
+        <Text className="mt-1 text-[27px] font-bold" style={{ color: colors.accent }}>{formatAed(net)}</Text>
         <Text className="mt-0.5 text-[12px] text-graphite">{breakdown}</Text>
       </LinearGradient>
     </View>
@@ -192,7 +192,7 @@ function Input({ label, multiline, ...props }: { label: string; multiline?: bool
   return (
     <View>
       <Label>{label}</Label>
-      <TextInput {...props} multiline={multiline} placeholderTextColor={colors.graphiteLight} style={multiline ? { minHeight: 80, textAlignVertical: 'top' } : undefined} className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink" />
+      <TextInput {...props} multiline={multiline} placeholderTextColor={colors.graphiteLight} style={multiline ? { minHeight: 80, textAlignVertical: 'top' } : undefined} className="rounded-2xl border border-hairline bg-surface px-4 py-3.5 text-base text-ink" />
     </View>
   );
 }

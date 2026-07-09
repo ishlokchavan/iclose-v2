@@ -18,9 +18,9 @@ export function Splash() {
   }, [opacity, scale]);
 
   return (
-    <View className="flex-1 items-center justify-center">
-      <LinearGradient colors={['#e8f0ff', '#ffffff', '#f3edff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      <LinearGradient colors={['rgba(0,113,227,0.10)', 'rgba(0,113,227,0)']} start={{ x: 0, y: 0 }} end={{ x: 0.8, y: 0.6 }} style={StyleSheet.absoluteFill} />
+    <View className="flex-1 items-center justify-center" style={{ backgroundColor: '#000000' }}>
+      <LinearGradient colors={['#0a0a0a', '#000000', '#000000']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['rgba(158,255,0,0.10)', 'rgba(158,255,0,0)']} start={{ x: 0, y: 0 }} end={{ x: 0.8, y: 0.6 }} style={StyleSheet.absoluteFill} />
       <Animated.View style={{ opacity, transform: [{ scale }] }} className="items-center">
         <Wordmark size={46} />
         <Text className="mt-3 text-[15px] font-medium text-graphite">Never pay commission again.</Text>

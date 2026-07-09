@@ -44,7 +44,7 @@ export default function DealDetail() {
     <View className="flex-1">
       <GlassBg />
       <View style={{ paddingTop: insets.top + 8 }} className="flex-row items-center gap-2 px-4 pb-2">
-        <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-black/5"><ChevronLeft size={22} color={colors.ink} /></Pressable>
+        <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-surface2"><ChevronLeft size={22} color={colors.ink} /></Pressable>
         <Text className="text-[17px] font-semibold text-ink">Inquiry</Text>
       </View>
 
@@ -57,7 +57,7 @@ export default function DealDetail() {
           {/* Header */}
           <View className="flex-row items-center gap-2">
             <StatusBadge status={deal.status} />
-            {deal.deal_type ? <View className="rounded-full bg-black/5 px-2.5 py-1"><Text className="text-[11px] font-semibold text-graphite">{deal.deal_type === 'offplan' ? 'Off-plan' : 'Secondary'}</Text></View> : null}
+            {deal.deal_type ? <View className="rounded-full bg-surface2 px-2.5 py-1"><Text className="text-[11px] font-semibold text-graphite">{deal.deal_type === 'offplan' ? 'Off-plan' : 'Secondary'}</Text></View> : null}
           </View>
           <Text className="mt-3 text-[23px] font-semibold text-ink">{deal.title || deal.area || 'Inquiry'}</Text>
           <Text className="mt-1 text-[13px] text-graphite">{deal.ref_code} · {[deal.emirate, deal.area].filter(Boolean).join(' · ')}</Text>
@@ -67,7 +67,7 @@ export default function DealDetail() {
             <Tile label={isBuyer ? 'Budget' : 'Deal value'} value={base != null ? formatAed(base) : '—'} />
             <Tile label="Rate" value={`${rate}%`} sub={deal.commission_pct == null ? 'estimated' : undefined} />
           </View>
-          <View className="mt-3 overflow-hidden rounded-apple border border-white/60 bg-white/75 p-4">
+          <View className="mt-3 overflow-hidden rounded-apple border border-hairline bg-surface p-4">
             <View className="flex-row items-center justify-between">
               <Text className="text-[13px] font-medium text-graphite">{isBuyer ? 'You save (net of AED 8,250 fee)' : 'Commission (net of AED 3,500 fee)'}</Text>
               <CommissionBadge status={deal.commission_status} />
@@ -85,7 +85,7 @@ export default function DealDetail() {
           ) : null}
 
           {/* Details */}
-          <View className="mt-3 rounded-apple border border-white/60 bg-white/75 p-4">
+          <View className="mt-3 rounded-apple border border-hairline bg-surface p-4">
             <Text className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-graphite">Details</Text>
             {deal.project ? <Row label="Property" value={deal.project} /> : null}
             {deal.property_type ? <Row label="Type" value={deal.property_type} /> : null}
@@ -95,7 +95,7 @@ export default function DealDetail() {
           </View>
 
           {/* Activity timeline */}
-          <View className="mt-3 rounded-apple border border-white/60 bg-white/75 p-4">
+          <View className="mt-3 rounded-apple border border-hairline bg-surface p-4">
             <Text className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-graphite">Activity</Text>
             {events.length === 0 ? (
               <Text className="text-[13px] text-graphite">No activity yet.</Text>
@@ -129,7 +129,7 @@ export default function DealDetail() {
 
 function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <View className="flex-1 rounded-apple border border-white/60 bg-white/75 p-4">
+    <View className="flex-1 rounded-apple border border-hairline bg-surface p-4">
       <Text className="text-[12px] text-graphite">{label}</Text>
       <Text className="mt-1 text-[19px] font-bold text-ink" numberOfLines={1}>{value}</Text>
       {sub ? <Text className="text-[11px] text-graphite-light">{sub}</Text> : null}
@@ -138,7 +138,7 @@ function Tile({ label, value, sub }: { label: string; value: string; sub?: strin
 }
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <View className="flex-row justify-between gap-4 border-b border-black/5 py-2.5">
+    <View className="flex-row justify-between gap-4 border-b border-hairline py-2.5">
       <Text className="text-[14px] text-graphite">{label}</Text>
       <Text className="flex-1 text-right text-[14px] font-medium text-ink">{value}</Text>
     </View>

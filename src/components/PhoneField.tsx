@@ -38,7 +38,7 @@ export function PhoneField({ value, onChange }: { value: string; onChange: (full
   return (
     <>
       <View className="flex-row gap-2">
-        <Pressable onPress={() => setOpen(true)} className="flex-row items-center gap-1.5 rounded-2xl border border-white/50 bg-white/60 px-3 py-3.5">
+        <Pressable onPress={() => setOpen(true)} className="flex-row items-center gap-1.5 rounded-2xl border border-hairline bg-surface2 px-3 py-3.5">
           <Text className="text-[18px]">{country.flag}</Text>
           <Text className="text-[15px] font-medium text-ink">{country.dial}</Text>
           <ChevronDown size={15} color={colors.graphiteLight} />
@@ -49,22 +49,22 @@ export function PhoneField({ value, onChange }: { value: string; onChange: (full
           placeholder="50 123 4567"
           keyboardType="phone-pad"
           placeholderTextColor={colors.graphiteLight}
-          className="flex-1 rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink"
+          className="flex-1 rounded-2xl border border-hairline bg-surface2 px-4 py-3.5 text-base text-ink"
         />
       </View>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <Pressable onPress={() => setOpen(false)} className="flex-1 justify-end bg-black/30">
-          <Pressable className="max-h-[70%] rounded-t-[28px] bg-white px-2 pt-2" onPress={(e) => e.stopPropagation()}>
+          <Pressable className="max-h-[70%] rounded-t-[28px] bg-surface px-2 pt-2" onPress={(e) => e.stopPropagation()}>
             <View className="flex-row items-center justify-between px-3 py-3">
               <Text className="text-[16px] font-semibold text-ink">Country</Text>
-              <Pressable onPress={() => setOpen(false)} className="h-9 w-9 items-center justify-center rounded-full bg-black/5"><X size={18} color={colors.ink} /></Pressable>
+              <Pressable onPress={() => setOpen(false)} className="h-9 w-9 items-center justify-center rounded-full bg-surface2"><X size={18} color={colors.ink} /></Pressable>
             </View>
             <FlatList
               data={COUNTRIES}
               keyExtractor={(c) => c.code}
               renderItem={({ item }) => (
-                <Pressable onPress={() => pick(item)} className="flex-row items-center gap-3 px-4 py-3.5">
+                <Pressable onPress={() => pick(item)} className={`flex-row items-center gap-3 px-4 py-3.5 ${country.code === item.code ? 'bg-accent/10' : ''}`}>
                   <Text className="text-[22px]">{item.flag}</Text>
                   <Text className="flex-1 text-[15px] text-ink">{item.name}</Text>
                   <Text className="text-[14px] text-graphite">{item.dial}</Text>

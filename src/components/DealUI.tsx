@@ -2,20 +2,20 @@ import { View, Text } from 'react-native';
 import type { CommissionStatus, DealStatus } from '@/lib/deals';
 import { COMMISSION_LABEL, STATUS_LABEL } from '@/lib/deals';
 
-/** iClose wordmark — lowercase, accent dot, matching the current brand. */
+/** iClose wordmark — light on black with a neon-lime dot, matching the poster. */
 export function Wordmark({ size = 26 }: { size?: number }) {
   return (
-    <Text style={{ fontSize: size, fontWeight: '700', letterSpacing: -0.5, color: '#1d1d1f' }}>
-      iClose<Text style={{ color: '#0071e3' }}>.</Text>
+    <Text style={{ fontSize: size, fontWeight: '700', letterSpacing: -0.5, color: '#f5f5f7' }}>
+      iClose<Text style={{ color: '#9eff00' }}>.</Text>
     </Text>
   );
 }
 
 const STATUS_STYLE: Record<DealStatus, { bg: string; fg: string }> = {
-  submitted: { bg: 'rgba(245,158,11,0.14)', fg: '#b45309' },
-  in_discussion: { bg: 'rgba(0,113,227,0.12)', fg: '#0071e3' },
-  closed_won: { bg: 'rgba(16,185,129,0.14)', fg: '#059669' },
-  closed_lost: { bg: 'rgba(110,110,115,0.14)', fg: '#6e6e73' },
+  submitted: { bg: 'rgba(245,158,11,0.16)', fg: '#fbbf24' },
+  in_discussion: { bg: 'rgba(158,255,0,0.16)', fg: '#9eff00' },
+  closed_won: { bg: 'rgba(52,211,153,0.16)', fg: '#34d399' },
+  closed_lost: { bg: 'rgba(160,160,166,0.16)', fg: '#a1a1a6' },
 };
 
 export function StatusBadge({ status }: { status: DealStatus }) {
@@ -28,9 +28,9 @@ export function StatusBadge({ status }: { status: DealStatus }) {
 }
 
 const COMMISSION_STYLE: Record<CommissionStatus, { bg: string; fg: string }> = {
-  pending: { bg: 'rgba(245,158,11,0.14)', fg: '#b45309' },
-  paid: { bg: 'rgba(16,185,129,0.14)', fg: '#059669' },
-  not_applicable: { bg: 'rgba(110,110,115,0.12)', fg: '#6e6e73' },
+  pending: { bg: 'rgba(245,158,11,0.16)', fg: '#fbbf24' },
+  paid: { bg: 'rgba(52,211,153,0.16)', fg: '#34d399' },
+  not_applicable: { bg: 'rgba(160,160,166,0.16)', fg: '#a1a1a6' },
 };
 
 export function CommissionBadge({ status }: { status: CommissionStatus }) {

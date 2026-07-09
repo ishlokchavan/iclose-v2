@@ -24,8 +24,8 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
 
   return (
     <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingBottom: insets.bottom + 8, paddingHorizontal: 14 }} pointerEvents="box-none">
-      <BlurView intensity={40} tint="light" style={{ borderRadius: 30, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' }}>
-        <View className="flex-row items-center justify-between bg-white/55 px-2 py-2">
+      <BlurView intensity={40} tint="dark" style={{ borderRadius: 30, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' }}>
+        <View className="flex-row items-center justify-between px-2 py-2" style={{ backgroundColor: 'rgba(20,20,22,0.6)' }}>
           <Item label="Home" icon={Home} active={activeName === 'home'} onPress={() => go('home')} />
           <Item label="Inquiries" icon={ClipboardList} active={activeName === 'inquiries'} onPress={() => go('inquiries')} />
           <Center onPress={() => router.push('/new-inquiry')} />
@@ -40,8 +40,8 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
 function Item({ label, icon: Icon, active, onPress }: { label: string; icon: typeof Home; active: boolean; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} className="flex-1 items-center gap-1 py-1.5">
-      <Icon size={21} color={active ? colors.ink : colors.graphiteLight} strokeWidth={active ? 2.5 : 2} fill={active ? colors.ink : 'transparent'} fillOpacity={active ? 0.1 : 0} />
-      <Text style={{ color: active ? colors.ink : colors.graphiteLight }} className="text-[10.5px] font-semibold">{label}</Text>
+      <Icon size={21} color={active ? colors.accent : colors.graphite} strokeWidth={active ? 2.5 : 2} fill={active ? colors.accent : 'transparent'} fillOpacity={active ? 0.15 : 0} />
+      <Text style={{ color: active ? colors.accent : colors.graphite }} className="text-[10.5px] font-semibold">{label}</Text>
     </Pressable>
   );
 }
@@ -49,8 +49,8 @@ function Item({ label, icon: Icon, active, onPress }: { label: string; icon: typ
 function Center({ onPress }: { onPress: () => void }) {
   return (
     <Pressable onPress={onPress} className="items-center px-1" style={{ marginTop: -2 }}>
-      <View className="h-12 w-12 items-center justify-center rounded-full bg-ink" style={{ shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } }}>
-        <Plus size={26} color="#fff" strokeWidth={2.5} />
+      <View className="h-12 w-12 items-center justify-center rounded-full bg-accent" style={{ shadowColor: colors.accent, shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } }}>
+        <Plus size={26} color={colors.onAccent} strokeWidth={2.5} />
       </View>
     </Pressable>
   );

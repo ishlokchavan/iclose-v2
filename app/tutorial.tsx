@@ -69,8 +69,8 @@ export default function Tutorial() {
             <View key={i} style={{ width: i === page ? 22 : 7, backgroundColor: i === page ? colors.accent : colors.hairline }} className="h-[7px] rounded-full" />
           ))}
         </View>
-        <Pressable onPress={next} className="rounded-full bg-ink py-4">
-          <Text className="text-center text-[16px] font-semibold text-white">{last ? 'Get started' : 'Next'}</Text>
+        <Pressable onPress={next} className="rounded-full bg-accent py-4">
+          <Text className="text-center text-[16px] font-semibold" style={{ color: colors.onAccent }}>{last ? 'Get started' : 'Next'}</Text>
         </Pressable>
       </View>
     </View>

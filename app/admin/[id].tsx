@@ -88,7 +88,7 @@ export default function AdminDeal() {
     <View className="flex-1">
       <GlassBg />
       <View style={{ paddingTop: insets.top + 8 }} className="flex-row items-center gap-2 px-4 pb-2">
-        <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-black/5"><ChevronLeft size={22} color={colors.ink} /></Pressable>
+        <Pressable onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-surface2"><ChevronLeft size={22} color={colors.ink} /></Pressable>
         <Text className="text-[17px] font-semibold text-ink">Manage deal</Text>
       </View>
 
@@ -99,7 +99,7 @@ export default function AdminDeal() {
       ) : (
         <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
           {/* Submitter + contact */}
-          <View className="mb-4 rounded-apple border border-white/60 bg-white/75 p-4">
+          <View className="mb-4 rounded-apple border border-hairline bg-surface p-4">
             <Text className="text-[15px] font-semibold text-ink">{deal.title || deal.project || deal.area || 'Inquiry'}</Text>
             <Text className="mt-0.5 text-[13px] text-graphite">
               {submitter?.full_name || submitter?.email || 'Unknown'} · {deal.kind === 'buy' ? 'Buyer' : deal.kind === 'sell' ? 'Seller' : deal.is_referral ? 'Referral' : 'Broker'}
@@ -113,11 +113,11 @@ export default function AdminDeal() {
             {deal.note ? <Text className="mt-2 text-[13.5px] text-ink">“{deal.note}”</Text> : null}
             {phone ? (
               <View className="mt-3 flex-row gap-2">
-                <Pressable onPress={() => Linking.openURL(`https://wa.me/${phone}`)} className="flex-1 flex-row items-center justify-center gap-1.5 rounded-full bg-[#25D366] py-2.5">
-                  <MessageCircle size={16} color="#fff" /><Text className="text-[13.5px] font-semibold text-white">WhatsApp</Text>
+                <Pressable onPress={() => Linking.openURL(`https://wa.me/${phone}`)} className="flex-1 flex-row items-center justify-center gap-1.5 rounded-full bg-accent py-2.5">
+                  <MessageCircle size={16} color={colors.onAccent} /><Text className="text-[13.5px] font-semibold" style={{ color: colors.onAccent }}>WhatsApp</Text>
                 </Pressable>
-                <Pressable onPress={() => Linking.openURL(`tel:${phone}`)} className="flex-1 flex-row items-center justify-center gap-1.5 rounded-full bg-ink py-2.5">
-                  <Phone size={15} color="#fff" /><Text className="text-[13.5px] font-semibold text-white">Call</Text>
+                <Pressable onPress={() => Linking.openURL(`tel:${phone}`)} className="flex-1 flex-row items-center justify-center gap-1.5 rounded-full border border-hairline bg-surface2 py-2.5">
+                  <Phone size={15} color={colors.ink} /><Text className="text-[13.5px] font-semibold text-ink">Call</Text>
                 </Pressable>
               </View>
             ) : <Text className="mt-2 text-[12.5px] text-graphite-light">No phone on file.</Text>}
@@ -127,13 +127,13 @@ export default function AdminDeal() {
           <Text className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-graphite">Status</Text>
           <View className="mb-4 flex-row flex-wrap gap-2">
             {STATUSES.map((s) => (
-              <Pressable key={s} onPress={() => setStatus(s)} className={`rounded-full border px-3.5 py-2 ${status === s ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
+              <Pressable key={s} onPress={() => setStatus(s)} className={`rounded-full border px-3.5 py-2 ${status === s ? 'border-accent bg-accent/10' : 'border-hairline bg-surface'}`}>
                 <Text className={`text-[13px] font-semibold ${status === s ? 'text-accent' : 'text-ink'}`}>{STATUS_TEXT[s]}</Text>
               </Pressable>
             ))}
           </View>
 
-          <View className="gap-3 rounded-apple border border-white/60 bg-white/70 p-4">
+          <View className="gap-3 rounded-apple border border-hairline bg-surface p-4">
             <Field label="Update for the user (they'll see this)" value={statusNote} onChangeText={setStatusNote} placeholder="e.g. Viewing arranged for Saturday" multiline />
             <Field label="Deal value (AED)" value={dealValue} onChangeText={setDealValue} onBlur={autoCommission} placeholder="e.g. 2500000" keyboardType="number-pad" />
             <Field label="Commission %" value={commissionPct} onChangeText={setCommissionPct} onBlur={autoCommission} placeholder="e.g. 2" keyboardType="decimal-pad" />
@@ -142,7 +142,7 @@ export default function AdminDeal() {
               <Text className="mb-1.5 text-[13px] font-medium text-graphite">Commission status</Text>
               <View className="flex-row gap-2">
                 {COMMISSIONS.map((c) => (
-                  <Pressable key={c} onPress={() => setCommissionStatus(c)} className={`flex-1 items-center rounded-2xl border py-2.5 ${commissionStatus === c ? 'border-accent bg-accent/10' : 'border-white/60 bg-white/60'}`}>
+                  <Pressable key={c} onPress={() => setCommissionStatus(c)} className={`flex-1 items-center rounded-2xl border py-2.5 ${commissionStatus === c ? 'border-accent bg-accent/10' : 'border-hairline bg-surface'}`}>
                     <Text className={`text-[13px] font-semibold ${commissionStatus === c ? 'text-accent' : 'text-ink'}`}>{COMMISSION_TEXT[c]}</Text>
                   </Pressable>
                 ))}
@@ -150,8 +150,8 @@ export default function AdminDeal() {
             </View>
           </View>
 
-          <Pressable disabled={busy} onPress={save} className="mt-5 rounded-full bg-ink py-4">
-            {busy ? <ActivityIndicator color="#fff" /> : <Text className="text-center text-[16px] font-semibold text-white">Save changes</Text>}
+          <Pressable disabled={busy} onPress={save} className="mt-5 rounded-full bg-accent py-4">
+            {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text className="text-center text-[16px] font-semibold" style={{ color: colors.onAccent }}>Save changes</Text>}
           </Pressable>
         </ScrollView>
       )}
@@ -168,7 +168,7 @@ function Field({ label, multiline, ...props }: { label: string; multiline?: bool
         multiline={multiline}
         placeholderTextColor={colors.graphiteLight}
         style={multiline ? { minHeight: 72, textAlignVertical: 'top' } : undefined}
-        className="rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5 text-base text-ink"
+        className="rounded-2xl border border-hairline bg-surface2 px-4 py-3.5 text-base text-ink"
       />
     </View>
   );

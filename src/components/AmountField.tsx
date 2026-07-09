@@ -16,7 +16,7 @@ export function AmountField({ label, value, onChange }: { label: string; value: 
   return (
     <View>
       <Text className="mb-1.5 text-[13px] font-medium text-graphite">{label}</Text>
-      <View className="flex-row items-center rounded-2xl border border-white/50 bg-white/60 px-4">
+      <View className="flex-row items-center rounded-2xl border border-hairline bg-surface2 px-4">
         <Text className="mr-2 text-[15px] font-semibold text-graphite">AED</Text>
         <TextInput
           value={withCommas(value)}
@@ -29,7 +29,7 @@ export function AmountField({ label, value, onChange }: { label: string; value: 
       </View>
       <View className="mt-2 flex-row flex-wrap gap-2">
         {QUICK.map((q) => (
-          <Pressable key={q.label} onPress={() => onChange(String(q.v))} className="rounded-full border border-white/60 bg-white/60 px-3 py-1.5">
+          <Pressable key={q.label} onPress={() => onChange(String(q.v))} className="rounded-full border border-hairline bg-surface2 px-3 py-1.5">
             <Text className="text-[12.5px] font-semibold text-ink">{q.label}</Text>
           </Pressable>
         ))}

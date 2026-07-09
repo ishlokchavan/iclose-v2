@@ -59,18 +59,18 @@ export default function Inquiries() {
       <View style={{ paddingTop: insets.top + 10 }} className="px-4 pb-1">
         <Text className="mb-3 text-[24px] font-bold text-ink">Inquiries</Text>
         <View className="flex-row gap-2">
-          <View className="flex-1 flex-row items-center gap-2 rounded-2xl border border-white/60 bg-white/70 px-3.5 py-2.5">
+          <View className="flex-1 flex-row items-center gap-2 rounded-2xl border border-hairline bg-surface px-3.5 py-2.5">
             <Search size={17} color={colors.graphiteLight} />
             <TextInput value={q} onChangeText={setQ} placeholder="Search by name, area, ref…" placeholderTextColor={colors.graphiteLight} className="flex-1 text-[15px] text-ink" />
           </View>
-          <Pressable onPress={nextSort} className="flex-row items-center gap-1.5 rounded-2xl border border-white/60 bg-white/70 px-3">
+          <Pressable onPress={nextSort} className="flex-row items-center gap-1.5 rounded-2xl border border-hairline bg-surface px-3">
             <ArrowDownUp size={16} color={colors.ink} /><Text className="text-[13px] font-semibold text-ink">{SORT_LABEL[sort]}</Text>
           </Pressable>
         </View>
         <View className="mt-3 flex-row gap-2">
           {FILTERS.map((f) => (
-            <Pressable key={f.key} onPress={() => setFilter(f.key)} className={`rounded-full px-3.5 py-2 ${filter === f.key ? 'bg-ink' : 'bg-black/5'}`}>
-              <Text className={`text-[13px] font-semibold ${filter === f.key ? 'text-white' : 'text-ink'}`}>{f.label}</Text>
+            <Pressable key={f.key} onPress={() => setFilter(f.key)} className={`rounded-full px-3.5 py-2 ${filter === f.key ? 'bg-accent' : 'border border-hairline bg-surface2'}`}>
+              <Text className="text-[13px] font-semibold" style={{ color: filter === f.key ? colors.onAccent : colors.ink }}>{f.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -92,7 +92,7 @@ export default function Inquiries() {
                 <Text className="mb-2 text-[13px] font-semibold text-graphite-light">{label}</Text>
                 <View className="gap-3">
                   {items.map((d) => (
-                    <Pressable key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className="rounded-apple border border-white/60 bg-white/75 p-4">
+                    <Pressable key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className="rounded-apple border border-hairline bg-surface p-4">
                       <View className="flex-row items-start justify-between gap-3">
                         <View className="flex-1">
                           <Text className="text-[15px] font-semibold text-ink" numberOfLines={1}>{d.title || d.area || 'Inquiry'}</Text>

@@ -52,21 +52,21 @@ export default function Intro() {
               const Icon = r.icon;
               const active = role === r.key;
               return (
-                <Pressable key={r.key} onPress={() => setRole(r.key)} className={`flex-row items-center gap-3 rounded-apple border p-4 ${active ? 'border-accent bg-accent/8' : 'border-white/60 bg-white/70'}`}>
-                  <View className={`h-12 w-12 items-center justify-center rounded-full ${active ? 'bg-accent' : 'bg-mist'}`}><Icon size={24} color={active ? '#fff' : colors.graphite} /></View>
+                <Pressable key={r.key} onPress={() => setRole(r.key)} className={`flex-row items-center gap-3 rounded-apple border p-4 ${active ? 'border-accent bg-accent/8' : 'border-hairline bg-surface'}`}>
+                  <View className={`h-12 w-12 items-center justify-center rounded-full ${active ? 'bg-accent' : 'bg-mist'}`}><Icon size={24} color={active ? colors.onAccent : colors.graphite} /></View>
                   <View className="flex-1">
                     <Text className={`text-[16px] font-semibold ${active ? 'text-accent' : 'text-ink'}`}>{r.label}</Text>
                     <Text className="text-[12.5px] text-graphite">{r.sub}</Text>
                   </View>
-                  <View className={`h-6 w-6 items-center justify-center rounded-full border ${active ? 'border-accent bg-accent' : 'border-hairline'}`}>{active ? <Check size={15} color="#fff" /> : null}</View>
+                  <View className={`h-6 w-6 items-center justify-center rounded-full border ${active ? 'border-accent bg-accent' : 'border-hairline'}`}>{active ? <Check size={15} color={colors.onAccent} /> : null}</View>
                 </Pressable>
               );
             })}
           </View>
         </View>
         <View style={{ paddingBottom: insets.bottom + 20 }} className="px-6">
-          <Pressable disabled={!role} onPress={() => role && finish(role)} className={`h-[54px] items-center justify-center rounded-full ${role ? 'bg-ink' : 'bg-ink/30'}`}>
-            <Text className="text-[16px] font-semibold text-white">Continue</Text>
+          <Pressable disabled={!role} onPress={() => role && finish(role)} className={`h-[54px] items-center justify-center rounded-full ${role ? 'bg-accent' : 'bg-accent/30'}`}>
+            <Text className="text-[16px] font-semibold" style={{ color: colors.onAccent }}>Continue</Text>
           </Pressable>
         </View>
       </View>
@@ -97,8 +97,8 @@ export default function Intro() {
         <View className="mb-6 flex-row items-center justify-center gap-2">
           {SLIDES.map((_, i) => <View key={i} style={{ width: i === page ? 22 : 7, backgroundColor: i === page ? colors.accent : colors.hairline }} className="h-[7px] rounded-full" />)}
         </View>
-        <Pressable onPress={next} className="h-[54px] items-center justify-center rounded-full bg-ink">
-          <Text className="text-[16px] font-semibold text-white">{last ? 'Get started' : 'Next'}</Text>
+        <Pressable onPress={next} className="h-[54px] items-center justify-center rounded-full bg-accent">
+          <Text className="text-[16px] font-semibold" style={{ color: colors.onAccent }}>{last ? 'Get started' : 'Next'}</Text>
         </Pressable>
       </View>
     </View>

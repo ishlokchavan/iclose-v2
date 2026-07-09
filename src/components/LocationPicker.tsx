@@ -18,24 +18,24 @@ export function LocationPicker({ emirate, area, onChange }: { emirate: Emirate; 
 
   return (
     <>
-      <Pressable onPress={() => { setEm(emirate); setOpen(true); }} className="flex-row items-center gap-2.5 rounded-2xl border border-white/50 bg-white/60 px-4 py-3.5">
+      <Pressable onPress={() => { setEm(emirate); setOpen(true); }} className="flex-row items-center gap-2.5 rounded-2xl border border-hairline bg-surface2 px-4 py-3.5">
         <MapPin size={18} color={colors.accent} />
         <Text className={`flex-1 text-[15px] ${area ? 'text-ink' : 'text-graphite-light'}`}>{area ? `${emirate} · ${area}` : 'Select location'}</Text>
       </Pressable>
 
       <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' }}>
-          <View className="max-h-[80%] rounded-t-[28px] bg-white px-4 pt-3">
+          <View className="max-h-[80%] rounded-t-[28px] bg-surface px-4 pt-3">
             <View className="flex-row items-center justify-between py-2">
               <Text className="text-[16px] font-semibold text-ink">Location</Text>
-              <Pressable onPress={() => setOpen(false)} className="h-9 w-9 items-center justify-center rounded-full bg-black/5"><X size={18} color={colors.ink} /></Pressable>
+              <Pressable onPress={() => setOpen(false)} className="h-9 w-9 items-center justify-center rounded-full bg-surface2"><X size={18} color={colors.ink} /></Pressable>
             </View>
 
             {/* Emirate chips */}
             <ScrollableChips value={em} onChange={(e) => { setEm(e); setQ(''); }} />
 
             {/* Search */}
-            <View className="mt-3 flex-row items-center gap-2 rounded-2xl border border-hairline bg-white px-3.5 py-2.5">
+            <View className="mt-3 flex-row items-center gap-2 rounded-2xl border border-hairline bg-surface2 px-3.5 py-2.5">
               <Search size={17} color={colors.graphiteLight} />
               <TextInput value={q} onChangeText={setQ} placeholder={`Search in ${em}…`} placeholderTextColor={colors.graphiteLight} className="flex-1 text-[15px] text-ink" autoFocus />
             </View>
@@ -46,7 +46,7 @@ export function LocationPicker({ emirate, area, onChange }: { emirate: Emirate; 
               keyExtractor={(d) => d}
               keyboardShouldPersistTaps="handled"
               renderItem={({ item }) => (
-                <Pressable onPress={() => { onChange(em, item); setOpen(false); }} className="flex-row items-center gap-3 border-b border-black/5 px-1 py-3.5">
+                <Pressable onPress={() => { onChange(em, item); setOpen(false); }} className="flex-row items-center gap-3 border-b border-hairline px-1 py-3.5">
                   <MapPin size={16} color={colors.graphiteLight} />
                   <Text className="flex-1 text-[15px] text-ink">{item}</Text>
                   {emirate === em && area === item ? <Check size={18} color={colors.accent} /> : null}
@@ -76,8 +76,8 @@ function ScrollableChips({ value, onChange }: { value: Emirate; onChange: (e: Em
       keyExtractor={(e) => e}
       contentContainerStyle={{ gap: 8 }}
       renderItem={({ item }) => (
-        <Pressable onPress={() => onChange(item)} className={`rounded-full px-3.5 py-2 ${value === item ? 'bg-ink' : 'bg-black/5'}`}>
-          <Text className={`text-[13px] font-semibold ${value === item ? 'text-white' : 'text-ink'}`}>{item}</Text>
+        <Pressable onPress={() => onChange(item)} className={`rounded-full px-3.5 py-2 ${value === item ? 'bg-accent' : 'border border-hairline bg-surface2'}`}>
+          <Text className="text-[13px] font-semibold" style={{ color: value === item ? colors.onAccent : colors.ink }}>{item}</Text>
         </Pressable>
       )}
     />

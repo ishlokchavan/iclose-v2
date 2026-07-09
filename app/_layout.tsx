@@ -6,21 +6,28 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/lib/auth';
+import { useAppFonts, installFontDefaults } from '@/lib/fonts';
 
+installFontDefaults();
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
+  const [fontsLoaded] = useAppFonts();
+
   useEffect(() => {
+    if (!fontsLoaded) return;
     const t = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 250);
     return () => clearTimeout(t);
-  }, []);
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000000' }}>
       <SafeAreaProvider>
         <AuthProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#ffffff' } }}>
+          <StatusBar style="light" />
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000000' } }}>
             <Stack.Screen name="index" />
             <Stack.Screen name="intro" />
             <Stack.Screen name="tutorial" />
