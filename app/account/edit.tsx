@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Check } from 'lucide-react-native';
 import { GlassBg } from '@/components/Glass';
 import { Press } from '@/components/Press';
+import { SecureNote } from '@/components/ListKit';
 import { PhoneField } from '@/components/PhoneField';
 import { useAuth } from '@/lib/auth';
 import { updateMyProfile, CHANNEL_LABEL, type ContactChannel } from '@/lib/deals';
@@ -76,6 +77,7 @@ export default function EditProfile() {
           <Press disabled={busy} onPress={save} className="mt-6 h-[52px] flex-row items-center justify-center gap-2 rounded-full bg-accent">
             {busy ? <ActivityIndicator color={colors.onAccent} /> : <><Check size={18} color={colors.onAccent} /><Text className="text-[15px] font-semibold" style={{ color: colors.onAccent }}>Save changes</Text></>}
           </Press>
+          <SecureNote />
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

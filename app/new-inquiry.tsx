@@ -3,16 +3,17 @@ import { View, Text, TextInput, Pressable, ScrollView, Alert, ActivityIndicator,
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { X, Building2, Store, KeyRound, HardHat, Home, Hotel, Warehouse, Wallet, TrendingUp } from 'lucide-react-native';
+import { X, Building2, Store, KeyRound, HardHat, Home, Hotel, Warehouse, Wallet, TrendingUp, Info } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import {
-  submitInquiry, brokerPocket, buyerBenefit, PROPERTY_TYPES, ROLE_LABEL,
+  submitInquiry, brokerPocket, buyerBenefit, PROPERTY_TYPES, ROLE_LABEL, COMMISSION_RATE,
   type NewInquiry, type InquiryKind, type PropertyCategory, type DealType,
 } from '@/lib/deals';
 import type { Emirate } from '@/data/locations';
 import { useAppSettings, whatsappLink } from '@/lib/settings';
 import { GlassBg } from '@/components/Glass';
 import { Press } from '@/components/Press';
+import { SecureNote } from '@/components/ListKit';
 import { LocationPicker } from '@/components/LocationPicker';
 import { AmountField } from '@/components/AmountField';
 import { formatAed } from '@/lib/format';
@@ -148,6 +149,7 @@ export default function NewInquiryScreen() {
           {kind === 'buy' && benefit ? (
             <CalcCard icon={TrendingUp} label={benefit.label} net={benefit.net} breakdown={`${formatAed(benefit.gross)} ${dealType === 'secondary' ? 'commission avoided' : 'credit'} − ${formatAed(benefit.fee)} fee`} />
           ) : null}
+          {(kind === 'close' && pocket) || (kind === 'buy' && benefit) ? <CalcDisclaimer dealType={dealType} /> : null}
 
           <Input label="Notes" value={note} onChangeText={setNote} placeholder="Anything we should know" multiline />
         </View>
@@ -155,7 +157,8 @@ export default function NewInquiryScreen() {
         <Press disabled={busy} onPress={submit} className="mt-6 h-[52px] items-center justify-center rounded-full bg-accent">
           {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text className="text-[16px] font-semibold" style={{ color: colors.onAccent }}>Submit & send on WhatsApp</Text>}
         </Press>
-        <Text className="mt-3 px-2 text-center text-[12px] text-graphite-light">Saved to your inquiries and shared with our team — with your reference numbers.</Text>
+        <SecureNote text="Your inquiry is private — only our team sees it." />
+        <Text className="mt-2 px-2 text-center text-[12px] text-graphite-light">Saved to your inquiries and shared with our team — with your reference numbers.</Text>
       </ScrollView>
     </View>
   );
@@ -177,6 +180,19 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
     <Pressable onPress={onPress} className={`rounded-full border px-4 py-2.5 ${active ? 'border-accent bg-accent' : 'border-hairline bg-surface2'}`}>
       <Text className={`text-[13.5px] font-semibold ${active ? '' : 'text-ink'}`} style={active ? { color: colors.onAccent } : undefined}>{label}</Text>
     </Pressable>
+  );
+}
+/** Dynamic estimate disclaimer under the live calculator — follows the deal type. */
+function CalcDisclaimer({ dealType }: { dealType: DealType }) {
+  const pct = COMMISSION_RATE[dealType];
+  const label = dealType === 'offplan' ? 'off-plan' : 'secondary';
+  return (
+    <View className="-mt-1.5 flex-row items-start gap-1.5 px-2">
+      <Info size={12} color={colors.graphiteLight} style={{ marginTop: 2 }} />
+      <Text className="flex-1 text-[11.5px] leading-4 text-graphite-light">
+        Example estimate at {pct}% commission ({label}). Actual terms are confirmed by our team.
+      </Text>
+    </View>
   );
 }
 function CalcCard({ icon: Icon, label, net, breakdown }: { icon: typeof Home; label: string; net: number; breakdown: string }) {

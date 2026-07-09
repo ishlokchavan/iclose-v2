@@ -5,18 +5,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, Plus, Trash2, Landmark, X, Check, Star, Pencil } from 'lucide-react-native';
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
+import { SecureNote } from '@/components/ListKit';
 import { listBankAccounts, addBankAccount, updateBankAccount, setPrimaryBank, deleteBankAccount, type BankAccount } from '@/lib/profile-data';
-import { validateIban, formatIban } from '@/lib/profile-uploads';
+import { lookupIban, maskIban } from '@/lib/iban';
+import { formatIban } from '@/lib/profile-uploads';
 import { colors } from '@/theme/tokens';
 
 const DANGER = '#ff453a';
-
-function maskIban(raw: string): string {
-  const s = raw.replace(/\s+/g, '').toUpperCase();
-  if (s.length <= 8) return formatIban(s);
-  const masked = s.slice(0, 4) + '•'.repeat(s.length - 8) + s.slice(-4);
-  return masked.replace(/(.{4})/g, '$1 ').trim();
-}
 
 export default function Banks() {
   const insets = useSafeAreaInsets();
@@ -53,11 +48,11 @@ export default function Banks() {
       {loading ? (
         <ActivityIndicator className="mt-20" color={colors.accent} />
       ) : (
-        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}>
+        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
           {accounts.length === 0 ? (
             <View className="mt-16 items-center gap-3 px-8">
               <View className="h-16 w-16 items-center justify-center rounded-full bg-surface2"><Landmark size={28} color={colors.graphite} /></View>
-              <Text className="text-center text-[15px] text-graphite">No bank accounts yet. Add one to receive your commission payouts.</Text>
+              <Text className="text-center text-[15px] text-graphite">No bank accounts yet. Add one to receive your commission payouts — your first account is set as primary.</Text>
             </View>
           ) : (
             <View className="gap-2.5">
@@ -97,12 +92,14 @@ export default function Banks() {
           <Press onPress={() => setEditing(null)} className="mt-5 h-[52px] flex-row items-center justify-center gap-2 rounded-full bg-accent">
             <Plus size={18} color={colors.onAccent} /><Text className="text-[15px] font-semibold" style={{ color: colors.onAccent }}>Add bank account</Text>
           </Press>
+          <SecureNote text="Bank details are encrypted and visible only to our payouts team." />
         </ScrollView>
       )}
 
       {editing !== undefined ? (
         <BankForm
           account={editing}
+          isFirst={!editing && accounts.length === 0}
           onClose={() => setEditing(undefined)}
           onSaved={async () => { setEditing(undefined); await load(); }}
         />
@@ -111,7 +108,7 @@ export default function Banks() {
   );
 }
 
-function BankForm({ account, onClose, onSaved }: { account: BankAccount | null; onClose: () => void; onSaved: () => void }) {
+function BankForm({ account, isFirst, onClose, onSaved }: { account: BankAccount | null; isFirst: boolean; onClose: () => void; onSaved: () => void }) {
   const insets = useSafeAreaInsets();
   const [iban, setIban] = useState(account?.iban ?? '');
   const [bankName, setBankName] = useState(account?.bank_name ?? '');
@@ -119,15 +116,28 @@ function BankForm({ account, onClose, onSaved }: { account: BankAccount | null; 
   const [primary, setPrimary] = useState(account?.is_primary ?? false);
   const [busy, setBusy] = useState(false);
 
-  const ibanCheck = iban.trim() ? validateIban(iban) : null;
+  // Auto-lookup as the user types, like real banking apps.
+  const lookup = iban.replace(/\s+/g, '').length > 0 ? lookupIban(iban) : null;
+  const detectedBank = lookup?.valid ? lookup.bankName : null;
 
   async function save() {
     const clean = iban.replace(/\s+/g, '').toUpperCase();
-    if (!validateIban(clean).valid) return Alert.alert('Invalid IBAN', 'Enter a valid UAE IBAN.');
+    const check = lookupIban(clean);
+    if (!check.valid) return Alert.alert('Invalid IBAN', 'Enter a valid UAE IBAN.');
+    const finalBankName = (check.bankName ?? bankName.trim()) || null;
     setBusy(true);
     try {
-      if (account) await updateBankAccount(account.id, { iban: clean, bank_name: bankName.trim() || null, account_name: accountName.trim() || null, is_primary: primary });
-      else await addBankAccount({ iban: clean, bank_name: bankName.trim() || null, account_name: accountName.trim() || null, is_primary: primary });
+      if (account) {
+        await updateBankAccount(account.id, { iban: clean, bank_name: finalBankName, account_name: accountName.trim() || null, is_primary: primary });
+      } else {
+        await addBankAccount({
+          iban: clean,
+          bank_name: finalBankName,
+          account_name: accountName.trim() || null,
+          // First account becomes primary automatically (handled by the data layer).
+          ...(isFirst ? {} : { is_primary: primary }),
+        });
+      }
       onSaved();
     } catch (e) { Alert.alert('Could not save', (e as Error).message); } finally { setBusy(false); }
   }
@@ -146,31 +156,69 @@ function BankForm({ account, onClose, onSaved }: { account: BankAccount | null; 
             <View>
               <Text className="mb-1.5 text-[13px] font-medium text-graphite">IBAN</Text>
               <TextInput value={formatIban(iban)} onChangeText={setIban} placeholder="AE__ ____ ____ ____ ____ ___" autoCapitalize="characters" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface2 px-4 py-3.5 text-base text-ink" />
-              {ibanCheck ? (
+              {lookup ? (
                 <View className="mt-1.5 flex-row items-center gap-1.5">
-                  {ibanCheck.valid ? <><Check size={13} color={colors.accent} /><Text className="text-[12px] text-graphite">Valid UAE IBAN · bank code {ibanCheck.bankCode}</Text></> : <Text className="text-[12px]" style={{ color: DANGER }}>Not a valid UAE IBAN yet</Text>}
+                  {lookup.valid ? (
+                    <><Check size={13} color={colors.accent} /><Text className="text-[12px] text-graphite">Valid UAE IBAN · account •••• {lookup.accountTail}</Text></>
+                  ) : (
+                    <Text className="text-[12px]" style={{ color: DANGER }}>Not a valid UAE IBAN yet</Text>
+                  )}
                 </View>
               ) : null}
             </View>
+
             <View>
-              <Text className="mb-1.5 text-[13px] font-medium text-graphite">Bank name</Text>
-              <TextInput value={bankName} onChangeText={setBankName} placeholder="e.g. Emirates NBD" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface2 px-4 py-3.5 text-base text-ink" />
+              <Text className="mb-1.5 text-[13px] font-medium text-graphite">Bank</Text>
+              {detectedBank ? (
+                // Auto-filled from the IBAN — read-only, like real banking apps.
+                <View className="flex-row items-center gap-2.5 rounded-2xl border border-accent/40 bg-surface2 px-4 py-3.5">
+                  <Landmark size={16} color={colors.accent} />
+                  <Text className="flex-1 text-base text-ink" numberOfLines={1}>{detectedBank}</Text>
+                  <View className="rounded-full bg-accent/15 px-2 py-0.5">
+                    <Text className="text-[11px] font-bold" style={{ color: colors.accent }}>{lookup!.bankCode}</Text>
+                  </View>
+                </View>
+              ) : (
+                <>
+                  <TextInput value={bankName} onChangeText={setBankName} placeholder="e.g. Emirates NBD" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface2 px-4 py-3.5 text-base text-ink" />
+                  {lookup?.valid && !detectedBank ? (
+                    <View className="mt-1.5 flex-row items-center gap-1.5">
+                      <View className="rounded-full bg-surface2 px-2 py-0.5" style={{ borderWidth: 1, borderColor: colors.hairline }}>
+                        <Text className="text-[11px] font-bold text-graphite">{lookup.bankCode}</Text>
+                      </View>
+                      <Text className="flex-1 text-[12px] text-graphite">Bank code not recognised — type the bank name.</Text>
+                    </View>
+                  ) : (
+                    <Text className="mt-1.5 text-[12px] text-graphite-light">Detected automatically from a valid IBAN.</Text>
+                  )}
+                </>
+              )}
             </View>
+
             <View>
               <Text className="mb-1.5 text-[13px] font-medium text-graphite">Account holder name</Text>
               <TextInput value={accountName} onChangeText={setAccountName} placeholder="As on your bank account" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface2 px-4 py-3.5 text-base text-ink" />
             </View>
-            <Press onPress={() => setPrimary((p) => !p)} className="flex-row items-center gap-3 rounded-2xl border border-hairline bg-surface2 px-4 py-3.5">
-              <View className={`h-6 w-6 items-center justify-center rounded-full ${primary ? 'bg-accent' : 'border border-hairline bg-surface'}`}>
-                {primary ? <Check size={14} color={colors.onAccent} /> : null}
+
+            {isFirst ? (
+              <View className="flex-row items-center gap-3 rounded-2xl border border-hairline bg-surface2 px-4 py-3.5">
+                <View className="h-6 w-6 items-center justify-center rounded-full bg-accent"><Star size={13} color={colors.onAccent} fill={colors.onAccent} /></View>
+                <Text className="flex-1 text-[13.5px] font-medium text-ink">Your first account is set as primary.</Text>
               </View>
-              <Text className="flex-1 text-[14px] font-medium text-ink">Set as primary payout account</Text>
-            </Press>
+            ) : (
+              <Press onPress={() => setPrimary((p) => !p)} className="flex-row items-center gap-3 rounded-2xl border border-hairline bg-surface2 px-4 py-3.5">
+                <View className={`h-6 w-6 items-center justify-center rounded-full ${primary ? 'bg-accent' : 'border border-hairline bg-surface'}`}>
+                  {primary ? <Check size={14} color={colors.onAccent} /> : null}
+                </View>
+                <Text className="flex-1 text-[14px] font-medium text-ink">Set as primary payout account</Text>
+              </Press>
+            )}
           </View>
 
           <Press disabled={busy} onPress={save} className="mt-5 h-[52px] flex-row items-center justify-center gap-2 rounded-full bg-accent">
             {busy ? <ActivityIndicator color={colors.onAccent} /> : <><Check size={18} color={colors.onAccent} /><Text className="text-[15px] font-semibold" style={{ color: colors.onAccent }}>{account ? 'Save changes' : 'Add account'}</Text></>}
           </Press>
+          <SecureNote text="Bank details are encrypted and visible only to our payouts team." />
         </View>
       </KeyboardAvoidingView>
     </Modal>
