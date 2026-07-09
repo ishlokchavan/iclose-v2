@@ -56,6 +56,24 @@ export function Chip({ label, active, onPress }: { label: string; active: boolea
   );
 }
 
+/** Dashboard KPI tile. Pass `onPress` to make it navigate (chevron-less, whole tile tappable). */
+export function StatTile({ label, value, accent, onPress }: { label: string; value: string; accent?: boolean; onPress?: () => void }) {
+  const inner = (
+    <>
+      <Text className="text-[19px] font-bold" style={{ color: accent ? colors.accent : colors.ink }} numberOfLines={1}>{value}</Text>
+      <Text className="mt-0.5 text-[11.5px] text-graphite" numberOfLines={1}>{label}</Text>
+    </>
+  );
+  if (onPress) {
+    return (
+      <Press onPress={onPress} className="rounded-apple border border-hairline bg-surface px-3 py-3.5">
+        {inner}
+      </Press>
+    );
+  }
+  return <View className="rounded-apple border border-hairline bg-surface px-3 py-3.5">{inner}</View>;
+}
+
 /** Solid lime primary action; dark foreground. Pass `busy` to show a spinner. */
 export function PrimaryButton({ label, onPress, busy, disabled }: { label: string; onPress: () => void; busy?: boolean; disabled?: boolean }) {
   return (
