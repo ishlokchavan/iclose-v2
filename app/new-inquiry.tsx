@@ -10,8 +10,9 @@ import {
   type NewInquiry, type InquiryKind, type PropertyCategory, type DealType,
 } from '@/lib/deals';
 import type { Emirate } from '@/data/locations';
-import { CONTACT_WHATSAPP } from '@/lib/config';
+import { useAppSettings, whatsappLink } from '@/lib/settings';
 import { GlassBg } from '@/components/Glass';
+import { Press } from '@/components/Press';
 import { LocationPicker } from '@/components/LocationPicker';
 import { AmountField } from '@/components/AmountField';
 import { formatAed } from '@/lib/format';
@@ -25,6 +26,7 @@ const TYPE_ICON: Record<string, typeof Home> = { Apartment: Building2, Villa: Ho
 export default function NewInquiryScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
+  const settings = useAppSettings();
   const role = profile?.role ?? 'buyer';
   const kind: InquiryKind = KIND_FOR_ROLE[role];
 
@@ -75,7 +77,7 @@ export default function NewInquiryScreen() {
     L.push(`• Location: ${emirate} · ${area}`);
     if (amt) L.push(`• ${kind === 'buy' ? 'Budget' : kind === 'sell' ? 'Asking' : 'Deal value'}: ${formatAed(amt)}`);
     if (note.trim()) L.push(`• Notes: ${note.trim()}`);
-    try { await Linking.openURL(`https://wa.me/${CONTACT_WHATSAPP}?text=${encodeURIComponent(L.join('\n'))}`); } catch { /* saved regardless */ }
+    try { await Linking.openURL(whatsappLink(settings, L.join('\n'))); } catch { /* saved regardless */ }
   }
 
   const pocket = amt ? brokerPocket(dealType, amt) : null;
@@ -86,7 +88,7 @@ export default function NewInquiryScreen() {
       <GlassBg />
       <View style={{ paddingTop: insets.top + 8 }} className="flex-row items-center justify-between px-4 pb-2">
         <Text className="text-[17px] font-semibold text-ink">{TITLE[kind]}</Text>
-        <Pressable onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-surface2"><X size={20} color={colors.ink} /></Pressable>
+        <Press onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-surface2"><X size={20} color={colors.ink} /></Press>
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
@@ -150,9 +152,9 @@ export default function NewInquiryScreen() {
           <Input label="Notes" value={note} onChangeText={setNote} placeholder="Anything we should know" multiline />
         </View>
 
-        <Pressable disabled={busy} onPress={submit} className="mt-6 h-[52px] items-center justify-center rounded-full bg-accent">
+        <Press disabled={busy} onPress={submit} className="mt-6 h-[52px] items-center justify-center rounded-full bg-accent">
           {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text className="text-[16px] font-semibold" style={{ color: colors.onAccent }}>Submit & send on WhatsApp</Text>}
-        </Pressable>
+        </Press>
         <Text className="mt-3 px-2 text-center text-[12px] text-graphite-light">Saved to your inquiries and shared with our team — with your reference numbers.</Text>
       </ScrollView>
     </View>

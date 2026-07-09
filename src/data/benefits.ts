@@ -12,6 +12,9 @@ export interface RoleBenefit {
   who: string;
   fee: string;
   feeLabel: string;
+  /** Role-specific hero headline. Brokers keep 100% of their commission;
+   *  buyers/sellers never pay commission. */
+  headline: string;
   points: string[];
   fine?: string;
 }
@@ -23,6 +26,7 @@ export const ROLE_BENEFITS: Record<UserRole, RoleBenefit> = {
     who: 'I want to buy a property',
     fee: 'AED 8,250',
     feeLabel: 'conveyance fee — that’s it',
+    headline: 'Buy without paying commission.',
     points: [
       '0% commission on secondary real estate',
       'Up to 12% credit back on off-plan',
@@ -35,6 +39,7 @@ export const ROLE_BENEFITS: Record<UserRole, RoleBenefit> = {
     who: 'I want to sell my property',
     fee: 'AED 8,250',
     feeLabel: 'transfer fee — that’s it',
+    headline: 'Sell without paying commission.',
     points: [
       'List your property for free',
       'A dedicated sales agent to sell it for you',
@@ -46,8 +51,9 @@ export const ROLE_BENEFITS: Record<UserRole, RoleBenefit> = {
     who: 'I’m a broker closing deals',
     fee: 'AED 3,500',
     feeLabel: 'admin fee — that’s it',
+    headline: 'Save 100% of commission.',
     points: [
-      'Keep 100% of your commission on secondary & off-plan deals',
+      'Save 100% of your commission on secondary & off-plan deals — just a AED 3,500 admin fee',
       'Priority EOI booking',
     ],
     fine: 'Priority EOI booking is exclusive to select developers. Details on request.',

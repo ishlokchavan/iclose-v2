@@ -27,6 +27,7 @@ export interface Profile {
   avatar_path: string | null;
   id_doc_type: string | null;
   id_doc_path: string | null;
+  account_manager_id: string | null;
 }
 
 export type DealType = 'offplan' | 'secondary';
@@ -131,7 +132,7 @@ export async function getMyProfile(): Promise<Profile | null> {
   if (!auth.user) return null;
   const { data } = await supabase
     .from('profiles')
-    .select('id,role,full_name,email,phone,preferred_channel,onboarded,ref_code,bank_name,bank_account_name,iban,avatar_path,id_doc_type,id_doc_path')
+    .select('id,role,full_name,email,phone,preferred_channel,onboarded,ref_code,bank_name,bank_account_name,iban,avatar_path,id_doc_type,id_doc_path,account_manager_id')
     .eq('id', auth.user.id)
     .maybeSingle();
   return (data as Profile) ?? null;
@@ -252,15 +253,30 @@ export interface AdminDealPatch {
 export async function adminUpdateDeal(id: string, patch: AdminDealPatch): Promise<void> {
   const { error } = await supabase.from('deals').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
+  const { data: auth } = await supabase.auth.getUser();
+  const parts: string[] = [];
+  if (patch.status) parts.push(`status→${patch.status}`);
+  if (patch.commission_status) parts.push(`payout→${patch.commission_status}`);
+  if (patch.commission_amount_aed != null) parts.push('commission amount');
+  await supabase.from('audit_log').insert({
+    actor_id: auth.user?.id ?? null,
+    actor_email: auth.user?.email ?? null,
+    action: 'update', entity: 'deal', entity_id: id,
+    summary: parts.length ? `Deal ${parts.join(', ')}` : 'Deal updated',
+    meta: patch as Record<string, unknown>,
+  });
 }
 
 // ---- FAQ ----------------------------------------------------
 export interface Faq { id: string; question: string; answer: string }
-export async function getFaqs(): Promise<Faq[]> {
-  const { data } = await supabase
+/** Published FAQs, optionally filtered to a role's audience (plus 'all'). */
+export async function getFaqs(role?: UserRole | null): Promise<Faq[]> {
+  let q = supabase
     .from('faqs')
     .select('id,question,answer')
     .eq('published', true)
     .order('position', { ascending: true });
+  if (role) q = q.in('audience', ['all', role]);
+  const { data } = await q;
   return (data as Faq[]) ?? [];
 }

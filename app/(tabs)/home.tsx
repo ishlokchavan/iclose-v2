@@ -6,24 +6,29 @@ import { Image } from 'expo-image';
 import { Plus, ChevronRight, ShieldCheck, MessageCircle, Phone, ClipboardList, TrendingUp } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal, type DashboardStats } from '@/lib/deals';
+import { getMyManager } from '@/lib/managers';
+import { useAppSettings, whatsappLink, telLink } from '@/lib/settings';
 import { GlassBg } from '@/components/Glass';
 import { Wordmark, StatusBadge } from '@/components/DealUI';
+import { Press, FadeIn } from '@/components/Press';
 import { formatAed } from '@/lib/format';
-import { CONTACT_WHATSAPP, CONTACT_PHONE } from '@/lib/config';
 import { HIGHLIGHTS } from '@/data/learn';
-import { pickManager } from '@/data/managers';
 import { colors } from '@/theme/tokens';
 
 const NEW_LABEL = { buyer: 'New buying inquiry', seller: 'List a property', broker: 'New deal inquiry' } as const;
 const SUBTITLE = { buyer: 'Track what you’re buying and your savings.', seller: 'Track your listing through to sale.', broker: 'Track your deals and commission.' } as const;
 
+type ManagerCard = { name: string; title: string; photo: string | null };
+
 export default function Home() {
   const insets = useSafeAreaInsets();
   const { session, profile, isAdmin } = useAuth();
+  const settings = useAppSettings();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [manager, setManager] = useState<ManagerCard | null>(null);
 
   const load = useCallback(async () => {
     const d = await getMyDeals();
@@ -32,12 +37,20 @@ export default function Home() {
   }, []);
   useEffect(() => { if (session) load().finally(() => setLoading(false)); }, [session, load]);
   useFocusEffect(useCallback(() => { if (session) load(); }, [session, load]));
+
+  // Resolve the user's account manager (DB-backed, falls back gracefully).
+  useEffect(() => {
+    let alive = true;
+    getMyManager(profile?.id ?? session?.user.id, profile?.account_manager_id)
+      .then((m) => { if (alive) setManager(m); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [profile?.id, profile?.account_manager_id, session?.user.id]);
   const onRefresh = useCallback(async () => { setRefreshing(true); try { await load(); } finally { setRefreshing(false); } }, [load]);
 
   const firstName = (profile?.full_name || session?.user.email?.split('@')[0] || 'there').split(' ')[0];
   const role = profile?.role ?? 'buyer';
   const isBuyer = role === 'buyer';
-  const manager = pickManager(profile?.id ?? session?.user.id);
   const heroValue = isBuyer ? (stats?.closedValue ?? 0) * 0.02 : stats?.commissionEarned ?? 0;
   const heroLabel = isBuyer ? 'Estimated commission saved' : 'Commission earned';
   // Monochrome pipeline ramp (dim → bright) — bright bar = closed.
@@ -95,32 +108,38 @@ export default function Home() {
         </View>
 
         {/* New inquiry */}
-        <Pressable onPress={() => router.push('/new-inquiry')} className="mb-3 flex-row items-center gap-3 rounded-apple bg-accent p-4">
+        <Press onPress={() => router.push('/new-inquiry')} className="mb-3 flex-row items-center gap-3 rounded-apple bg-accent p-4">
           <View className="h-11 w-11 items-center justify-center rounded-full bg-black/10"><Plus size={24} color={colors.onAccent} /></View>
           <View className="flex-1">
             <Text className="text-[15.5px] font-semibold" style={{ color: colors.onAccent }}>{NEW_LABEL[role]}</Text>
             <Text className="text-[13px]" style={{ color: 'rgba(10,10,10,0.65)' }}>Tell us what you want — we’ll take it from there.</Text>
           </View>
           <ChevronRight size={20} color="rgba(10,10,10,0.55)" />
-        </Pressable>
+        </Press>
 
         {/* Account manager */}
         <View className="mb-6 rounded-apple border border-hairline bg-surface p-4">
           <Text className="mb-2.5 text-[11px] font-semibold uppercase tracking-widest text-graphite-light">Account manager</Text>
           <View className="flex-row items-center gap-3">
-            <Image source={{ uri: manager.photo }} style={{ width: 54, height: 54, borderRadius: 27 }} contentFit="cover" />
+            {manager?.photo ? (
+              <Image source={{ uri: manager.photo }} style={{ width: 54, height: 54, borderRadius: 27 }} contentFit="cover" />
+            ) : (
+              <View style={{ width: 54, height: 54, borderRadius: 27 }} className="items-center justify-center bg-surface2">
+                <Text className="text-[18px] font-semibold text-graphite">{(manager?.name ?? '·').charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
             <View className="flex-1">
-              <Text className="text-[16px] font-semibold text-ink">{manager.name}</Text>
+              <Text className="text-[16px] font-semibold text-ink">{manager?.name ?? 'Your account manager'}</Text>
               <View className="mt-0.5 flex-row items-center gap-1.5"><View className="h-2 w-2 rounded-full" style={{ backgroundColor: colors.accent }} /><Text className="text-[12.5px] font-medium text-graphite">Available now</Text></View>
             </View>
           </View>
           <View className="mt-3.5 flex-row gap-2.5">
-            <Pressable onPress={() => Linking.openURL(`https://wa.me/${CONTACT_WHATSAPP}`)} className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-accent py-3">
+            <Press onPress={() => Linking.openURL(whatsappLink(settings))} className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl bg-accent py-3">
               <MessageCircle size={17} color={colors.onAccent} /><Text className="text-[14px] font-semibold" style={{ color: colors.onAccent }}>WhatsApp</Text>
-            </Pressable>
-            <Pressable onPress={() => Linking.openURL(`tel:${CONTACT_PHONE}`)} className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-hairline bg-surface2 py-3">
+            </Press>
+            <Press onPress={() => Linking.openURL(telLink(settings))} className="flex-1 flex-row items-center justify-center gap-2 rounded-2xl border border-hairline bg-surface2 py-3">
               <Phone size={16} color={colors.ink} /><Text className="text-[14px] font-semibold text-ink">Call</Text>
-            </Pressable>
+            </Press>
           </View>
         </View>
 
@@ -129,15 +148,17 @@ export default function Home() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 -mx-4" contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
           {HIGHLIGHTS.map((h) => {
             const Icon = h.icon;
+            // Brokers "save" 100% commission — never see the buyer-facing "never pay" line.
+            const title = h.id === 'save' && role === 'broker' ? 'Save 100% of commission' : h.title;
             return (
-              <Pressable key={h.id} onPress={() => h.route && router.push(h.route as never)} style={{ width: 230, minHeight: 132 }} className="justify-between rounded-[20px] border border-hairline bg-surface p-4">
+              <Press key={h.id} onPress={() => h.route && router.push(h.route as never)} style={{ width: 230, minHeight: 132 }} className="justify-between rounded-[20px] border border-hairline bg-surface p-4">
                 <View className="h-10 w-10 items-center justify-center rounded-full bg-surface2"><Icon size={20} color={colors.accent} /></View>
                 <View>
-                  <Text className="text-[16px] font-bold leading-tight text-ink">{h.title}</Text>
+                  <Text className="text-[16px] font-bold leading-tight text-ink">{title}</Text>
                   <Text className="mt-1 text-[12.5px] text-graphite">{h.subtitle}</Text>
                   <Text className="mt-1.5 text-[12.5px] font-semibold" style={{ color: colors.accent }}>Learn more →</Text>
                 </View>
-              </Pressable>
+              </Press>
             );
           })}
         </ScrollView>
@@ -156,14 +177,16 @@ export default function Home() {
           </View>
         ) : (
           <View className="gap-3">
-            {recent.map((d) => (
-              <Pressable key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className="rounded-apple border border-hairline bg-surface p-4">
-                <View className="flex-row items-center justify-between">
-                  <Text className="flex-1 text-[15px] font-semibold text-ink" numberOfLines={1}>{d.title || d.area || 'Inquiry'}</Text>
-                  <StatusBadge status={d.status} />
-                </View>
-                <Text className="mt-1 text-[12.5px] text-graphite">{d.ref_code} · {d.area}{d.deal_value_aed ? ` · ${formatAed(d.deal_value_aed)}` : d.budget_aed ? ` · ${formatAed(d.budget_aed)}` : ''}</Text>
-              </Pressable>
+            {recent.map((d, i) => (
+              <FadeIn key={d.id} delay={i * 40}>
+                <Press onPress={() => router.push(`/deal/${d.id}`)} className="rounded-apple border border-hairline bg-surface p-4">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="flex-1 text-[15px] font-semibold text-ink" numberOfLines={1}>{d.title || d.area || 'Inquiry'}</Text>
+                    <StatusBadge status={d.status} />
+                  </View>
+                  <Text className="mt-1 text-[12.5px] text-graphite">{d.ref_code} · {d.area}{d.deal_value_aed ? ` · ${formatAed(d.deal_value_aed)}` : d.budget_aed ? ` · ${formatAed(d.budget_aed)}` : ''}</Text>
+                </Press>
+              </FadeIn>
             ))}
           </View>
         )}

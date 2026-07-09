@@ -6,7 +6,7 @@ import { Splash } from '@/components/Splash';
 
 /** Entry gate: signed-in → home/onboarding; first launch → intro; else → sign-in. */
 export default function Index() {
-  const { session, profile, loading } = useAuth();
+  const { session, profile, isAdmin, loading } = useAuth();
   const [seenIntro, setSeenIntro] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -17,6 +17,7 @@ export default function Index() {
 
   if (session) {
     if (!profile) return <Splash />;
+    if (isAdmin) return <Redirect href="/admin" />;
     return <Redirect href={profile.onboarded ? '/home' : '/onboarding'} />;
   }
   if (!seenIntro) return <Redirect href="/intro" />;

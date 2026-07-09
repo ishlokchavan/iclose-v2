@@ -133,6 +133,15 @@ export default function SignIn() {
         <Pressable onPress={() => router.push('/faq')} className="mt-6 flex-row items-center justify-center gap-2 self-center">
           <HelpCircle size={15} color={colors.graphiteLight} /><Text className="text-[13.5px] text-graphite">Questions? Read the FAQ</Text>
         </Pressable>
+
+        {/* Legal footer */}
+        <View className="mt-5 flex-row flex-wrap items-center justify-center">
+          <Text className="text-[12px] text-graphite-light">By continuing you agree to our </Text>
+          <Pressable onPress={() => router.push('/terms')} hitSlop={6}><Text className="text-[12px] font-medium text-graphite">Terms</Text></Pressable>
+          <Text className="text-[12px] text-graphite-light"> & </Text>
+          <Pressable onPress={() => router.push('/privacy')} hitSlop={6}><Text className="text-[12px] font-medium text-graphite">Privacy Policy</Text></Pressable>
+          <Text className="text-[12px] text-graphite-light">.</Text>
+        </View>
       </ScrollView>
     </View>
   );

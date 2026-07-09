@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, ArrowDownUp, ClipboardList } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, type Deal, type DealStatus } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
+import { Press, FadeIn } from '@/components/Press';
 import { StatusBadge } from '@/components/DealUI';
 import { formatAed, formatDate, dayGroup } from '@/lib/format';
 import { colors } from '@/theme/tokens';
@@ -63,15 +64,15 @@ export default function Inquiries() {
             <Search size={17} color={colors.graphiteLight} />
             <TextInput value={q} onChangeText={setQ} placeholder="Search by name, area, ref…" placeholderTextColor={colors.graphiteLight} className="flex-1 text-[15px] text-ink" />
           </View>
-          <Pressable onPress={nextSort} className="flex-row items-center gap-1.5 rounded-2xl border border-hairline bg-surface px-3">
+          <Press onPress={nextSort} className="flex-row items-center gap-1.5 rounded-2xl border border-hairline bg-surface px-3">
             <ArrowDownUp size={16} color={colors.ink} /><Text className="text-[13px] font-semibold text-ink">{SORT_LABEL[sort]}</Text>
-          </Pressable>
+          </Press>
         </View>
         <View className="mt-3 flex-row gap-2">
           {FILTERS.map((f) => (
-            <Pressable key={f.key} onPress={() => setFilter(f.key)} className={`rounded-full px-3.5 py-2 ${filter === f.key ? 'bg-accent' : 'border border-hairline bg-surface2'}`}>
+            <Press key={f.key} onPress={() => setFilter(f.key)} className={`rounded-full px-3.5 py-2 ${filter === f.key ? 'bg-accent' : 'border border-hairline bg-surface2'}`}>
               <Text className="text-[13px] font-semibold" style={{ color: filter === f.key ? colors.onAccent : colors.ink }}>{f.label}</Text>
-            </Pressable>
+            </Press>
           ))}
         </View>
       </View>
@@ -87,28 +88,33 @@ export default function Inquiries() {
               <Text className="text-center text-[15px] text-graphite">{q || filter !== 'all' ? 'No active inquiries match.' : 'No active inquiries — tap ＋ to add one.'}</Text>
             </View>
           ) : (
-            groups.map(([label, items]) => (
-              <View key={label} className="mb-4">
-                <Text className="mb-2 text-[13px] font-semibold text-graphite-light">{label}</Text>
-                <View className="gap-3">
-                  {items.map((d) => (
-                    <Pressable key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className="rounded-apple border border-hairline bg-surface p-4">
-                      <View className="flex-row items-start justify-between gap-3">
-                        <View className="flex-1">
-                          <Text className="text-[15px] font-semibold text-ink" numberOfLines={1}>{d.title || d.area || 'Inquiry'}</Text>
-                          <Text className="mt-0.5 text-[12.5px] text-graphite" numberOfLines={1}>{d.ref_code} · {[d.emirate, d.area].filter(Boolean).join(' · ') || formatDate(d.created_at)}</Text>
-                        </View>
-                        <Text className="text-[12px] text-graphite-light">{formatDate(d.created_at)}</Text>
-                      </View>
-                      <View className="mt-3 flex-row items-center justify-between">
-                        <StatusBadge status={d.status} />
-                        <Text className="text-[14px] font-semibold text-ink">{d.deal_value_aed != null ? formatAed(d.deal_value_aed) : d.budget_aed != null ? formatAed(d.budget_aed) : ''}</Text>
-                      </View>
-                    </Pressable>
-                  ))}
+            (() => {
+              let running = 0;
+              return groups.map(([label, items]) => (
+                <View key={label} className="mb-4">
+                  <Text className="mb-2 text-[13px] font-semibold text-graphite-light">{label}</Text>
+                  <View className="gap-3">
+                    {items.map((d) => (
+                      <FadeIn key={d.id} delay={running++ * 40}>
+                        <Press onPress={() => router.push(`/deal/${d.id}`)} className="rounded-apple border border-hairline bg-surface p-4">
+                          <View className="flex-row items-start justify-between gap-3">
+                            <View className="flex-1">
+                              <Text className="text-[15px] font-semibold text-ink" numberOfLines={1}>{d.title || d.area || 'Inquiry'}</Text>
+                              <Text className="mt-0.5 text-[12.5px] text-graphite" numberOfLines={1}>{d.ref_code} · {[d.emirate, d.area].filter(Boolean).join(' · ') || formatDate(d.created_at)}</Text>
+                            </View>
+                            <Text className="text-[12px] text-graphite-light">{formatDate(d.created_at)}</Text>
+                          </View>
+                          <View className="mt-3 flex-row items-center justify-between">
+                            <StatusBadge status={d.status} />
+                            <Text className="text-[14px] font-semibold text-ink">{d.deal_value_aed != null ? formatAed(d.deal_value_aed) : d.budget_aed != null ? formatAed(d.budget_aed) : ''}</Text>
+                          </View>
+                        </Press>
+                      </FadeIn>
+                    ))}
+                  </View>
                 </View>
-              </View>
-            ))
+              ));
+            })()
           )}
         </ScrollView>
       )}

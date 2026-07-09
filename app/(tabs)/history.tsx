@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { History as HistoryIcon, Search, CheckCircle2, XCircle } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
+import { Press, FadeIn } from '@/components/Press';
 import { formatAed, formatDate } from '@/lib/format';
 import { colors } from '@/theme/tokens';
 
@@ -54,6 +55,7 @@ export default function HistoryTab() {
         <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 110 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}>
           {/* Light summary card */}
+          <FadeIn>
           <View className="mb-5 rounded-[22px] border border-hairline bg-surface p-5">
             <Text className="text-[13px] text-graphite">{isBuyer ? 'Commission saved' : 'Commission earned'}</Text>
             <Text className="mt-1 text-[32px] font-bold text-accent">{formatAed(isBuyer ? stats.closedValue * 0.02 : stats.commissionEarned)}</Text>
@@ -63,6 +65,7 @@ export default function HistoryTab() {
               {!isBuyer && stats.commissionPending > 0 ? <View><Text className="text-[18px] font-bold" style={{ color: '#fbbf24' }}>{formatAed(stats.commissionPending)}</Text><Text className="text-[12px] text-graphite">Pending</Text></View> : null}
             </View>
           </View>
+          </FadeIn>
 
           {groups.length === 0 ? (
             <View className="mt-6 items-center gap-3 rounded-apple border border-hairline bg-surface px-8 py-10">
@@ -70,8 +73,9 @@ export default function HistoryTab() {
               <Text className="text-center text-[15px] text-graphite">{q ? 'No transactions match.' : 'No closed deals yet. Your completed transactions will appear here.'}</Text>
             </View>
           ) : (
-            groups.map(([month, items]) => (
-              <View key={month} className="mb-5">
+            groups.map(([month, items], gi) => (
+              <FadeIn key={month} delay={(gi + 1) * 40}>
+              <View className="mb-5">
                 {/* Month header with total (GPay style) */}
                 <View className="mb-2 flex-row items-end justify-between px-1">
                   <Text className="text-[15px] font-semibold text-graphite">{month}</Text>
@@ -81,7 +85,7 @@ export default function HistoryTab() {
                   {items.map((d, i) => {
                     const won = d.status === 'closed_won';
                     return (
-                      <Pressable key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className={`flex-row items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-hairline' : ''}`}>
+                      <Press key={d.id} onPress={() => router.push(`/deal/${d.id}`)} className={`flex-row items-center gap-3 px-4 py-3.5 ${i > 0 ? 'border-t border-hairline' : ''}`}>
                         <View className={`h-10 w-10 items-center justify-center rounded-full ${won ? 'bg-accent/12' : 'bg-surface2'}`}>
                           {won ? <CheckCircle2 size={20} color={colors.accent} /> : <XCircle size={20} color={colors.graphite} />}
                         </View>
@@ -90,11 +94,12 @@ export default function HistoryTab() {
                           <Text className="text-[12px] text-graphite" numberOfLines={1}>{formatDate(d.created_at)} · {won ? 'Closed' : 'Not closed'}</Text>
                         </View>
                         <Text className="text-[14.5px] font-bold text-ink">{formatAed(amountOf(d))}</Text>
-                      </Pressable>
+                      </Press>
                     );
                   })}
                 </View>
               </View>
+              </FadeIn>
             ))
           )}
         </ScrollView>

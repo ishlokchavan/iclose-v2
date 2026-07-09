@@ -6,6 +6,7 @@ import { ChevronLeft, Trash2 } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getDeal, getDealEvents, withdrawDeal, estimateCommission, buyerBenefit, COMMISSION_RATE, type Deal, type DealEvent } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
+import { Press, FadeIn } from '@/components/Press';
 import { StatusBadge, CommissionBadge } from '@/components/DealUI';
 import { formatAed, formatDate, formatTime, dayGroup } from '@/lib/format';
 import { colors } from '@/theme/tokens';
@@ -63,10 +64,13 @@ export default function DealDetail() {
           <Text className="mt-1 text-[13px] text-graphite">{deal.ref_code} · {[deal.emirate, deal.area].filter(Boolean).join(' · ')}</Text>
 
           {/* Critical info tiles */}
+          <FadeIn delay={0}>
           <View className="mt-4 flex-row gap-3">
             <Tile label={isBuyer ? 'Budget' : 'Deal value'} value={base != null ? formatAed(base) : '—'} />
             <Tile label="Rate" value={`${rate}%`} sub={deal.commission_pct == null ? 'estimated' : undefined} />
           </View>
+          </FadeIn>
+          <FadeIn delay={60}>
           <View className="mt-3 overflow-hidden rounded-apple border border-hairline bg-surface p-4">
             <View className="flex-row items-center justify-between">
               <Text className="text-[13px] font-medium text-graphite">{isBuyer ? 'You save (net of AED 8,250 fee)' : 'Commission (net of AED 3,500 fee)'}</Text>
@@ -75,6 +79,7 @@ export default function DealDetail() {
             <Text className="mt-1 text-[28px] font-bold text-accent">{commissionAmt != null ? formatAed(commissionAmt) : 'To be confirmed'}</Text>
             {isEstimate && commissionAmt != null ? <Text className="text-[12px] text-graphite-light">Estimate at {rate}% — confirmed as your deal progresses.</Text> : null}
           </View>
+          </FadeIn>
 
           {/* Team update */}
           {deal.status_note ? (
@@ -85,6 +90,7 @@ export default function DealDetail() {
           ) : null}
 
           {/* Details */}
+          <FadeIn delay={120}>
           <View className="mt-3 rounded-apple border border-hairline bg-surface p-4">
             <Text className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-graphite">Details</Text>
             {deal.project ? <Row label="Property" value={deal.project} /> : null}
@@ -93,8 +99,10 @@ export default function DealDetail() {
             <Row label="Location" value={[deal.emirate, deal.area].filter(Boolean).join(' · ') || '—'} />
             {deal.note ? <Row label="Notes" value={deal.note} /> : null}
           </View>
+          </FadeIn>
 
           {/* Activity timeline */}
+          <FadeIn delay={180}>
           <View className="mt-3 rounded-apple border border-hairline bg-surface p-4">
             <Text className="mb-3 text-[13px] font-semibold uppercase tracking-wide text-graphite">Activity</Text>
             {events.length === 0 ? (
@@ -115,11 +123,12 @@ export default function DealDetail() {
               ))
             )}
           </View>
+          </FadeIn>
 
           {deal.status === 'submitted' ? (
-            <Pressable onPress={confirmWithdraw} className="mt-5 flex-row items-center justify-center gap-2 py-3">
+            <Press onPress={confirmWithdraw} className="mt-5 flex-row items-center justify-center gap-2 py-3">
               <Trash2 size={16} color="#e11d48" /><Text className="font-semibold" style={{ color: '#e11d48' }}>Withdraw inquiry</Text>
-            </Pressable>
+            </Press>
           ) : null}
         </ScrollView>
       )}

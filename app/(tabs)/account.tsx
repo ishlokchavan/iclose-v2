@@ -9,20 +9,24 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { updateMyProfile, ROLE_LABEL } from '@/lib/deals';
 import { uploadProfileImage, signedUrl, validateIban, formatIban } from '@/lib/profile-uploads';
-import { CONTACT_WHATSAPP, CONTACT_PHONE } from '@/lib/config';
+import { useAppSettings, whatsappLink, telLink, telegramLink } from '@/lib/settings';
 import { GlassBg } from '@/components/Glass';
+import { Press } from '@/components/Press';
 import { PhoneField } from '@/components/PhoneField';
 import { colors } from '@/theme/tokens';
 
-const CONTACTS = [
-  { key: 'call', icon: Phone, label: 'Call', color: colors.accent, url: `tel:${CONTACT_PHONE}` },
-  { key: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', color: colors.accent, url: `https://wa.me/${CONTACT_WHATSAPP}` },
-  { key: 'telegram', icon: Send, label: 'Telegram', color: colors.accent, url: `https://t.me/${CONTACT_PHONE.replace(/[^0-9+]/g, '')}` },
-];
+type Contact = { key: string; icon: typeof Phone; label: string; color: string; url: string };
 
 export default function Account() {
   const insets = useSafeAreaInsets();
   const { session, profile, isAdmin, refresh } = useAuth();
+  const settings = useAppSettings();
+  const telegram = telegramLink(settings);
+  const contacts: Contact[] = [
+    { key: 'call', icon: Phone, label: 'Call', color: colors.accent, url: telLink(settings) },
+    { key: 'whatsapp', icon: MessageCircle, label: 'WhatsApp', color: colors.accent, url: whatsappLink(settings) },
+    ...(telegram ? [{ key: 'telegram', icon: Send, label: 'Telegram', color: colors.accent, url: telegram }] : []),
+  ];
   const [phone, setPhone] = useState('+971 ');
   const [bankName, setBankName] = useState('');
   const [accountName, setAccountName] = useState('');
@@ -113,12 +117,12 @@ export default function Account() {
         <Card>
           <Text className="mb-2.5 text-[13px] text-graphite">Need help? Talk to our team.</Text>
           <View className="flex-row gap-2.5">
-            {CONTACTS.map((c) => {
+            {contacts.map((c) => {
               const Icon = c.icon;
               return (
-                <Pressable key={c.key} onPress={() => Linking.openURL(c.url)} className="flex-1 items-center gap-1.5 rounded-2xl bg-mist py-3">
+                <Press key={c.key} onPress={() => Linking.openURL(c.url)} className="flex-1 items-center gap-1.5 rounded-2xl bg-mist py-3">
                   <Icon size={20} color={c.color} /><Text className="text-[12.5px] font-semibold text-ink">{c.label}</Text>
-                </Pressable>
+                </Press>
               );
             })}
           </View>
@@ -173,28 +177,35 @@ export default function Account() {
           ) : null}
         </Pressable>
 
-        <Pressable disabled={busy} onPress={save} className="h-[52px] items-center justify-center rounded-full bg-accent">
+        <Press disabled={busy} onPress={save} className="h-[52px] items-center justify-center rounded-full bg-accent">
           {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text className="text-[15px] font-semibold" style={{ color: colors.onAccent }}>Save changes</Text>}
-        </Pressable>
+        </Press>
 
         {/* More */}
         <View className="mt-5 flex-row gap-3">
-          <Pressable onPress={() => router.push('/benefits')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-hairline bg-surface py-3.5">
+          <Press onPress={() => router.push('/benefits')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-hairline bg-surface py-3.5">
             <Sparkles size={16} color={colors.accent} /><Text className="text-[13.5px] font-medium text-ink">What you get</Text>
-          </Pressable>
-          <Pressable onPress={() => router.push('/faq')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-hairline bg-surface py-3.5">
+          </Press>
+          <Press onPress={() => router.push('/faq')} className="flex-1 flex-row items-center justify-center gap-2 rounded-apple border border-hairline bg-surface py-3.5">
             <HelpCircle size={16} color={colors.graphite} /><Text className="text-[13.5px] font-medium text-ink">FAQ</Text>
-          </Pressable>
+          </Press>
         </View>
 
         {/* Account actions */}
         <View className="mt-8 gap-3">
-          <Pressable onPress={async () => { await supabase.auth.signOut(); router.replace('/sign-in'); }} className="h-[50px] flex-row items-center justify-center gap-2 rounded-full border border-hairline bg-surface">
+          <Press onPress={async () => { await supabase.auth.signOut(); router.replace('/sign-in'); }} className="h-[50px] flex-row items-center justify-center gap-2 rounded-full border border-hairline bg-surface">
             <LogOut size={18} color={colors.ink} /><Text className="text-[15px] font-semibold text-ink">Sign out</Text>
-          </Pressable>
-          <Pressable onPress={confirmDelete} className="h-[50px] flex-row items-center justify-center gap-2 rounded-full bg-surface" style={{ borderWidth: 1, borderColor: 'rgba(255,69,58,0.4)' }}>
+          </Press>
+          <Press onPress={confirmDelete} className="h-[50px] flex-row items-center justify-center gap-2 rounded-full bg-surface" style={{ borderWidth: 1, borderColor: 'rgba(255,69,58,0.4)' }}>
             <Trash2 size={17} color="#ff453a" /><Text className="text-[15px] font-semibold" style={{ color: '#ff453a' }}>Delete account</Text>
-          </Pressable>
+          </Press>
+        </View>
+
+        {/* Legal */}
+        <View className="mt-6 flex-row items-center justify-center gap-2">
+          <Pressable onPress={() => router.push('/privacy')} hitSlop={8}><Text className="text-[12.5px] text-graphite-light">Privacy Policy</Text></Pressable>
+          <Text className="text-[12.5px] text-graphite-light">·</Text>
+          <Pressable onPress={() => router.push('/terms')} hitSlop={8}><Text className="text-[12.5px] text-graphite-light">Terms</Text></Pressable>
         </View>
       </ScrollView>
     </View>

@@ -1,11 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, Animated, StyleSheet, ActivityIndicator } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Wordmark } from './DealUI';
-import { colors } from '@/theme/tokens';
 
-/** Branded launch screen — shown while the session/profile loads, and as the
- *  backdrop the native splash fades into. */
+/** Branded launch screen — white to match the app icon / native splash, so the
+ *  cold-start is one seamless white screen before the app loads. */
 export function Splash() {
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.9)).current;
@@ -18,15 +15,16 @@ export function Splash() {
   }, [opacity, scale]);
 
   return (
-    <View className="flex-1 items-center justify-center" style={{ backgroundColor: '#000000' }}>
-      <LinearGradient colors={['#0a0a0a', '#000000', '#000000']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      <LinearGradient colors={['rgba(158,255,0,0.10)', 'rgba(158,255,0,0)']} start={{ x: 0, y: 0 }} end={{ x: 0.8, y: 0.6 }} style={StyleSheet.absoluteFill} />
+    <View className="flex-1 items-center justify-center" style={{ backgroundColor: '#ffffff' }}>
+      <View style={StyleSheet.absoluteFill} />
       <Animated.View style={{ opacity, transform: [{ scale }] }} className="items-center">
-        <Wordmark size={46} />
-        <Text className="mt-3 text-[15px] font-medium text-graphite">Never pay commission again.</Text>
+        <Text style={{ fontSize: 46, fontWeight: '800', letterSpacing: -1, color: '#111113' }}>
+          iClose<Text style={{ color: '#7ed000' }}>.</Text>
+        </Text>
+        <Text className="mt-3 text-[15px] font-medium" style={{ color: '#6e6e73' }}>Never pay commission again.</Text>
       </Animated.View>
       <Animated.View style={{ opacity }} className="absolute bottom-20">
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color="#111113" />
       </Animated.View>
     </View>
   );
