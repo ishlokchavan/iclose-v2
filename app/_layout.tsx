@@ -41,6 +41,10 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="new-inquiry" options={{ presentation: 'modal' }} />
             <Stack.Screen name="deal/[id]" options={{ presentation: 'card', animation: 'slide_from_right' }} />
+            <Stack.Screen name="account/support" options={{ presentation: 'card', animation: 'slide_from_right' }} />
+            <Stack.Screen name="account/edit" options={{ presentation: 'card', animation: 'slide_from_right' }} />
+            <Stack.Screen name="account/documents" options={{ presentation: 'card', animation: 'slide_from_right' }} />
+            <Stack.Screen name="account/banks" options={{ presentation: 'card', animation: 'slide_from_right' }} />
             <Stack.Screen name="admin" options={{ animation: 'slide_from_right' }} />
           </Stack>
         </AuthProvider>
