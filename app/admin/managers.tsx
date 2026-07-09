@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, Modal, Alert } from 'react-native';
+import { View, Text, ScrollView, RefreshControl, Modal, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { Plus, X, Pencil, Trash2, UserCog } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Plus, X, Pencil, Trash2, UserCog, Camera, ChevronUp, ChevronDown } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
-import { adminListManagers, adminUpsertManager, adminDeleteManager, type ManagerRow } from '@/lib/admin';
+import {
+  adminListManagers, adminUpsertManager, adminDeleteManager,
+  uploadManagerPhoto, adminSwapManagerOrder, type ManagerRow,
+} from '@/lib/admin';
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
+import { SecureNote } from '@/components/ListKit';
 import { colors } from '@/theme/tokens';
 import { AdminHeader, Loading, Empty, Field, PrimaryButton } from './_ui';
 
@@ -22,6 +27,8 @@ export default function AdminManagers() {
   const [refreshing, setRefreshing] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [reordering, setReordering] = useState(false);
 
   const load = useCallback(async () => { setRows(await adminListManagers()); }, []);
   useEffect(() => { load().finally(() => setLoading(false)); }, [load]);
@@ -52,6 +59,37 @@ export default function AdminManagers() {
       Alert.alert('Could not save', (e as Error).message);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function pickPhoto() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access to upload.'); return; }
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, base64: true, allowsEditing: true, aspect: [1, 1] });
+    if (res.canceled) return;
+    const a = res.assets[0];
+    setUploading(true);
+    try {
+      const url = await uploadManagerPhoto({ uri: a.uri, base64: a.base64, mimeType: a.mimeType });
+      setDraft((d) => (d ? { ...d, photo_url: url } : d));
+    } catch (e) {
+      Alert.alert('Upload failed', (e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function move(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= rows.length || reordering) return;
+    setReordering(true);
+    try {
+      await adminSwapManagerOrder(rows[i], rows[j]);
+      await load();
+    } catch (e) {
+      Alert.alert('Could not reorder', (e as Error).message);
+    } finally {
+      setReordering(false);
     }
   }
 
@@ -88,7 +126,7 @@ export default function AdminManagers() {
       ) : (
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         >
           {rows.length === 0 ? (
@@ -98,6 +136,26 @@ export default function AdminManagers() {
               {rows.map((m, i) => (
                 <FadeIn key={m.id} delay={Math.min(i, 8) * 30}>
                   <View className="flex-row items-center gap-3 rounded-apple border border-hairline bg-surface p-4">
+                    {/* Reorder */}
+                    <View className="gap-1.5">
+                      <Press
+                        onPress={() => move(i, -1)}
+                        disabled={i === 0 || reordering}
+                        className="h-7 w-7 items-center justify-center rounded-full bg-surface2"
+                        style={{ opacity: i === 0 || reordering ? 0.35 : 1 }}
+                      >
+                        <ChevronUp size={15} color={colors.ink} />
+                      </Press>
+                      <Press
+                        onPress={() => move(i, 1)}
+                        disabled={i === rows.length - 1 || reordering}
+                        className="h-7 w-7 items-center justify-center rounded-full bg-surface2"
+                        style={{ opacity: i === rows.length - 1 || reordering ? 0.35 : 1 }}
+                      >
+                        <ChevronDown size={15} color={colors.ink} />
+                      </Press>
+                    </View>
+
                     {m.photo_url ? (
                       <Image source={{ uri: m.photo_url }} style={{ width: 52, height: 52, borderRadius: 26 }} contentFit="cover" />
                     ) : (
@@ -139,14 +197,32 @@ export default function AdminManagers() {
               </Press>
             </View>
             {draft ? (
-              <ScrollView style={{ maxHeight: 420 }} keyboardShouldPersistTaps="handled">
+              <ScrollView style={{ maxHeight: 440 }} keyboardShouldPersistTaps="handled">
                 <View className="gap-3 pb-4">
+                  {/* Photo picker — tap the avatar to choose from the library. */}
+                  <View className="items-center">
+                    <Press onPress={pickPhoto} disabled={uploading} className="items-center justify-center">
+                      <View className="h-[84px] w-[84px] items-center justify-center overflow-hidden rounded-full border border-hairline bg-surface2">
+                        {uploading ? (
+                          <ActivityIndicator color={colors.accent} />
+                        ) : draft.photo_url?.trim() ? (
+                          <Image source={{ uri: draft.photo_url.trim() }} style={{ width: 84, height: 84, borderRadius: 42 }} contentFit="cover" />
+                        ) : (
+                          <Camera size={26} color={colors.graphite} />
+                        )}
+                      </View>
+                      <View className="absolute -bottom-1 -right-1 h-7 w-7 items-center justify-center rounded-full border-2 border-paper bg-accent">
+                        <Camera size={13} color={colors.onAccent} />
+                      </View>
+                    </Press>
+                    <Text className="mt-2 text-[12px] text-graphite">{uploading ? 'Uploading…' : 'Tap to upload a headshot'}</Text>
+                  </View>
+
                   <Field label="Name" value={draft.name} onChangeText={(t) => setDraft({ ...draft, name: t })} placeholder="Full name" />
                   <Field label="Title" value={draft.title ?? ''} onChangeText={(t) => setDraft({ ...draft, title: t })} placeholder="e.g. Senior Advisor" />
-                  <Field label="Photo URL" value={draft.photo_url ?? ''} onChangeText={(t) => setDraft({ ...draft, photo_url: t })} placeholder="https://…" autoCapitalize="none" />
+                  <Field label="Photo URL (optional)" value={draft.photo_url ?? ''} onChangeText={(t) => setDraft({ ...draft, photo_url: t })} placeholder="https://…" autoCapitalize="none" />
                   <Field label="WhatsApp number" value={draft.whatsapp_number ?? ''} onChangeText={(t) => setDraft({ ...draft, whatsapp_number: t })} placeholder="9715…" keyboardType="phone-pad" />
                   <Field label="Call number" value={draft.call_number ?? ''} onChangeText={(t) => setDraft({ ...draft, call_number: t })} placeholder="+9715…" keyboardType="phone-pad" />
-                  <Field label="Position" value={String(draft.position ?? 0)} onChangeText={(t) => setDraft({ ...draft, position: Number(t.replace(/[^0-9]/g, '')) || 0 })} placeholder="0" keyboardType="number-pad" />
                   <Press
                     onPress={() => setDraft({ ...draft, active: !draft.active })}
                     className={`flex-row items-center justify-between rounded-2xl border px-4 py-3.5 ${draft.active ? 'border-accent bg-accent/10' : 'border-hairline bg-surface2'}`}
@@ -159,7 +235,8 @@ export default function AdminManagers() {
                 </View>
               </ScrollView>
             ) : null}
-            <PrimaryButton label="Save manager" onPress={save} busy={busy} />
+            <PrimaryButton label="Save manager" onPress={save} busy={busy} disabled={uploading} />
+            <SecureNote />
           </View>
         </View>
       </Modal>
