@@ -105,7 +105,23 @@ function tabBar(sx, sy, sw, sh, active) {
 }
 
 // ---------- shot scaffold ----------
-function shot({ W, H, eyebrow, line1, line2, limeWord, screen }) {
+// phoneOnly: no headline block, frame fills the canvas (for web/landing use)
+function shot({ W, H, eyebrow, line1, line2, limeWord, screen, phoneOnly = false }) {
+  if (phoneOnly) {
+    const fw = W * 0.94, fh = fw * 2.176, fx = (W - fw) / 2, fy = (H - fh) / 2;
+    const inset = fw * 0.021;
+    const sxx = fx + inset, syy = fy + inset, sw = fw - inset * 2, sh = fh - inset * 2;
+    let dev = rect(fx - 5, fy - 5, fw + 10, fh + 10, fw * 0.152, 'none', C.frame);
+    dev += rect(fx, fy, fw, fh, fw * 0.148, C.frameFill);
+    dev += rect(sxx, syy, sw, sh, fw * 0.128, C.bg);
+    dev += rect(sxx + sw / 2 - sw * 0.145, syy + 26, sw * 0.29, 82, 41, '#0a0a0a', 'rgba(255,255,255,0.05)');
+    const body = screen({ sx: sxx, sy: syy, sw, sh });
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
+  <defs><clipPath id="scr"><rect x="${sxx}" y="${syy}" width="${sw}" height="${sh}" rx="${fw * 0.128}"/></clipPath></defs>
+  ${dev}
+  <g clip-path="url(#scr)">${statusBar(sxx, sw)}${body}</g>
+</svg>`;
+  }
   // headline block
   const hx = W / 2;
   const headSize = W * 0.088;
@@ -409,5 +425,15 @@ for (const [W, H] of SIZES) {
     fs.writeFileSync(out, r.render().asPng());
     console.log('wrote', path.basename(out));
   }
+}
+
+// Headline-free phone mockups on transparent canvas — for the web landing page.
+const WEB = path.join(ROOT, 'assets', 'web');
+fs.mkdirSync(WEB, { recursive: true });
+for (const sh of SHOTS) {
+  const svg = shot({ W: 1160, H: 2440, ...sh, phoneOnly: true });
+  const r = new Resvg(svg, { font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Inter' } });
+  fs.writeFileSync(path.join(WEB, `phone-${sh.name.slice(3)}.png`), r.render().asPng());
+  console.log('wrote', `phone-${sh.name.slice(3)}.png`);
 }
 console.log('done');
