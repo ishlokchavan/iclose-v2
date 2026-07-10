@@ -400,7 +400,7 @@ const SHOTS = [
   { name: '05-benefits', eyebrow: 'WHY ICLOSE', line1: 'ONE FLAT FEE.', line2: 'ZERO COMMISSION.', limeWord: 'ZERO COMMISSION.', screen: benefitsScreen },
 ];
 
-const SIZES = [[1290, 2796], [1320, 2868]];
+const SIZES = [[1290, 2796], [1320, 2868], [1284, 2778]];
 for (const [W, H] of SIZES) {
   for (const sh of SHOTS) {
     const svg = shot({ W, H, ...sh });
