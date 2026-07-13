@@ -1,3 +1,4 @@
+import fs from 'fs';
 import type { ExpoConfig } from 'expo/config';
 
 /**
@@ -5,6 +6,10 @@ import type { ExpoConfig } from 'expo/config';
  * Bundle id ae.iclose.app (reverse-DNS of iclose.ae). Custom scheme `iclose`
  * powers OAuth deep links (iclose://auth-callback).
  */
+// FCM: only wire google-services.json when it's present, so Android builds
+// still succeed before Firebase is set up (push just won't work until then).
+const googleServicesFile = fs.existsSync('./google-services.json') ? './google-services.json' : undefined;
+
 const config: ExpoConfig = {
   name: 'iClose',
   slug: 'iclose',
@@ -38,6 +43,7 @@ const config: ExpoConfig = {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#000000',
     },
+    ...(googleServicesFile ? { googleServicesFile } : {}),
   },
   web: { bundler: 'metro', output: 'static', favicon: './assets/favicon.png' },
   plugins: [
@@ -45,7 +51,7 @@ const config: ExpoConfig = {
     'expo-secure-store',
     ['expo-image-picker', { photosPermission: 'iClose needs access to your photos so you can upload your profile picture and verification documents.' }],
     ['expo-splash-screen', { backgroundColor: '#000000', image: './assets/splash.png', resizeMode: 'contain' }],
-    ['expo-notifications', { color: '#9eff00' }],
+    ['expo-notifications', { color: '#9eff00', icon: './assets/notification-icon.png' }],
   ],
   experiments: { typedRoutes: true },
   extra: {

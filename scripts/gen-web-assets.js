@@ -50,4 +50,48 @@ render(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630">
   <text x="80" y="566" font-family="Inter SemiBold" font-size="26" fill="#6e6e73">iclose.ae</text>
 </svg>`, 'og-image.png');
 
+// ---------- Google Play store assets ----------
+const PLAY = path.join(ROOT, 'assets', 'play');
+fs.mkdirSync(PLAY, { recursive: true });
+function playRender(svg, out) {
+  const r = new Resvg(svg, { font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Inter' } });
+  fs.writeFileSync(path.join(PLAY, out), r.render().asPng());
+  console.log('wrote', 'play/' + out);
+}
+
+// Play high-res icon 512x512 — black tile + soft lime glow + wordmark (matches app icon).
+playRender(`<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+  <rect width="512" height="512" fill="#000"/>
+  <defs><radialGradient id="g" cx="28%" cy="24%" r="75%">
+    <stop offset="0%" stop-color="${LIME}" stop-opacity="0.16"/>
+    <stop offset="45%" stop-color="${LIME}" stop-opacity="0.04"/>
+    <stop offset="100%" stop-color="${LIME}" stop-opacity="0"/>
+  </radialGradient></defs>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <text x="256" y="256" font-family="Inter ExtraBold" font-size="116" fill="#f7f7f9" text-anchor="middle" dominant-baseline="central" letter-spacing="-2.3">iClose<tspan fill="${LIME}">.</tspan></text>
+</svg>`, 'icon-512.png');
+
+// Feature graphic 1024x500 — required by Play, shown atop the listing.
+playRender(`<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500">
+  <rect width="1024" height="500" fill="#000"/>
+  <defs><radialGradient id="g" cx="20%" cy="12%" r="95%">
+    <stop offset="0%" stop-color="${LIME}" stop-opacity="0.16"/>
+    <stop offset="50%" stop-color="${LIME}" stop-opacity="0.04"/>
+    <stop offset="100%" stop-color="${LIME}" stop-opacity="0"/>
+  </radialGradient></defs>
+  <rect width="1024" height="500" fill="url(#g)"/>
+  <text x="64" y="96" font-family="Inter ExtraBold" font-size="44" fill="#f5f5f7">iClose<tspan fill="${LIME}">.</tspan></text>
+  <text x="60" y="240" font-family="Anton" font-size="92" fill="#f5f5f7">NEVER PAY</text>
+  <text x="60" y="340" font-family="Anton" font-size="92" fill="${LIME}">COMMISSION.</text>
+  <text x="64" y="420" font-family="Inter SemiBold" font-size="26" fill="#a1a1a6">The UAE's flat-fee way to buy property and close deals.</text>
+</svg>`, 'feature-graphic-1024x500.png');
+
+// Android notification small-icon — white silhouette on transparent (Android tints it).
+playRender(`<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192">
+  <text x="96" y="104" font-family="Inter ExtraBold" font-size="118" fill="#ffffff" text-anchor="middle" dominant-baseline="central" letter-spacing="-4">iC</text>
+</svg>`, 'notification-icon.png');
+// Copy the notification icon where the app config expects it.
+fs.copyFileSync(path.join(PLAY, 'notification-icon.png'), path.join(ROOT, 'assets', 'notification-icon.png'));
+console.log('wrote assets/notification-icon.png');
+
 console.log('done');

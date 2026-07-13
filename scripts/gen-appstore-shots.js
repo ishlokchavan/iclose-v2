@@ -106,7 +106,7 @@ function tabBar(sx, sy, sw, sh, active) {
 
 // ---------- shot scaffold ----------
 // phoneOnly: no headline block, frame fills the canvas (for web/landing use)
-function shot({ W, H, eyebrow, line1, line2, limeWord, screen, phoneOnly = false }) {
+function shot({ W, H, eyebrow, line1, line2, limeWord, screen, phoneOnly = false, fwFrac = 0.782, fyFrac = 0.196, headFrac = 0.088, eyeYFrac = 0.062 }) {
   if (phoneOnly) {
     const fw = W * 0.94, fh = fw * 2.176, fx = (W - fw) / 2, fy = (H - fh) / 2;
     const inset = fw * 0.021;
@@ -124,8 +124,9 @@ function shot({ W, H, eyebrow, line1, line2, limeWord, screen, phoneOnly = false
   }
   // headline block
   const hx = W / 2;
-  const headSize = W * 0.088;
-  let head = text(eyebrow, hx, H * 0.062, { size: W * 0.0245, fam: F.semi, color: C.lime, anchor: 'middle', ls: W * 0.006 });
+  const headSize = W * headFrac;
+  const eyeY = H * eyeYFrac;
+  let head = text(eyebrow, hx, eyeY, { size: W * 0.0245, fam: F.semi, color: C.lime, anchor: 'middle', ls: W * 0.006 });
   const mk = (line, y) => {
     if (limeWord && line.includes(limeWord)) {
       const [a, b] = line.split(limeWord);
@@ -133,11 +134,11 @@ function shot({ W, H, eyebrow, line1, line2, limeWord, screen, phoneOnly = false
     }
     return text(line, hx, y, { size: headSize, fam: F.anton, anchor: 'middle' });
   };
-  head += mk(line1, H * 0.062 + headSize * 1.25);
-  if (line2) head += mk(line2, H * 0.062 + headSize * 2.35);
+  head += mk(line1, eyeY + headSize * 1.25);
+  if (line2) head += mk(line2, eyeY + headSize * 2.35);
 
   // device frame
-  const fw = W * 0.782, fh = fw * 2.176, fx = (W - fw) / 2, fy = H * 0.196;
+  const fw = W * fwFrac, fh = fw * 2.176, fx = (W - fw) / 2, fy = H * fyFrac;
   const inset = fw * 0.021;
   const sxx = fx + inset, syy = fy + inset, sw = fw - inset * 2, sh = fh - inset * 2;
   let dev = rect(fx - 5, fy - 5, fw + 10, fh + 10, fw * 0.152, 'none', C.frame);
@@ -425,6 +426,22 @@ for (const [W, H] of SIZES) {
     fs.writeFileSync(out, r.render().asPng());
     console.log('wrote', path.basename(out));
   }
+}
+
+// Google Play phone screenshots — must be ≤ 2:1 aspect. Render the proven
+// full-size shot, then scale the whole composition onto a 1080x2160 (exactly
+// 2:1) canvas; the black letterbox bars are invisible on the black background.
+const PLAY = path.join(ROOT, 'assets', 'play');
+fs.mkdirSync(PLAY, { recursive: true });
+for (const sh of SHOTS) {
+  const DW = 1290, DH = 2796, CW = 1080, CH = 2160;
+  const inner = shot({ W: DW, H: DH, ...sh }).replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+  const s = Math.min(CW / DW, CH / DH);
+  const tx = (CW - DW * s) / 2, ty = (CH - DH * s) / 2;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${CW}" height="${CH}"><rect width="${CW}" height="${CH}" fill="${C.bg}"/><g transform="translate(${tx},${ty}) scale(${s})">${inner}</g></svg>`;
+  const r = new Resvg(svg, { font: { fontFiles: FONT_FILES, loadSystemFonts: false, defaultFontFamily: 'Inter' } });
+  fs.writeFileSync(path.join(PLAY, `${sh.name}-1080x2160.png`), r.render().asPng());
+  console.log('wrote', `play/${sh.name}-1080x2160.png`);
 }
 
 // Headline-free phone mockups on transparent canvas — for the web landing page.
