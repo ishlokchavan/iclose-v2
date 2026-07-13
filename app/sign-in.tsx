@@ -43,9 +43,12 @@ export default function SignIn() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) Alert.alert('Sign in', error.message);
       } else {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name.trim() || null } } });
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { full_name: name.trim() || null }, emailRedirectTo: Linking.createURL('auth-callback') },
+        });
         if (error) return Alert.alert('Sign up', error.message);
-        if (!data.session) Alert.alert('Check your email', 'Confirm your email address to finish, then sign in.');
+        if (!data.session) Alert.alert('Check your email', 'Tap the confirmation link we sent you — it opens the app and signs you in.');
       }
     } finally {
       setBusy(false);
