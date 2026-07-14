@@ -3,7 +3,7 @@ import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator, L
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { Plus, ChevronRight, MessageCircle, Phone, ClipboardList, TrendingUp, Bell } from 'lucide-react-native';
+import { Plus, ChevronRight, MessageCircle, Phone, ClipboardList, TrendingUp, Bell, Shield } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { getMyDeals, computeStats, type Deal, type DashboardStats } from '@/lib/deals';
 import { getMyManager } from '@/lib/managers';
@@ -148,6 +148,16 @@ export default function Home() {
             </Press>
           </View>
         </View>
+
+        {/* Trust */}
+        <Press onPress={() => router.push('/trust')} className="mb-6 flex-row items-center gap-3 rounded-apple border border-accent/20 bg-accent/[0.06] p-4">
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-accent/12"><Shield size={20} color={colors.accent} /></View>
+          <View className="flex-1">
+            <Text className="text-[14.5px] font-semibold text-ink">Your money stays yours</Text>
+            <Text className="text-[12.5px] text-graphite">The guarantees that protect your commission & cashback.</Text>
+          </View>
+          <ChevronRight size={18} color={colors.graphiteLight} />
+        </Press>
 
         {/* Highlights carousel */}
         <Text className="mb-2 text-[15px] font-semibold text-ink">Highlights</Text>

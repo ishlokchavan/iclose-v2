@@ -3,10 +3,9 @@ import { View, Text, Pressable, ScrollView, Alert, ActivityIndicator } from 'rea
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Check, ShoppingBag, Briefcase, MessageCircle, Phone, Send } from 'lucide-react-native';
+import { ShoppingBag, Briefcase, MessageCircle, Phone, Send } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { updateMyProfile, type UserRole, type ContactChannel } from '@/lib/deals';
-import { VISIBLE_ROLES } from '@/data/benefits';
 import { GlassBg } from '@/components/Glass';
 import { Wordmark } from '@/components/DealUI';
 import { PhoneField } from '@/components/PhoneField';
@@ -38,10 +37,12 @@ export default function Onboarding() {
     else if (profile?.onboarded) router.replace('/home');
   }, [session, profile, isAdmin]);
 
-  // Pre-select the role the user picked pre-login in the intro.
+  // Role is chosen once, pre-login (intro). Carry it through here.
   useEffect(() => {
     AsyncStorage.getItem('intent_role').then((r) => { if (r === 'buyer' || r === 'broker' || r === 'seller') setRole(r as UserRole); });
   }, []);
+
+  const RoleIcon = ROLE_UI[role].icon;
 
   async function finish() {
     if (phone.replace(/[^0-9]/g, '').length < 8) return Alert.alert('Add your phone', 'We need a phone number so our team can reach you.');
@@ -63,27 +64,19 @@ export default function Onboarding() {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingTop: insets.top + 24, paddingHorizontal: 20, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
         <View className="mb-1 items-center"><Wordmark size={26} /></View>
         <Text className="mb-1 mt-3 text-center text-[24px] font-semibold text-ink">Let’s set you up</Text>
-        <Text className="mb-6 text-center text-[15px] text-graphite">A few quick details so we can help you.</Text>
+        <Text className="mb-6 text-center text-[15px] text-graphite">
+          {role === 'broker' ? 'A few details so our team can work your deals with you.' : 'A few details so our team can help you buy.'}
+        </Text>
 
-        {/* Role */}
-        <Text className="mb-2 text-[13px] font-semibold text-graphite">What brings you here?</Text>
-        <View className="gap-2.5">
-          {VISIBLE_ROLES.map((r) => {
-            const ui = ROLE_UI[r];
-            const Icon = ui.icon;
-            const active = role === r;
-            return (
-              <Pressable key={r} onPress={() => setRole(r)} className={`flex-row items-center gap-3 rounded-apple border p-4 ${active ? 'border-accent bg-accent/8' : 'border-hairline bg-surface'}`}>
-                <View className={`h-11 w-11 items-center justify-center rounded-full ${active ? 'bg-accent' : 'bg-mist'}`}><Icon size={22} color={active ? colors.onAccent : colors.graphite} /></View>
-                <View className="flex-1">
-                  <Text className={`text-[15.5px] font-semibold ${active ? 'text-accent' : 'text-ink'}`}>{ui.label}</Text>
-                  <Text className="text-[12.5px] text-graphite">{ui.sub}</Text>
-                </View>
-                <View className={`h-6 w-6 items-center justify-center rounded-full border ${active ? 'border-accent bg-accent' : 'border-hairline'}`}>{active ? <Check size={15} color={colors.onAccent} /> : null}</View>
-              </Pressable>
-            );
-          })}
-        </View>
+        {/* Role is chosen once, pre-login (intro). Shown here read-only for confirmation. */}
+        <Pressable onPress={() => router.replace('/intro')} className="mb-2 flex-row items-center gap-3 rounded-apple border border-hairline bg-surface p-4">
+          <View className="h-11 w-11 items-center justify-center rounded-full bg-accent"><RoleIcon size={22} color={colors.onAccent} /></View>
+          <View className="flex-1">
+            <Text className="text-[12px] font-medium text-graphite">You’re here to</Text>
+            <Text className="text-[15.5px] font-semibold text-ink">{ROLE_UI[role].label}</Text>
+          </View>
+          <Text className="text-[12.5px] font-medium text-accent">Change</Text>
+        </Pressable>
 
         {/* Phone */}
         <Text className="mb-2 mt-6 text-[13px] font-semibold text-graphite">Your phone number</Text>

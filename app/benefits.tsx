@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { X, Check, ShoppingBag, Briefcase } from 'lucide-react-native';
+import { X, Check, ShoppingBag, Briefcase, Shield, ChevronRight } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import { Wordmark } from '@/components/DealUI';
 import { Press, FadeIn } from '@/components/Press';
@@ -84,6 +84,15 @@ export default function Benefits() {
             {b.fine ? <Text className="mt-1 text-[11.5px] leading-snug text-graphite-light">{b.fine}</Text> : null}
           </View>
         </View>
+
+        <Press onPress={() => router.push('/trust')} className="mt-4 flex-row items-center gap-3 rounded-apple border border-accent/20 bg-accent/[0.06] p-4">
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-accent/12"><Shield size={20} color={colors.accent} /></View>
+          <View className="flex-1">
+            <Text className="text-[14.5px] font-semibold text-ink">Your money stays yours</Text>
+            <Text className="text-[12.5px] text-graphite">See how we protect your commission & cashback.</Text>
+          </View>
+          <ChevronRight size={18} color={colors.graphiteLight} />
+        </Press>
 
         <View className="mt-6 items-center rounded-apple bg-mist px-5 py-5">
           <Text className="text-center text-[15px] font-semibold text-ink">Ready to save?</Text>

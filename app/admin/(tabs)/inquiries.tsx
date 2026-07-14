@@ -80,13 +80,13 @@ export default function AdminInquiries() {
         <FilterControl period={period} onPeriod={setPeriod} sort={sort} onSort={setSort} />
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="max-h-[44px]" contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 6 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingVertical: 3 }}>
         {FILTERS.map((f) => (
           <Chip key={f.key} label={f.label} active={filter === f.key} onPress={() => setFilter(f.key)} />
         ))}
       </ScrollView>
 
-      <View className="flex-row justify-end px-4 pb-2 pt-1">
+      <View className="flex-row justify-end px-4 pb-1 pt-2">
         <Text className="text-[12.5px] text-graphite">{shown.length} {shown.length === 1 ? 'inquiry' : 'inquiries'}</Text>
       </View>
 

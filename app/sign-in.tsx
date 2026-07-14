@@ -8,7 +8,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Sparkles, HelpCircle, Eye, EyeOff } from 'lucide-react-native';
+import { Sparkles, HelpCircle, Eye, EyeOff, Shield } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Wordmark } from '@/components/DealUI';
@@ -112,9 +112,14 @@ export default function SignIn() {
         </Text>
         <Text className="mb-4 mt-1.5 text-[14.5px] text-graphite">Create your account to get started — it’s free.</Text>
 
-        <Pressable onPress={() => router.push('/benefits')} className="mb-5 flex-row items-center gap-2 self-start rounded-full border border-accent/25 bg-accent/8 px-3.5 py-2">
-          <Sparkles size={15} color={colors.accent} /><Text className="text-[13.5px] font-semibold text-accent">See what you get</Text>
-        </Pressable>
+        <View className="mb-5 flex-row flex-wrap gap-2">
+          <Pressable onPress={() => router.push('/benefits')} className="flex-row items-center gap-2 rounded-full border border-accent/25 bg-accent/8 px-3.5 py-2">
+            <Sparkles size={15} color={colors.accent} /><Text className="text-[13.5px] font-semibold text-accent">See what you get</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push('/trust')} className="flex-row items-center gap-2 rounded-full border border-hairline bg-surface px-3.5 py-2">
+            <Shield size={15} color={colors.accent} /><Text className="text-[13.5px] font-semibold text-ink">Why trust us</Text>
+          </Pressable>
+        </View>
 
         <View className="gap-3">
           {mode === 'signup' ? (

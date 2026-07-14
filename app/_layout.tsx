@@ -47,6 +47,7 @@ export default function RootLayout() {
             <Stack.Screen name="onboarding" />
             <Stack.Screen name="benefits" options={{ presentation: 'modal' }} />
             <Stack.Screen name="faq" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="trust" options={{ presentation: 'modal' }} />
             <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
             <Stack.Screen name="privacy" options={{ presentation: 'modal' }} />
             <Stack.Screen name="terms" options={{ presentation: 'modal' }} />
