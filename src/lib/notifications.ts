@@ -77,10 +77,18 @@ export async function registerPushToken(): Promise<void> {
       (Constants.expoConfig?.extra as { eas?: { projectId?: string } } | undefined)?.eas?.projectId ??
       Constants.easConfig?.projectId;
     const token = (await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined)).data;
-    if (token) await supabase.from('profiles').update({ push_token: token }).eq('id', auth.user.id);
+    // Claim, don't just set: this token belongs to THIS device, so first release
+    // it from any other account that signed in here before (fixes cross-account
+    // push misrouting when several users share one device).
+    if (token) await supabase.rpc('claim_push_token', { p_token: token });
   } catch {
     // non-fatal — notifications simply won't push
   }
+}
+
+/** Release this device's push token from the current user (call before sign-out). */
+export async function clearPushToken(): Promise<void> {
+  try { await supabase.rpc('clear_push_token'); } catch { /* non-fatal */ }
 }
 
 /** Live unread count for the header bell; returns [count, refresh]. */

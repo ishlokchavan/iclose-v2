@@ -19,18 +19,26 @@ const COUNTRIES = [
   { code: 'RU', flag: '🇷🇺', dial: '+7', name: 'Russia' },
 ];
 
+// Longest dial code first so +971 matches before +9-anything, +91 before +9, etc.
+const BY_DIAL_LEN = [...COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
+
 /** Phone input with a country-code picker (UAE default, with flags). Emits the
- *  full number (dial + local) via onChange. */
+ *  full number (dial + local) via onChange. The selected country is DERIVED from
+ *  the current value, so an already-saved number shows the right flag/code. */
 export function PhoneField({ value, onChange }: { value: string; onChange: (full: string) => void }) {
-  const [country, setCountry] = useState(COUNTRIES[0]);
   const [open, setOpen] = useState(false);
 
-  // Local part = value with the dial code stripped.
-  const local = useMemo(() => value.replace(country.dial, '').replace(/^\+/, '').trim(), [value, country]);
+  // Country = the one whose dial code prefixes the value (UAE fallback).
+  const country = useMemo(() => {
+    const v = value.replace(/[^\d+]/g, '');
+    return BY_DIAL_LEN.find((c) => v.startsWith(c.dial)) ?? COUNTRIES[0];
+  }, [value]);
+
+  // Local part = value with the matched dial code stripped.
+  const local = useMemo(() => value.replace(/[^\d+]/g, '').replace(country.dial, ''), [value, country]);
 
   const setLocal = (text: string) => onChange(`${country.dial} ${text.replace(/[^0-9]/g, '')}`.trim());
   const pick = (c: (typeof COUNTRIES)[number]) => {
-    setCountry(c);
     setOpen(false);
     onChange(`${c.dial} ${local}`.trim());
   };

@@ -1,7 +1,7 @@
 import { View, Text, ScrollView } from 'react-native';
 import { router, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { UserCog, HelpCircle, Settings, Mail, History, ChevronRight, type LucideIcon } from 'lucide-react-native';
+import { UserCog, HelpCircle, Settings, Mail, History, Megaphone, ChevronRight, type LucideIcon } from 'lucide-react-native';
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
 import { colors } from '@/theme/tokens';
@@ -11,6 +11,7 @@ import { colors } from '@/theme/tokens';
  * team, help content, global settings and the logs.
  */
 const SECTIONS: { label: string; sub: string; href: Href; Icon: LucideIcon }[] = [
+  { label: 'Send notification', sub: 'Broadcast to users, now or scheduled', href: '/admin/broadcast', Icon: Megaphone },
   { label: 'Account managers', sub: 'The team users can reach', href: '/admin/managers', Icon: UserCog },
   { label: 'FAQs', sub: 'Help content by audience', href: '/admin/faqs', Icon: HelpCircle },
   { label: 'Global settings', sub: 'Contact channels & support email', href: '/admin/settings', Icon: Settings },

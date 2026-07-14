@@ -14,6 +14,7 @@ export default function AdminLayout() {
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000000' }, animation: 'slide_from_right' }}>
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="broadcast" />
       <Stack.Screen name="managers" />
       <Stack.Screen name="faqs" />
       <Stack.Screen name="settings" />

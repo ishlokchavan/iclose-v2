@@ -33,7 +33,7 @@ const BROKER_STEPS: Step[] = [
 
 export default function Tutorial() {
   const insets = useSafeAreaInsets();
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
   const { width } = useWindowDimensions();
   const [page, setPage] = useState(0);
   const [role, setRole] = useState<'buyer' | 'broker'>(profile?.role === 'broker' ? 'broker' : 'buyer');
@@ -57,7 +57,14 @@ export default function Tutorial() {
 
   async function finish() {
     await AsyncStorage.setItem('seen_tutorial', '1');
-    router.replace('/sign-in');
+    // Opened from inside the app (replay "How iClose works") → go back to where
+    // we came from. Pre-auth first run → continue to sign-in.
+    if (session) {
+      if (router.canGoBack()) router.back();
+      else router.replace('/');
+    } else {
+      router.replace('/sign-in');
+    }
   }
 
   function next() {

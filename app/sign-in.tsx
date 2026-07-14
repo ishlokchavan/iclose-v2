@@ -7,11 +7,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Apple, Sparkles, HelpCircle } from 'lucide-react-native';
+import { Sparkles, HelpCircle, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Wordmark } from '@/components/DealUI';
 import { GoogleIcon } from '@/components/GoogleIcon';
+import { AppleIcon } from '@/components/AppleIcon';
 import { IMAGES } from '@/data/images';
 import { colors } from '@/theme/tokens';
 
@@ -25,6 +26,7 @@ export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPass, setShowPass] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
 
   useEffect(() => {
@@ -107,7 +109,12 @@ export default function SignIn() {
             <TextInput value={name} onChangeText={setName} placeholder="Full name" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface px-4 py-3.5 text-base text-ink" />
           ) : null}
           <TextInput value={email} onChangeText={setEmail} placeholder="Email" autoCapitalize="none" keyboardType="email-address" placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface px-4 py-3.5 text-base text-ink" />
-          <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry placeholderTextColor={colors.graphiteLight} className="rounded-2xl border border-hairline bg-surface px-4 py-3.5 text-base text-ink" />
+          <View className="flex-row items-center rounded-2xl border border-hairline bg-surface pr-2">
+            <TextInput value={password} onChangeText={setPassword} placeholder="Password" secureTextEntry={!showPass} placeholderTextColor={colors.graphiteLight} className="flex-1 px-4 py-3.5 text-base text-ink" />
+            <Pressable onPress={() => setShowPass((v) => !v)} hitSlop={8} className="h-9 w-9 items-center justify-center">
+              {showPass ? <EyeOff size={19} color={colors.graphiteLight} /> : <Eye size={19} color={colors.graphiteLight} />}
+            </Pressable>
+          </View>
         </View>
 
         {/* Uniform auth buttons */}
@@ -121,8 +128,8 @@ export default function SignIn() {
           </View>
 
           {appleAvailable ? (
-            <Pressable onPress={apple} className="h-[52px] flex-row items-center justify-center gap-2 rounded-full bg-black">
-              <Apple size={19} color="#fff" fill="#fff" /><Text className="text-[15.5px] font-semibold text-white">Continue with Apple</Text>
+            <Pressable onPress={apple} className="h-[52px] flex-row items-center justify-center gap-2 rounded-full bg-black" style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' }}>
+              <AppleIcon size={18} /><Text className="text-[15.5px] font-semibold text-white">Continue with Apple</Text>
             </Pressable>
           ) : null}
           <Pressable onPress={google} className="h-[52px] flex-row items-center justify-center gap-2.5 rounded-full bg-white">

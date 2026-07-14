@@ -220,6 +220,51 @@ export async function adminListEmails(limit = 100): Promise<EmailLogRow[]> {
   return (data as EmailLogRow[]) ?? [];
 }
 
+// ---- Broadcasts (custom in-app / push notifications) --------
+export type BroadcastAudience = 'all' | 'buyer' | 'broker';
+export interface BroadcastRow {
+  id: string;
+  title: string;
+  body: string | null;
+  audience: BroadcastAudience;
+  send_push: boolean;
+  repeat_every_minutes: number | null;
+  next_run_at: string | null;
+  last_sent_at: string | null;
+  sent_count: number;
+  status: 'scheduled' | 'sent' | 'recurring' | 'cancelled';
+  created_at: string;
+}
+
+export async function adminListBroadcasts(limit = 50): Promise<BroadcastRow[]> {
+  const { data } = await supabase.from('broadcasts').select('*').order('created_at', { ascending: false }).limit(limit);
+  return (data as BroadcastRow[]) ?? [];
+}
+
+/** Send now (scheduled_at null) or schedule; repeat_every_minutes null = one-off. */
+export async function adminCreateBroadcast(input: {
+  title: string; body?: string | null; audience: BroadcastAudience; send_push: boolean;
+  scheduled_at?: string | null; repeat_every_minutes?: number | null;
+}): Promise<void> {
+  const { error } = await supabase.rpc('admin_create_broadcast', {
+    p_title: input.title,
+    p_body: input.body ?? null,
+    p_audience: input.audience,
+    p_send_push: input.send_push,
+    p_scheduled_at: input.scheduled_at ?? null,
+    p_repeat_every_minutes: input.repeat_every_minutes ?? null,
+  });
+  if (error) throw new Error(error.message);
+  const when = input.scheduled_at ? 'Scheduled' : 'Sent';
+  await writeAudit('create', 'broadcast', null, `${when} broadcast to ${input.audience}`);
+}
+
+export async function adminCancelBroadcast(id: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_cancel_broadcast', { p_id: id });
+  if (error) throw new Error(error.message);
+  await writeAudit('update', 'broadcast', id, 'Cancelled broadcast');
+}
+
 // ---- Dashboard stats ----------------------------------------
 export interface AdminStats {
   users: number;

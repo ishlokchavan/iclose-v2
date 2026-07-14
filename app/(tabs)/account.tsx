@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { updateMyProfile, ROLE_LABEL } from '@/lib/deals';
 import { uploadProfileImage, signedUrl } from '@/lib/profile-uploads';
+import { clearPushToken } from '@/lib/notifications';
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
 import { colors } from '@/theme/tokens';
@@ -115,7 +116,7 @@ export default function Account() {
 
         {/* Account actions */}
         <View className="gap-3">
-          <Press onPress={async () => { await supabase.auth.signOut(); router.replace('/sign-in'); }} className="h-[50px] flex-row items-center justify-center gap-2 rounded-full border border-hairline bg-surface">
+          <Press onPress={async () => { await clearPushToken(); await supabase.auth.signOut(); router.replace('/sign-in'); }} className="h-[50px] flex-row items-center justify-center gap-2 rounded-full border border-hairline bg-surface">
             <LogOut size={18} color={colors.ink} /><Text className="text-[15px] font-semibold text-ink">Sign out</Text>
           </Press>
           <Press onPress={confirmDelete} className="h-[50px] flex-row items-center justify-center gap-2 rounded-full bg-surface" style={{ borderWidth: 1, borderColor: 'rgba(255,69,58,0.4)' }}>
