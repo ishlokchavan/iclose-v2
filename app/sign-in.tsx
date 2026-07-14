@@ -6,6 +6,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { Sparkles, HelpCircle, Eye, EyeOff } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
@@ -28,6 +29,11 @@ export default function SignIn() {
   const [busy, setBusy] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
+  const [intentRole, setIntentRole] = useState<'buyer' | 'broker' | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem('intent_role').then((r) => { if (r === 'buyer' || r === 'broker') setIntentRole(r); }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     // Route through the index gate so admins land in the admin console.
@@ -97,7 +103,13 @@ export default function SignIn() {
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: insets.bottom + 24 }} keyboardShouldPersistTaps="handled">
-        <Text className="-mt-2 text-[27px] font-bold leading-tight tracking-tight text-ink">Never pay commission to buy, sell or close.</Text>
+        <Text className="-mt-2 text-[27px] font-bold leading-tight tracking-tight text-ink">
+          {intentRole === 'broker'
+            ? 'Never split your commission — keep up to 100%.'
+            : intentRole === 'buyer'
+            ? 'Never pay commission to buy real estate in the UAE.'
+            : 'Never pay commission to buy, sell or close.'}
+        </Text>
         <Text className="mb-4 mt-1.5 text-[14.5px] text-graphite">Create your account to get started — it’s free.</Text>
 
         <Pressable onPress={() => router.push('/benefits')} className="mb-5 flex-row items-center gap-2 self-start rounded-full border border-accent/25 bg-accent/8 px-3.5 py-2">

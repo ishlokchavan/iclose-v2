@@ -10,13 +10,15 @@ import { colors } from '@/theme/tokens';
  * back button, dark inputs, lime chips, loading + empty states.
  */
 
-export function AdminHeader({ title, insetTop, right }: { title: string; insetTop: number; right?: React.ReactNode }) {
+export function AdminHeader({ title, insetTop, right, back = true }: { title: string; insetTop: number; right?: React.ReactNode; back?: boolean }) {
   return (
     <View style={{ paddingTop: insetTop + 8 }} className="flex-row items-center gap-2 px-4 pb-2">
-      <Press onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-surface2">
-        <ChevronLeft size={22} color={colors.ink} />
-      </Press>
-      <Text className="flex-1 text-[17px] font-semibold text-ink" numberOfLines={1}>{title}</Text>
+      {back ? (
+        <Press onPress={() => router.back()} className="h-10 w-10 items-center justify-center rounded-full bg-surface2">
+          <ChevronLeft size={22} color={colors.ink} />
+        </Press>
+      ) : null}
+      <Text className="flex-1 text-[22px] font-bold text-ink" numberOfLines={1}>{title}</Text>
       {right}
     </View>
   );

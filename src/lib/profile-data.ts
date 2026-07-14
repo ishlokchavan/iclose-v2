@@ -38,12 +38,18 @@ export async function addBankAccount(input: { bank_name?: string | null; account
     iban: input.iban,
     is_primary: input.is_primary ?? (count ?? 0) === 0, // first account is primary
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === '23505') throw new Error('This IBAN is already saved to your account.');
+    throw new Error(error.message);
+  }
 }
 
 export async function updateBankAccount(id: string, patch: Partial<Pick<BankAccount, 'bank_name' | 'account_name' | 'iban' | 'is_primary'>>): Promise<void> {
   const { error } = await supabase.from('bank_accounts').update(patch).eq('id', id);
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === '23505') throw new Error('This IBAN is already saved to your account.');
+    throw new Error(error.message);
+  }
 }
 
 export async function setPrimaryBank(id: string): Promise<void> {

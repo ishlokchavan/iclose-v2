@@ -1,7 +1,8 @@
 import '../global.css';
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
@@ -19,6 +20,16 @@ export default function RootLayout() {
     const t = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 250);
     return () => clearTimeout(t);
   }, [fontsLoaded]);
+
+  // Tapping a push should open the notification, not just a blank app. Route to
+  // the notifications screen (which shows the title + message) on tap, both when
+  // the app is running and when it was launched cold from a notification.
+  useEffect(() => {
+    const openInbox = () => setTimeout(() => { try { router.push('/notifications'); } catch { /* router not ready */ } }, 400);
+    const sub = Notifications.addNotificationResponseReceivedListener(openInbox);
+    Notifications.getLastNotificationResponseAsync().then((r) => { if (r) openInbox(); }).catch(() => {});
+    return () => sub.remove();
+  }, []);
 
   if (!fontsLoaded) return null;
 

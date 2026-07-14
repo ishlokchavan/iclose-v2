@@ -185,7 +185,7 @@ export default function AdminUsers() {
   return (
     <View className="flex-1">
       <GlassBg />
-      <AdminHeader title="Users" insetTop={insets.top} />
+      <AdminHeader title="Users" insetTop={insets.top} back={false} />
 
       <View className="flex-row items-center gap-2 px-4 pb-2">
         <View className="flex-1 flex-row items-center gap-2 rounded-2xl border border-hairline bg-surface2 px-3.5">

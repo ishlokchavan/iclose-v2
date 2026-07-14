@@ -45,16 +45,22 @@ export function useAppSettings(): AppSettings {
   return s;
 }
 
-/** Link helpers from the current settings. */
+/** Friendly opener used when a screen doesn't supply its own message. */
+export const DEFAULT_CHAT_GREETING = "Hi iClose 👋 I'd like some help with buying or closing property in the UAE.";
+
+/** Link helpers from the current settings. Both WhatsApp and Telegram open the
+ *  chat pre-filled with a friendly greeting (or a screen-supplied message). */
 export function whatsappLink(s: AppSettings, text?: string): string {
   const base = `https://wa.me/${s.whatsapp_number.replace(/[^\d]/g, '')}`;
-  return text ? `${base}?text=${encodeURIComponent(text)}` : base;
+  return `${base}?text=${encodeURIComponent(text ?? DEFAULT_CHAT_GREETING)}`;
 }
 export function telLink(s: AppSettings): string {
   return `tel:${s.call_number}`;
 }
-export function telegramLink(s: AppSettings): string | null {
-  return s.telegram_username ? `https://t.me/${s.telegram_username.replace(/^@/, '')}` : null;
+export function telegramLink(s: AppSettings, text?: string): string | null {
+  if (!s.telegram_username) return null;
+  const base = `https://t.me/${s.telegram_username.replace(/^@/, '')}`;
+  return `${base}?text=${encodeURIComponent(text ?? DEFAULT_CHAT_GREETING)}`;
 }
 
 export async function adminUpdateSettings(patch: Partial<AppSettings>): Promise<void> {

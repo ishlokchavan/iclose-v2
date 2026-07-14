@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, ScrollView, Alert, ActivityIndicator,
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { X, Building2, Store, KeyRound, HardHat, Home, Hotel, Warehouse, Wallet, TrendingUp, Info } from 'lucide-react-native';
+import { X, Building2, Store, KeyRound, HardHat, Home, Hotel, Warehouse, Wallet, TrendingUp, Info, MessageCircle } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import {
   submitInquiry, brokerPocket, buyerBenefit, PROPERTY_TYPES, ROLE_LABEL, COMMISSION_RATE,
@@ -92,7 +92,7 @@ export default function NewInquiryScreen() {
         <Press onPress={() => router.back()} className="h-9 w-9 items-center justify-center rounded-full bg-surface2"><X size={20} color={colors.ink} /></Press>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 80 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View className="gap-4">
           <View>
             <Label>Property status</Label>
@@ -154,8 +154,15 @@ export default function NewInquiryScreen() {
           <Input label="Notes" value={note} onChangeText={setNote} placeholder="Anything we should know" multiline />
         </View>
 
-        <Press disabled={busy} onPress={submit} className="mt-6 h-[52px] items-center justify-center rounded-full bg-accent">
-          {busy ? <ActivityIndicator color={colors.onAccent} /> : <Text className="text-[16px] font-semibold" style={{ color: colors.onAccent }}>Submit & send on WhatsApp</Text>}
+        <Press disabled={busy} onPress={submit} className="mt-6 h-[54px] flex-row items-center justify-center gap-2 rounded-full bg-accent">
+          {busy ? (
+            <ActivityIndicator color={colors.onAccent} />
+          ) : (
+            <>
+              <MessageCircle size={19} color={colors.onAccent} />
+              <Text className="text-[16px] font-semibold" style={{ color: colors.onAccent }}>Submit & send on WhatsApp</Text>
+            </>
+          )}
         </Press>
         <SecureNote text="Your inquiry is private — only our team sees it." />
         <Text className="mt-2 px-2 text-center text-[12px] text-graphite-light">Saved to your inquiries and shared with our team — with your reference numbers.</Text>
