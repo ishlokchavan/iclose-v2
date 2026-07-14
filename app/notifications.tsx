@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, RefreshControl, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
+import { View, Text, ScrollView, RefreshControl, ActivityIndicator, Modal } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, Bell, ClipboardList, TrendingUp, BadgePercent, CheckCheck } from 'lucide-react-native';
 import { GlassBg } from '@/components/Glass';
@@ -8,7 +8,7 @@ import { Press, FadeIn } from '@/components/Press';
 import { DayHeader } from '@/components/ListKit';
 import { groupByDay } from '@/lib/dates';
 import { getNotifications, markAllRead, markRead, type AppNotification } from '@/lib/notifications';
-import { formatTime } from '@/lib/format';
+import { formatDate, formatTime } from '@/lib/format';
 import { colors } from '@/theme/tokens';
 
 const ICON: Record<string, typeof Bell> = {
@@ -24,6 +24,11 @@ export default function Notifications() {
   const [items, setItems] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [sheet, setSheet] = useState<{ title: string; body: string; time?: string } | null>(null);
+
+  // Opened from a tapped system notification → show its full title + message.
+  const params = useLocalSearchParams<{ t?: string; b?: string }>();
+  useEffect(() => { if (params.t) setSheet({ title: String(params.t), body: params.b ? String(params.b) : '' }); }, [params.t, params.b]);
 
   const load = useCallback(async () => {
     setItems(await getNotifications(80));
@@ -37,6 +42,7 @@ export default function Notifications() {
   async function open(n: AppNotification) {
     if (!n.read) { markRead(n.id).catch(() => {}); setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, read: true } : x))); }
     if (n.deal_id) router.push(`/deal/${n.deal_id}`);
+    else setSheet({ title: n.title, body: n.body ?? '', time: n.created_at });
   }
 
   async function clearAll() {
@@ -110,6 +116,28 @@ export default function Notifications() {
           )}
         </ScrollView>
       )}
+
+      {/* Full notification detail (broadcasts + system taps) */}
+      <Modal visible={!!sheet} transparent animationType="slide" onRequestClose={() => setSheet(null)}>
+        <Press onPress={() => setSheet(null)} className="flex-1 justify-end bg-black/50">
+          <Press onPress={() => {}} className="rounded-t-[28px] border-t border-hairline bg-surface px-5 pt-3" style={{ paddingBottom: insets.bottom + 24 }}>
+            <View className="mb-2 items-center"><View className="h-1 w-10 rounded-full bg-hairline" /></View>
+            <View className="mb-3 flex-row items-start gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-accent/12"><Bell size={20} color={colors.accent} /></View>
+              <View className="flex-1">
+                <Text className="text-[17px] font-semibold text-ink">{sheet?.title}</Text>
+                {sheet?.time ? <Text className="mt-0.5 text-[12px] text-graphite-light">{formatDate(sheet.time)} · {formatTime(sheet.time)}</Text> : null}
+              </View>
+              <Press onPress={() => setSheet(null)} className="h-9 w-9 items-center justify-center rounded-full bg-surface2"><X size={18} color={colors.ink} /></Press>
+            </View>
+            {sheet?.body ? (
+              <Text className="text-[15px] leading-relaxed text-ink800">{sheet.body}</Text>
+            ) : (
+              <Text className="text-[14px] text-graphite">No additional details.</Text>
+            )}
+          </Press>
+        </Press>
+      </Modal>
     </View>
   );
 }

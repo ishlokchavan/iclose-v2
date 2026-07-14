@@ -40,7 +40,7 @@ export default function DealDetail() {
   const rate = deal ? deal.commission_pct ?? (deal.deal_type ? COMMISSION_RATE[deal.deal_type] : COMMISSION_RATE.secondary) : 0;
   const est = deal ? estimateCommission(deal.deal_type, base) : null;
   // Buyer saving ≈ commission they'd otherwise pay a brokerage, minus our flat fee.
-  const buyerEst = deal && base ? { net: Math.max(0, marketCommission(settings, base) - settings.fee_flat_aed) } : null;
+  const buyerEst = deal && base ? { net: Math.max(0, marketCommission(settings, base) - settings.buyer_fee_aed) } : null;
   const commissionAmt = deal?.commission_amount_aed ?? (isBuyer ? buyerEst?.net ?? null : est?.amount ?? null);
   const isEstimate = deal?.commission_amount_aed == null;
 

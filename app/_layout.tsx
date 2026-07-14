@@ -25,9 +25,16 @@ export default function RootLayout() {
   // the notifications screen (which shows the title + message) on tap, both when
   // the app is running and when it was launched cold from a notification.
   useEffect(() => {
-    const openInbox = () => setTimeout(() => { try { router.push('/notifications'); } catch { /* router not ready */ } }, 400);
-    const sub = Notifications.addNotificationResponseReceivedListener(openInbox);
-    Notifications.getLastNotificationResponseAsync().then((r) => { if (r) openInbox(); }).catch(() => {});
+    const openInbox = (resp?: Notifications.NotificationResponse | null) => {
+      const c = resp?.notification?.request?.content;
+      setTimeout(() => {
+        try {
+          router.push(c?.title ? { pathname: '/notifications', params: { t: String(c.title), b: c.body ? String(c.body) : '' } } : '/notifications');
+        } catch { /* router not ready */ }
+      }, 400);
+    };
+    const sub = Notifications.addNotificationResponseReceivedListener((r) => openInbox(r));
+    Notifications.getLastNotificationResponseAsync().then((r) => { if (r) openInbox(r); }).catch(() => {});
     return () => sub.remove();
   }, []);
 

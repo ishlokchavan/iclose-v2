@@ -63,14 +63,17 @@ export function PhoneField({ value, onChange }: { value: string; onChange: (full
     return COUNTRIES.filter((c) => c.name.toLowerCase().includes(q) || c.dial.includes(q));
   }, [cq]);
 
-  // Country = the one whose dial code prefixes the value (UAE fallback).
-  const country = useMemo(() => {
+  // Normalize to a leading "+" so numbers stored without one still detect.
+  const normalized = useMemo(() => {
     const v = value.replace(/[^\d+]/g, '');
-    return BY_DIAL_LEN.find((c) => v.startsWith(c.dial)) ?? COUNTRIES[0];
+    return v.startsWith('+') ? v : v ? `+${v}` : '';
   }, [value]);
 
+  // Country = the one whose dial code prefixes the value (UAE fallback).
+  const country = useMemo(() => BY_DIAL_LEN.find((c) => normalized.startsWith(c.dial)) ?? COUNTRIES[0], [normalized]);
+
   // Local part = value with the matched dial code stripped.
-  const local = useMemo(() => value.replace(/[^\d+]/g, '').replace(country.dial, ''), [value, country]);
+  const local = useMemo(() => normalized.slice(country.dial.length), [normalized, country]);
 
   const setLocal = (text: string) => onChange(`${country.dial} ${text.replace(/[^0-9]/g, '')}`.trim());
   const pick = (c: (typeof COUNTRIES)[number]) => {

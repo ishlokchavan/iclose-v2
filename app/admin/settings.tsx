@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { useAppSettings, adminUpdateSettings, type AppSettings } from '@/lib/settings';
 import { writeAudit } from '@/lib/admin';
 import { GlassBg } from '@/components/Glass';
+import { PhoneField } from '@/components/PhoneField';
 import { colors } from '@/theme/tokens';
 import { AdminHeader, Field, PrimaryButton } from './_ui';
 import { SecureNote } from '@/components/ListKit';
@@ -53,11 +54,14 @@ export default function AdminSettings() {
         call_number: form.call_number.trim(),
         telegram_username: form.telegram_username?.trim() || null,
         support_email: form.support_email.trim(),
-        fee_flat_aed: form.fee_flat_aed,
+        buyer_fee_aed: form.buyer_fee_aed,
+        broker_fee_aed: form.broker_fee_aed,
         conveyance_fee_aed: form.conveyance_fee_aed,
         vip_trustee_fee_aed: form.vip_trustee_fee_aed,
         standard_trustee_aed: form.standard_trustee_aed,
         market_commission_pct: form.market_commission_pct,
+        broker_split_pct: form.broker_split_pct,
+        offplan_cashback_pct: form.offplan_cashback_pct,
       });
       await writeAudit('update', 'settings', null, 'Updated global settings & pricing');
       setSaved(true);
@@ -85,22 +89,36 @@ export default function AdminSettings() {
         </Text>
 
         <View className="gap-3 rounded-apple border border-hairline bg-surface p-4">
-          <Field label="WhatsApp number" value={form.whatsapp_number} onChangeText={(t) => { setSaved(false); setForm({ ...form, whatsapp_number: t }); }} placeholder="9715…" keyboardType="phone-pad" />
-          <Field label="Call number" value={form.call_number} onChangeText={(t) => { setSaved(false); setForm({ ...form, call_number: t }); }} placeholder="+9715…" keyboardType="phone-pad" />
+          <View>
+            <Text className="mb-1.5 text-[13px] font-medium text-graphite">WhatsApp number</Text>
+            <PhoneField value={form.whatsapp_number} onChange={(t) => { setSaved(false); setForm({ ...form, whatsapp_number: t }); }} />
+          </View>
+          <View>
+            <Text className="mb-1.5 text-[13px] font-medium text-graphite">Call number</Text>
+            <PhoneField value={form.call_number} onChange={(t) => { setSaved(false); setForm({ ...form, call_number: t }); }} />
+          </View>
           <Field label="Telegram username" value={form.telegram_username ?? ''} onChangeText={(t) => { setSaved(false); setForm({ ...form, telegram_username: t }); }} placeholder="@iclose" autoCapitalize="none" />
           <Field label="Support email" value={form.support_email} onChangeText={(t) => { setSaved(false); setForm({ ...form, support_email: t }); }} placeholder="hello@iclose.ae" autoCapitalize="none" keyboardType="email-address" />
         </View>
 
-        {/* Pricing */}
-        <Text className="mb-2 mt-6 text-[15px] font-semibold text-ink">Pricing</Text>
+        {/* Pricing — Buyers */}
+        <Text className="mb-2 mt-6 text-[15px] font-semibold text-ink">Pricing · Buyers</Text>
         <Text className="mb-3 text-[13px] text-graphite">
-          The flat per-deal fee applies to buyers and brokers, off-plan and secondary. Conveyance and VIP trustee apply to buyer secondary deals only. Changes appear instantly across the app.
+          Conveyance and VIP trustee apply to buyer secondary deals only. Set any fee to 0 to hide it entirely. Changes apply instantly across the app.
         </Text>
         <View className="gap-3 rounded-apple border border-hairline bg-surface p-4">
-          <NumField label="Flat service fee (AED, per deal)" value={form.fee_flat_aed} onChange={(n) => { setSaved(false); setForm({ ...form, fee_flat_aed: n }); }} />
-          <NumField label="Conveyance fee (AED — buyer secondary)" value={form.conveyance_fee_aed} onChange={(n) => { setSaved(false); setForm({ ...form, conveyance_fee_aed: n }); }} />
-          <NumField label="VIP trustee fee (AED — buyer secondary)" value={form.vip_trustee_fee_aed} onChange={(n) => { setSaved(false); setForm({ ...form, vip_trustee_fee_aed: n }); }} />
-          <NumField label="Standard trustee fee (AED — for comparison)" value={form.standard_trustee_aed} onChange={(n) => { setSaved(false); setForm({ ...form, standard_trustee_aed: n }); }} />
+          <NumField label="Buyer service fee (AED, per deal)" value={form.buyer_fee_aed} onChange={(n) => { setSaved(false); setForm({ ...form, buyer_fee_aed: n }); }} />
+          <NumField label="Conveyance fee (AED — secondary only, 0 = hide)" value={form.conveyance_fee_aed} onChange={(n) => { setSaved(false); setForm({ ...form, conveyance_fee_aed: n }); }} />
+          <NumField label="VIP trustee fee (AED — secondary only, 0 = hide)" value={form.vip_trustee_fee_aed} onChange={(n) => { setSaved(false); setForm({ ...form, vip_trustee_fee_aed: n }); }} />
+          <NumField label="Standard trustee fee (AED — for comparison, 0 = hide)" value={form.standard_trustee_aed} onChange={(n) => { setSaved(false); setForm({ ...form, standard_trustee_aed: n }); }} />
+          <NumField label="Off-plan buyer cashback (% of deal value)" value={form.offplan_cashback_pct} onChange={(n) => { setSaved(false); setForm({ ...form, offplan_cashback_pct: n }); }} decimal />
+        </View>
+
+        {/* Pricing — Brokers */}
+        <Text className="mb-2 mt-6 text-[15px] font-semibold text-ink">Pricing · Brokers</Text>
+        <View className="gap-3 rounded-apple border border-hairline bg-surface p-4">
+          <NumField label="Broker service fee (AED, per deal)" value={form.broker_fee_aed} onChange={(n) => { setSaved(false); setForm({ ...form, broker_fee_aed: n }); }} />
+          <NumField label="Typical commission split brokers give up (%)" value={form.broker_split_pct} onChange={(n) => { setSaved(false); setForm({ ...form, broker_split_pct: n }); }} decimal />
           <NumField label="Typical market commission (%)" value={form.market_commission_pct} onChange={(n) => { setSaved(false); setForm({ ...form, market_commission_pct: n }); }} decimal />
         </View>
 

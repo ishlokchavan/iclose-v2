@@ -55,7 +55,7 @@ export default function Benefits() {
             <Text className="flex-1 text-[20px] font-bold text-ink">{b.title}</Text>
           </View>
           <View className="flex-row items-end gap-1.5 px-5 pt-5">
-            <Text className="text-[40px] font-bold leading-none text-accent">{formatAed(settings.fee_flat_aed)}</Text>
+            <Text className="text-[40px] font-bold leading-none text-accent">{formatAed(b.role === 'broker' ? settings.broker_fee_aed : settings.buyer_fee_aed)}</Text>
             <Text className="mb-1.5 text-[13px] text-graphite">{b.feeLabel}</Text>
           </View>
           {b.role === 'buyer' ? (

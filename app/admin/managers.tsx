@@ -13,6 +13,7 @@ import {
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
 import { SecureNote } from '@/components/ListKit';
+import { PhoneField } from '@/components/PhoneField';
 import { colors } from '@/theme/tokens';
 import { AdminHeader, Loading, Empty, Field, PrimaryButton } from './_ui';
 
@@ -221,8 +222,14 @@ export default function AdminManagers() {
                   <Field label="Name" value={draft.name} onChangeText={(t) => setDraft({ ...draft, name: t })} placeholder="Full name" />
                   <Field label="Title" value={draft.title ?? ''} onChangeText={(t) => setDraft({ ...draft, title: t })} placeholder="e.g. Senior Advisor" />
                   <Field label="Photo URL (optional)" value={draft.photo_url ?? ''} onChangeText={(t) => setDraft({ ...draft, photo_url: t })} placeholder="https://…" autoCapitalize="none" />
-                  <Field label="WhatsApp number" value={draft.whatsapp_number ?? ''} onChangeText={(t) => setDraft({ ...draft, whatsapp_number: t })} placeholder="9715…" keyboardType="phone-pad" />
-                  <Field label="Call number" value={draft.call_number ?? ''} onChangeText={(t) => setDraft({ ...draft, call_number: t })} placeholder="+9715…" keyboardType="phone-pad" />
+                  <View>
+                    <Text className="mb-1.5 text-[13px] font-medium text-graphite">WhatsApp number</Text>
+                    <PhoneField value={draft.whatsapp_number ?? ''} onChange={(t) => setDraft({ ...draft, whatsapp_number: t })} />
+                  </View>
+                  <View>
+                    <Text className="mb-1.5 text-[13px] font-medium text-graphite">Call number</Text>
+                    <PhoneField value={draft.call_number ?? ''} onChange={(t) => setDraft({ ...draft, call_number: t })} />
+                  </View>
                   <Press
                     onPress={() => setDraft({ ...draft, active: !draft.active })}
                     className={`flex-row items-center justify-between rounded-2xl border px-4 py-3.5 ${draft.active ? 'border-accent bg-accent/10' : 'border-hairline bg-surface2'}`}

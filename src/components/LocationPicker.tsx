@@ -79,9 +79,10 @@ function ScrollableChips({ value, onChange }: { value: Emirate; onChange: (e: Em
     <FlatList
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={{ maxHeight: 52, flexGrow: 0 }}
       data={EMIRATES as unknown as Emirate[]}
       keyExtractor={(e) => e}
-      contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
+      contentContainerStyle={{ gap: 8, alignItems: 'center' }}
       renderItem={({ item }) => (
         <Pressable onPress={() => onChange(item)} className={`rounded-full px-3.5 py-2 ${value === item ? 'bg-accent' : 'border border-hairline bg-surface2'}`}>
           <Text className="text-[13px] font-semibold" style={{ color: value === item ? colors.onAccent : colors.ink }}>{item}</Text>

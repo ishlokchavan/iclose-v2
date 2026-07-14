@@ -10,7 +10,7 @@ import {
   type NewInquiry, type InquiryKind, type PropertyCategory, type DealType, type UserRole,
 } from '@/lib/deals';
 import type { Emirate } from '@/data/locations';
-import { useAppSettings, whatsappLink, feeLines, feeTotal, marketCommission, type AppSettings } from '@/lib/settings';
+import { useAppSettings, whatsappLink, feeLines, feeTotal, savingInfo, type AppSettings } from '@/lib/settings';
 import { GlassBg } from '@/components/Glass';
 import { Press } from '@/components/Press';
 import { SecureNote } from '@/components/ListKit';
@@ -180,11 +180,11 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
     </Pressable>
   );
 }
-/** Transparent, admin-set fee breakdown — no hidden commission. */
+/** Transparent, admin-set fee breakdown + an intuitive "what you gain" line. */
 function FeeCard({ settings, role, dealType, amount, kind }: { settings: AppSettings; role: UserRole; dealType: DealType; amount: number; kind: InquiryKind }) {
   const lines = feeLines(settings, role, dealType);
   const total = feeTotal(settings, role, dealType);
-  const saved = kind === 'buy' && dealType === 'secondary' && amount ? marketCommission(settings, amount) : 0;
+  const saving = savingInfo(settings, role, dealType, amount);
   return (
     <View className="overflow-hidden rounded-apple border border-hairline bg-surface">
       <LinearGradient colors={['rgba(158,255,0,0.12)', 'rgba(158,255,0,0.03)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16 }}>
@@ -203,14 +203,20 @@ function FeeCard({ settings, role, dealType, amount, kind }: { settings: AppSett
         {lines.length > 1 ? (
           <View className="mt-2.5 flex-row items-center justify-between border-t border-hairline pt-2.5">
             <Text className="text-[13.5px] font-semibold text-graphite">Total</Text>
-            <Text className="text-[17px] font-bold" style={{ color: colors.accent }}>{formatAed(total)}</Text>
+            <Text className="text-[17px] font-bold text-ink">{formatAed(total)}</Text>
           </View>
         ) : null}
-        {kind === 'close' ? (
+
+        {saving ? (
+          <View className="mt-2.5 flex-row items-center justify-between gap-3 rounded-2xl bg-accent/10 px-3 py-2.5">
+            <View className="flex-1">
+              <Text className="text-[13px] font-semibold text-ink">{saving.label}</Text>
+              <Text className="text-[11px] text-graphite">{saving.sub}</Text>
+            </View>
+            <Text className="text-[18px] font-bold" style={{ color: colors.accent }}>{formatAed(saving.amount)}</Text>
+          </View>
+        ) : kind === 'close' ? (
           <Text className="mt-2.5 text-[12px] leading-4 text-graphite">You keep 100% of your commission — we only ever charge the flat fee above.</Text>
-        ) : null}
-        {saved > 0 ? (
-          <Text className="mt-2.5 text-[12px] leading-4 text-graphite">Typical brokerages charge ~{formatAed(saved)} ({String(settings.market_commission_pct)}% commission) on this value.</Text>
         ) : null}
       </LinearGradient>
     </View>
