@@ -32,6 +32,7 @@ export default function RootLayout() {
             <Stack.Screen name="intro" />
             <Stack.Screen name="tutorial" />
             <Stack.Screen name="sign-in" />
+            <Stack.Screen name="auth-callback" />
             <Stack.Screen name="onboarding" />
             <Stack.Screen name="benefits" options={{ presentation: 'modal' }} />
             <Stack.Screen name="faq" options={{ presentation: 'modal' }} />

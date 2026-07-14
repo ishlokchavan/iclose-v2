@@ -7,9 +7,9 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 /**
  * Persistent Liquid-Glass tab bar for the admin console — same material and
- * geometry as the user-side GlassTabBar. Only the 5 main sections get items;
- * sub-screens (managers, faqs, settings, emails, audit, [id]) are still Tabs
- * screens so the bar stays visible while none of the items is highlighted.
+ * geometry as the user-side GlassTabBar. Renders the 5 main sections; detail and
+ * sub-screens (managers, faqs, settings, emails, audit, [id]) live in the parent
+ * admin Stack, pushed on top with their own back-stack.
  * Layout: Dashboard · Inquiries · Users · Manage · Profile.
  */
 export function AdminTabBar({ state, navigation }: BottomTabBarProps) {

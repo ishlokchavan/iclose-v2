@@ -3,10 +3,11 @@ import { View, Text, TextInput, ScrollView, RefreshControl, Modal, Alert, Activi
 import { router, useFocusEffect, Redirect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
-import { Search, X, Check, ShoppingBag, Briefcase, ChevronRight, type LucideIcon } from 'lucide-react-native';
+import { Search, X, Check, ShoppingBag, Briefcase, ChevronRight, Ban, Trash2, type LucideIcon } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import {
   adminListUsers, adminUpdateUser, adminGetUserDetail, adminListManagers,
+  adminSetUserActive, adminDeleteUser,
   type AdminUser, type AdminUserDetail, type ManagerRow,
 } from '@/lib/admin';
 import { ROLE_LABEL, CHANNEL_LABEL, type UserRole } from '@/lib/deals';
@@ -19,7 +20,7 @@ import { FilterControl, DayHeader, SecureNote } from '@/components/ListKit';
 import { inPeriod, groupByDay, sortByDate, type PeriodState, type SortDir } from '@/lib/dates';
 import { formatAed, formatDate } from '@/lib/format';
 import { colors } from '@/theme/tokens';
-import { AdminHeader, Loading, Empty, Chip, PrimaryButton } from './_ui';
+import { AdminHeader, Loading, Empty, Chip, PrimaryButton } from '../_ui';
 
 /** Editable roles — sellers are legacy; admins only assign buyer/broker. */
 const EDIT_ROLES: UserRole[] = ['buyer', 'broker'];
@@ -118,6 +119,63 @@ export default function AdminUsers() {
     router.push(`/admin/${dealId}`);
   }
 
+  async function setActive(active: boolean) {
+    if (!selected) return;
+    setBusy(true);
+    try {
+      await adminSetUserActive(selected.id, active);
+      setSelected(null);
+      await load();
+    } catch (e) {
+      Alert.alert('Could not update', (e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function confirmDeactivate() {
+    if (!selected) return;
+    const active = selected.active;
+    Alert.alert(
+      active ? 'Deactivate user?' : 'Reactivate user?',
+      active
+        ? 'They will be blocked from signing in until you reactivate them. Their data is kept.'
+        : 'They will be able to sign in again.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: active ? 'Deactivate' : 'Reactivate', style: active ? 'destructive' : 'default', onPress: () => setActive(!active) },
+      ],
+    );
+  }
+
+  function confirmDelete() {
+    if (!selected) return;
+    Alert.alert(
+      'Delete user?',
+      `Permanently delete ${selected.full_name || selected.email || 'this user'} and all their inquiries, documents and bank accounts. This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            if (!selected) return;
+            setBusy(true);
+            try {
+              await adminDeleteUser(selected.id);
+              setSelected(null);
+              await load();
+            } catch (e) {
+              Alert.alert('Could not delete', (e as Error).message);
+            } finally {
+              setBusy(false);
+            }
+          },
+        },
+      ],
+    );
+  }
+
   if (!authLoading && !isAdmin) return <Redirect href="/" />;
 
   const managerName = (id: string | null) => managers.find((m) => m.id === id)?.name ?? null;
@@ -190,7 +248,14 @@ export default function AdminUsers() {
                             </Text>
                           </View>
                           <View className="flex-1">
-                            <Text className="text-[15px] font-semibold text-ink" numberOfLines={1}>{u.full_name || 'Unnamed'}</Text>
+                            <View className="flex-row items-center gap-2">
+                              <Text className="shrink text-[15px] font-semibold text-ink" numberOfLines={1}>{u.full_name || 'Unnamed'}</Text>
+                              {!u.active ? (
+                                <View className="rounded-full bg-[#ff6b6b]/15 px-2 py-0.5">
+                                  <Text className="text-[10px] font-bold" style={{ color: '#ff6b6b' }}>Deactivated</Text>
+                                </View>
+                              ) : null}
+                            </View>
                             <Text className="text-[12.5px] text-graphite" numberOfLines={1}>{u.email || 'No email'}</Text>
                             <Text className="mt-0.5 text-[11.5px] text-graphite-light" numberOfLines={1}>
                               {ROLE_LABEL[u.role]} · {u.ref_code}{managerName(u.account_manager_id) ? ` · AM: ${managerName(u.account_manager_id)}` : ''}
@@ -348,6 +413,23 @@ export default function AdminUsers() {
                         {managers.map((m) => (
                           <ManagerOption key={m.id} label={`${m.name} · ${m.title}`} active={managerId === m.id} onPress={() => setManagerId(m.id)} />
                         ))}
+                      </View>
+                    </View>
+                  </FadeIn>
+
+                  {/* Danger zone — deactivate (bans sign-in) / delete */}
+                  <FadeIn delay={240}>
+                    <View className="mt-1">
+                      <Text className="mb-2 text-[13px] font-medium text-graphite">Account status</Text>
+                      <View className="gap-2">
+                        <Press onPress={confirmDeactivate} disabled={busy} className="flex-row items-center justify-center gap-2 rounded-2xl border border-hairline bg-surface2 py-3.5">
+                          {selected?.active ? <Ban size={17} color={colors.ink} /> : <Check size={17} color={colors.accent} />}
+                          <Text className="text-[14.5px] font-semibold text-ink">{selected?.active ? 'Deactivate user' : 'Reactivate user'}</Text>
+                        </Press>
+                        <Press onPress={confirmDelete} disabled={busy} className="flex-row items-center justify-center gap-2 rounded-2xl border py-3.5" style={{ borderColor: 'rgba(255,107,107,0.3)', backgroundColor: 'rgba(255,107,107,0.1)' }}>
+                          <Trash2 size={17} color="#ff6b6b" />
+                          <Text className="text-[14.5px] font-semibold" style={{ color: '#ff6b6b' }}>Delete user</Text>
+                        </Press>
                       </View>
                     </View>
                   </FadeIn>

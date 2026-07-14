@@ -1,30 +1,25 @@
-import { Tabs, Redirect } from 'expo-router';
-import { AdminTabBar } from '@/components/AdminTabBar';
+import { Stack, Redirect } from 'expo-router';
 import { useAuth } from '@/lib/auth';
 
 /**
- * Admin console navigator — a Tabs shell with the liquid-glass AdminTabBar.
- * Every admin route is a Tabs screen so the bar persists everywhere; only the
- * 5 main sections render items, the rest are reached via router.push.
+ * Admin console navigator. A Stack whose first screen is the (tabs) group (the 5
+ * main sections with the AdminTabBar); every detail / sub-page is a Stack screen
+ * pushed on top, so back always returns to where you came from (fixes the
+ * "back drops to dashboard" bug). Non-admins never reach any admin route.
  */
 export default function AdminLayout() {
   const { isAdmin, loading } = useAuth();
-  // Non-admins never see the console.
   if (!loading && !isAdmin) return <Redirect href="/" />;
 
   return (
-    <Tabs tabBar={(props) => <AdminTabBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: '#000000' } }}>
-      <Tabs.Screen name="index" options={{ title: 'Dashboard' }} />
-      <Tabs.Screen name="inquiries" options={{ title: 'Inquiries' }} />
-      <Tabs.Screen name="users" options={{ title: 'Users' }} />
-      <Tabs.Screen name="manage" options={{ title: 'Manage' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
-      <Tabs.Screen name="managers" options={{ title: 'Account managers' }} />
-      <Tabs.Screen name="faqs" options={{ title: 'FAQs' }} />
-      <Tabs.Screen name="settings" options={{ title: 'Global settings' }} />
-      <Tabs.Screen name="emails" options={{ title: 'Emails' }} />
-      <Tabs.Screen name="audit" options={{ title: 'Audit trail' }} />
-      <Tabs.Screen name="[id]" options={{ title: 'Deal' }} />
-    </Tabs>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000000' }, animation: 'slide_from_right' }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="managers" />
+      <Stack.Screen name="faqs" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="emails" />
+      <Stack.Screen name="audit" />
+      <Stack.Screen name="[id]" />
+    </Stack>
   );
 }

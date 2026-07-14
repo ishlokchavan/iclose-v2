@@ -45,14 +45,19 @@ export interface AdminUser {
   onboarded: boolean;
   ref_code: string;
   account_manager_id: string | null;
+  active: boolean;
+  provider: string | null;
+  email_confirmed: boolean;
   created_at: string;
 }
 
+/**
+ * Verified users only — the admin_users_list() RPC hides email/password signups
+ * that never confirmed their address; Google/Apple accounts are always included.
+ */
 export async function adminListUsers(): Promise<AdminUser[]> {
-  const { data } = await supabase
-    .from('profiles')
-    .select('id,role,full_name,email,phone,preferred_channel,onboarded,ref_code,account_manager_id,created_at')
-    .order('created_at', { ascending: false });
+  const { data, error } = await supabase.rpc('admin_users_list');
+  if (error) throw new Error(error.message);
   return (data as AdminUser[]) ?? [];
 }
 
@@ -60,6 +65,20 @@ export async function adminUpdateUser(id: string, patch: Partial<Pick<AdminUser,
   const { error } = await supabase.from('profiles').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
   await writeAudit('update', 'user', id, `Updated user ${Object.keys(patch).join(', ')}`, patch as Record<string, unknown>);
+}
+
+/** Deactivate (bans sign-in) or reactivate a user. */
+export async function adminSetUserActive(id: string, active: boolean): Promise<void> {
+  const { error } = await supabase.rpc('admin_set_user_active', { p_user: id, p_active: active });
+  if (error) throw new Error(error.message);
+  await writeAudit(active ? 'activate' : 'deactivate', 'user', id, `${active ? 'Reactivated' : 'Deactivated'} user`);
+}
+
+/** Permanently delete a user and all their data. Admins cannot be deleted. */
+export async function adminDeleteUser(id: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_delete_user', { p_user: id });
+  if (error) throw new Error(error.message);
+  await writeAudit('delete', 'user', id, 'Deleted user');
 }
 
 /** Full user detail for the admin user screen: complete profile + docs, banks, deals. */

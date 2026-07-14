@@ -12,7 +12,7 @@ import { FilterControl, DayHeader } from '@/components/ListKit';
 import { inPeriod, groupByDay, sortByDate, type PeriodState, type SortDir } from '@/lib/dates';
 import { formatAed, formatTime } from '@/lib/format';
 import { colors } from '@/theme/tokens';
-import { AdminHeader, Loading, Empty, Chip } from './_ui';
+import { AdminHeader, Loading, Empty, Chip } from '../_ui';
 
 type FilterKey = 'all' | DealStatus;
 const FILTERS: { key: FilterKey; label: string }[] = [

@@ -13,7 +13,7 @@ import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
 import { SecureNote } from '@/components/ListKit';
 import { colors } from '@/theme/tokens';
-import { Field, PrimaryButton } from './_ui';
+import { Field, PrimaryButton } from '../_ui';
 
 /** The admin's own profile: avatar, name, sign-out. Lives in its own tab. */
 export default function AdminProfile() {

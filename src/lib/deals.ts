@@ -142,7 +142,16 @@ export async function updateMyProfile(patch: Partial<Pick<Profile, 'role' | 'ful
   const { data: auth } = await supabase.auth.getUser();
   if (!auth.user) throw new Error('Not signed in');
   const { error } = await supabase.from('profiles').update(patch).eq('id', auth.user.id);
-  if (error) throw new Error(error.message);
+  if (error) {
+    // Surface the digit-normalized-phone / lowercased-email unique indexes as
+    // friendly messages instead of a raw Postgres constraint error.
+    if (error.code === '23505') {
+      if (/phone/i.test(error.message)) throw new Error('That phone number is already registered to another account.');
+      if (/email/i.test(error.message)) throw new Error('That email is already in use.');
+      throw new Error('That value is already in use by another account.');
+    }
+    throw new Error(error.message);
+  }
 }
 
 export async function checkIsAdmin(): Promise<boolean> {

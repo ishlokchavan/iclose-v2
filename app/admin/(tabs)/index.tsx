@@ -15,7 +15,7 @@ import { Tour, ADMIN_TOUR } from '@/components/Tour';
 import { PeriodFilter } from '@/components/ListKit';
 import { formatAedShort, formatDate, formatTime } from '@/lib/format';
 import { colors } from '@/theme/tokens';
-import { Loading, StatTile } from './_ui';
+import { Loading, StatTile } from '../_ui';
 
 const STATUS_ORDER: DealStatus[] = ['submitted', 'in_discussion', 'closed_won', 'closed_lost'];
 const BAR_COLOR: Record<DealStatus, string> = {
