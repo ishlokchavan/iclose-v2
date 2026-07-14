@@ -15,7 +15,7 @@ const config: ExpoConfig = {
   slug: 'iclose',
   owner: 'shlokchavan.personal',
   scheme: 'iclose',
-  version: '2.0.0',
+  version: '2.0.1',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'dark',
