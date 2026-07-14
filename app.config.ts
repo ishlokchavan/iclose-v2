@@ -52,6 +52,10 @@ const config: ExpoConfig = {
     ['expo-image-picker', { photosPermission: 'iClose needs access to your photos so you can upload your profile picture and verification documents.' }],
     ['expo-splash-screen', { backgroundColor: '#000000', image: './assets/splash.png', resizeMode: 'contain' }],
     ['expo-notifications', { color: '#9eff00', icon: './assets/notification-icon.png' }],
+    // SDK 54 ships React Native for iOS as a precompiled XCFramework. That
+    // prebuilt artifact intermittently fails on EAS ("React.xcframework/…: No
+    // such file or directory"), so build RN from source instead.
+    ['expo-build-properties', { ios: { buildReactNativeFromSource: true } }],
   ],
   experiments: { typedRoutes: true },
   extra: {
