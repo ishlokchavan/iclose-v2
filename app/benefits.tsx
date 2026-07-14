@@ -11,6 +11,8 @@ import { Wordmark } from '@/components/DealUI';
 import { Press, FadeIn } from '@/components/Press';
 import { ROLE_BENEFITS } from '@/data/benefits';
 import { IMAGES } from '@/data/images';
+import { useAppSettings } from '@/lib/settings';
+import { formatAed } from '@/lib/format';
 import { colors } from '@/theme/tokens';
 import type { UserRole } from '@/lib/deals';
 
@@ -19,6 +21,7 @@ const ROLE_ICON: Record<UserRole, typeof ShoppingBag> = { buyer: ShoppingBag, br
 export default function Benefits() {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
+  const settings = useAppSettings();
   const [role, setRole] = useState<UserRole | null>(profile?.role ?? null);
 
   // Pre-login: fall back to the role picked in the intro.
@@ -52,9 +55,23 @@ export default function Benefits() {
             <Text className="flex-1 text-[20px] font-bold text-ink">{b.title}</Text>
           </View>
           <View className="flex-row items-end gap-1.5 px-5 pt-5">
-            <Text className="text-[40px] font-bold leading-none text-accent">{b.fee}</Text>
+            <Text className="text-[40px] font-bold leading-none text-accent">{formatAed(settings.fee_flat_aed)}</Text>
             <Text className="mb-1.5 text-[13px] text-graphite">{b.feeLabel}</Text>
           </View>
+          {b.role === 'buyer' ? (
+            <View className="mx-5 mt-4 rounded-2xl border border-hairline bg-surface2 px-4 py-3">
+              <Text className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-graphite">Secondary transfers also include</Text>
+              <View className="flex-row items-center justify-between py-0.5">
+                <Text className="text-[13.5px] text-ink">Conveyance fee</Text>
+                <Text className="text-[13.5px] font-semibold text-ink">{formatAed(settings.conveyance_fee_aed)}</Text>
+              </View>
+              <View className="flex-row items-center justify-between py-0.5">
+                <Text className="text-[13.5px] text-ink">VIP Trustee fee</Text>
+                <Text className="text-[13.5px] font-semibold text-ink">{formatAed(settings.vip_trustee_fee_aed)}</Text>
+              </View>
+              <Text className="mt-1 text-[11px] text-graphite-light">Standard transaction costs — off-plan deals are just the flat fee.</Text>
+            </View>
+          ) : null}
           <View className="gap-3 px-5 pb-6 pt-5">
             {b.points.map((p, i) => (
               <FadeIn key={i} delay={i * 40}>

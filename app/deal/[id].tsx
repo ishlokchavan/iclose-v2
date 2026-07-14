@@ -4,7 +4,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, Trash2 } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
-import { getDeal, getDealEvents, withdrawDeal, estimateCommission, buyerBenefit, COMMISSION_RATE, type Deal, type DealEvent } from '@/lib/deals';
+import { getDeal, getDealEvents, withdrawDeal, estimateCommission, COMMISSION_RATE, type Deal, type DealEvent } from '@/lib/deals';
+import { useAppSettings, marketCommission } from '@/lib/settings';
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
 import { StatusBadge, CommissionBadge } from '@/components/DealUI';
@@ -33,11 +34,13 @@ export default function DealDetail() {
     ]);
   }
 
+  const settings = useAppSettings();
   const isBuyer = profile?.role === 'buyer';
   const base = deal ? deal.deal_value_aed ?? deal.budget_aed ?? null : null;
   const rate = deal ? deal.commission_pct ?? (deal.deal_type ? COMMISSION_RATE[deal.deal_type] : COMMISSION_RATE.secondary) : 0;
   const est = deal ? estimateCommission(deal.deal_type, base) : null;
-  const buyerEst = deal && base ? buyerBenefit(deal.deal_type ?? 'secondary', base) : null;
+  // Buyer saving ≈ commission they'd otherwise pay a brokerage, minus our flat fee.
+  const buyerEst = deal && base ? { net: Math.max(0, marketCommission(settings, base) - settings.fee_flat_aed) } : null;
   const commissionAmt = deal?.commission_amount_aed ?? (isBuyer ? buyerEst?.net ?? null : est?.amount ?? null);
   const isEstimate = deal?.commission_amount_aed == null;
 
@@ -73,7 +76,7 @@ export default function DealDetail() {
           <FadeIn delay={60}>
           <View className="mt-3 overflow-hidden rounded-apple border border-hairline bg-surface p-4">
             <View className="flex-row items-center justify-between">
-              <Text className="text-[13px] font-medium text-graphite">{isBuyer ? 'You save (net of AED 8,250 fee)' : 'Commission (net of AED 3,500 fee)'}</Text>
+              <Text className="text-[13px] font-medium text-graphite">{isBuyer ? 'Your estimated saving' : 'Your commission (you keep 100%)'}</Text>
               <CommissionBadge status={deal.commission_status} />
             </View>
             <Text className="mt-1 text-[28px] font-bold text-accent">{commissionAmt != null ? formatAed(commissionAmt) : 'To be confirmed'}</Text>

@@ -18,14 +18,14 @@ import { colors } from '@/theme/tokens';
 type Step = { icon: LucideIcon; title: string; body: string };
 
 const BUYER_STEPS: Step[] = [
-  { icon: Sparkles, title: ROLE_BENEFITS.buyer.headline, body: 'iClose replaces agent commission with one flat AED 8,250 conveyance fee. Here’s how it works.' },
+  { icon: Sparkles, title: ROLE_BENEFITS.buyer.headline, body: 'iClose replaces agent commission with one flat, all-inclusive fee per deal. Here’s how it works.' },
   { icon: PencilLine, title: 'Tell us what you want to buy', body: 'Area, budget, property type — share it in a minute and we take it from there.' },
-  { icon: MessagesSquare, title: 'We handle it for you', body: 'Our team works your purchase with you on WhatsApp or a call. 0% commission on secondary, up to 12% credit back on off-plan.' },
-  { icon: LineChart, title: 'Track everything in the app', body: 'Watch every inquiry move from submitted to closed, with the commission you’re saving always visible.' },
+  { icon: MessagesSquare, title: 'We handle it for you', body: 'Our team works your purchase with you on WhatsApp or a call — no agent commission, just a flat fee.' },
+  { icon: LineChart, title: 'Track everything in the app', body: 'Watch every inquiry move from submitted to closed, with what you pay always shown upfront.' },
 ];
 
 const BROKER_STEPS: Step[] = [
-  { icon: Sparkles, title: ROLE_BENEFITS.broker.headline, body: 'Close your deals through iClose and keep every dirham of commission for a flat AED 3,500 admin fee.' },
+  { icon: Sparkles, title: ROLE_BENEFITS.broker.headline, body: 'Close your deals through iClose and keep every dirham of commission — just one flat fee per deal.' },
   { icon: PencilLine, title: 'Submit your deal', body: 'Secondary or off-plan — send us the deal details in a minute.' },
   { icon: MessagesSquare, title: 'We process it with you', body: 'Our team runs the paperwork alongside you. You keep 100% of the commission, plus priority EOI booking.' },
   { icon: BadgeCheck, title: 'Track deals & payouts', body: 'Follow each deal from submitted to closed and watch your commission move from pending to paid.' },

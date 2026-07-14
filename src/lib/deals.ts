@@ -32,25 +32,12 @@ export interface Profile {
 
 export type DealType = 'offplan' | 'secondary';
 
-/** Commission model. Off-plan ≈ 5%, secondary/ready ≈ 2%. */
+/**
+ * Commission rates used only for INTERNAL admin commission tracking / estimates
+ * (off-plan ≈ 5%, secondary ≈ 2%). User-facing pricing is the flat, admin-set
+ * fee model in `@/lib/settings` (feeLines / marketCommission), not these.
+ */
 export const COMMISSION_RATE: Record<DealType, number> = { offplan: 5, secondary: 2 };
-/** iClose flat fees. */
-export const FEES = { broker: 3500, conveyancing: 8250 } as const;
-
-/** Broker take-home: 100% commission minus the AED 3,500 admin fee. */
-export function brokerPocket(dealType: DealType, amount: number): { pct: number; gross: number; fee: number; net: number } {
-  const pct = COMMISSION_RATE[dealType];
-  const gross = Math.round((amount * pct) / 100);
-  return { pct, gross, fee: FEES.broker, net: gross - FEES.broker };
-}
-
-/** Buyer benefit net of the AED 8,250 conveyancing fee. Secondary = commission
- *  saved (2%); off-plan = estimated credit back (5%). */
-export function buyerBenefit(dealType: DealType, amount: number): { label: string; pct: number; gross: number; fee: number; net: number } {
-  const pct = dealType === 'secondary' ? 2 : 5;
-  const gross = Math.round((amount * pct) / 100);
-  return { label: dealType === 'secondary' ? 'You save (net)' : 'Credit back (net)', pct, gross, fee: FEES.conveyancing, net: gross - FEES.conveyancing };
-}
 
 /** Estimate commission for an inquiry whose economics aren't set yet. */
 export function estimateCommission(dealType: DealType | null, amount: number | null): { pct: number; amount: number } | null {

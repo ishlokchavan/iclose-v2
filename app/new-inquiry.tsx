@@ -3,14 +3,14 @@ import { View, Text, TextInput, Pressable, ScrollView, Alert, ActivityIndicator,
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { X, Building2, Store, KeyRound, HardHat, Home, Hotel, Warehouse, Wallet, TrendingUp, Info, MessageCircle } from 'lucide-react-native';
+import { X, Building2, Store, KeyRound, HardHat, Home, Hotel, Warehouse, Receipt, MessageCircle } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
 import {
-  submitInquiry, brokerPocket, buyerBenefit, PROPERTY_TYPES, ROLE_LABEL, COMMISSION_RATE,
-  type NewInquiry, type InquiryKind, type PropertyCategory, type DealType,
+  submitInquiry, PROPERTY_TYPES, ROLE_LABEL,
+  type NewInquiry, type InquiryKind, type PropertyCategory, type DealType, type UserRole,
 } from '@/lib/deals';
 import type { Emirate } from '@/data/locations';
-import { useAppSettings, whatsappLink } from '@/lib/settings';
+import { useAppSettings, whatsappLink, feeLines, feeTotal, marketCommission, type AppSettings } from '@/lib/settings';
 import { GlassBg } from '@/components/Glass';
 import { Press } from '@/components/Press';
 import { SecureNote } from '@/components/ListKit';
@@ -81,9 +81,6 @@ export default function NewInquiryScreen() {
     try { await Linking.openURL(whatsappLink(settings, L.join('\n'))); } catch { /* saved regardless */ }
   }
 
-  const pocket = amt ? brokerPocket(dealType, amt) : null;
-  const benefit = amt ? buyerBenefit(dealType, amt) : null;
-
   return (
     <View className="flex-1">
       <GlassBg />
@@ -142,14 +139,8 @@ export default function NewInquiryScreen() {
             </>
           )}
 
-          {/* Live net calculator */}
-          {kind === 'close' && pocket ? (
-            <CalcCard icon={Wallet} label={`You keep (${pocket.pct}% ${dealType === 'offplan' ? 'off-plan' : 'secondary'})`} net={pocket.net} breakdown={`${formatAed(pocket.gross)} commission − ${formatAed(pocket.fee)} admin fee`} />
-          ) : null}
-          {kind === 'buy' && benefit ? (
-            <CalcCard icon={TrendingUp} label={benefit.label} net={benefit.net} breakdown={`${formatAed(benefit.gross)} ${dealType === 'secondary' ? 'commission avoided' : 'credit'} − ${formatAed(benefit.fee)} fee`} />
-          ) : null}
-          {(kind === 'close' && pocket) || (kind === 'buy' && benefit) ? <CalcDisclaimer dealType={dealType} /> : null}
+          {/* Transparent, admin-set pricing */}
+          <FeeCard settings={settings} role={role} dealType={dealType} amount={amt} kind={kind} />
 
           <Input label="Notes" value={note} onChangeText={setNote} placeholder="Anything we should know" multiline />
         </View>
@@ -189,26 +180,38 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
     </Pressable>
   );
 }
-/** Dynamic estimate disclaimer under the live calculator — follows the deal type. */
-function CalcDisclaimer({ dealType }: { dealType: DealType }) {
-  const pct = COMMISSION_RATE[dealType];
-  const label = dealType === 'offplan' ? 'off-plan' : 'secondary';
-  return (
-    <View className="-mt-1.5 flex-row items-start gap-1.5 px-2">
-      <Info size={12} color={colors.graphiteLight} style={{ marginTop: 2 }} />
-      <Text className="flex-1 text-[11.5px] leading-4 text-graphite-light">
-        Example estimate at {pct}% commission ({label}). Actual terms are confirmed by our team.
-      </Text>
-    </View>
-  );
-}
-function CalcCard({ icon: Icon, label, net, breakdown }: { icon: typeof Home; label: string; net: number; breakdown: string }) {
+/** Transparent, admin-set fee breakdown — no hidden commission. */
+function FeeCard({ settings, role, dealType, amount, kind }: { settings: AppSettings; role: UserRole; dealType: DealType; amount: number; kind: InquiryKind }) {
+  const lines = feeLines(settings, role, dealType);
+  const total = feeTotal(settings, role, dealType);
+  const saved = kind === 'buy' && dealType === 'secondary' && amount ? marketCommission(settings, amount) : 0;
   return (
     <View className="overflow-hidden rounded-apple border border-hairline bg-surface">
-      <LinearGradient colors={['rgba(158,255,0,0.14)', 'rgba(158,255,0,0.04)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16 }}>
-        <View className="flex-row items-center gap-2"><Icon size={16} color={colors.accent} /><Text className="text-[12.5px] font-medium text-graphite">{label}</Text></View>
-        <Text className="mt-1 text-[27px] font-bold" style={{ color: colors.accent }}>{formatAed(net)}</Text>
-        <Text className="mt-0.5 text-[12px] text-graphite">{breakdown}</Text>
+      <LinearGradient colors={['rgba(158,255,0,0.12)', 'rgba(158,255,0,0.03)']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16 }}>
+        <View className="mb-2.5 flex-row items-center gap-2"><Receipt size={16} color={colors.accent} /><Text className="text-[13px] font-semibold text-ink">What you’ll pay</Text></View>
+        <View className="gap-2">
+          {lines.map((l) => (
+            <View key={l.label} className="flex-row items-center justify-between gap-3">
+              <View className="flex-1">
+                <Text className="text-[13.5px] text-ink">{l.label}</Text>
+                {l.note ? <Text className="text-[11px] text-graphite-light">{l.note}</Text> : null}
+              </View>
+              <Text className="text-[14px] font-semibold text-ink">{formatAed(l.amount)}</Text>
+            </View>
+          ))}
+        </View>
+        {lines.length > 1 ? (
+          <View className="mt-2.5 flex-row items-center justify-between border-t border-hairline pt-2.5">
+            <Text className="text-[13.5px] font-semibold text-graphite">Total</Text>
+            <Text className="text-[17px] font-bold" style={{ color: colors.accent }}>{formatAed(total)}</Text>
+          </View>
+        ) : null}
+        {kind === 'close' ? (
+          <Text className="mt-2.5 text-[12px] leading-4 text-graphite">You keep 100% of your commission — we only ever charge the flat fee above.</Text>
+        ) : null}
+        {saved > 0 ? (
+          <Text className="mt-2.5 text-[12px] leading-4 text-graphite">Typical brokerages charge ~{formatAed(saved)} ({String(settings.market_commission_pct)}% commission) on this value.</Text>
+        ) : null}
       </LinearGradient>
     </View>
   );
