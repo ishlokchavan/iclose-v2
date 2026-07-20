@@ -4,7 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { History as HistoryIcon, Search, CheckCircle2, XCircle } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
-import { getMyDeals, computeStats, type Deal } from '@/lib/deals';
+import { getMyDeals, computeStats, dealCommission, type Deal } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
 import { FilterControl, DayHeader } from '@/components/ListKit';
@@ -13,7 +13,8 @@ import { formatAed, formatDate } from '@/lib/format';
 import { colors } from '@/theme/tokens';
 
 const MONTH = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-const amountOf = (d: Deal) => d.commission_amount_aed ?? d.deal_value_aed ?? 0;
+// The deal's commission (buyer saving / broker earning) — matches the dashboard.
+const amountOf = (d: Deal) => dealCommission(d);
 const DAY_MS = 86_400_000;
 const SHORT_PERIODS: Period[] = ['today', 'yesterday', '7d'];
 
@@ -78,7 +79,7 @@ export default function HistoryTab() {
           <FadeIn>
           <View className="mb-5 rounded-[22px] border border-hairline bg-surface p-5">
             <Text className="text-[13px] text-graphite">{isBuyer ? 'Commission saved' : 'Commission earned'}</Text>
-            <Text className="mt-1 text-[32px] font-bold text-accent">{formatAed(isBuyer ? stats.closedValue * 0.02 : stats.commissionEarned)}</Text>
+            <Text className="mt-1 text-[32px] font-bold text-accent">{formatAed(isBuyer ? stats.commissionSaved : stats.commissionEarned)}</Text>
             <View className="mt-3 flex-row gap-6">
               <View><Text className="text-[18px] font-bold text-ink">{stats.closedCount}</Text><Text className="text-[12px] text-graphite">Deals closed</Text></View>
               <View><Text className="text-[18px] font-bold text-ink">{formatAed(stats.closedValue)}</Text><Text className="text-[12px] text-graphite">Total value</Text></View>

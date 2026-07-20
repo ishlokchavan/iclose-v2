@@ -54,7 +54,7 @@ export default function Home() {
   const firstName = (profile?.full_name || session?.user.email?.split('@')[0] || 'there').split(' ')[0];
   const role = profile?.role ?? 'buyer';
   const isBuyer = role === 'buyer';
-  const heroValue = isBuyer ? (stats?.closedValue ?? 0) * 0.02 : stats?.commissionEarned ?? 0;
+  const heroValue = isBuyer ? stats?.commissionSaved ?? 0 : stats?.commissionEarned ?? 0;
   const heroLabel = isBuyer ? 'Estimated commission saved' : 'Commission earned';
   // Monochrome pipeline ramp (dim → bright) — bright bar = closed.
   const bars = [

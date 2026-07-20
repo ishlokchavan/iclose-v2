@@ -202,15 +202,29 @@ export interface DashboardStats {
   closedValue: number;
   commissionEarned: number;
   commissionPending: number;
+  commissionSaved: number;
+}
+
+/**
+ * The commission on a deal — the admin-confirmed amount when set, otherwise an
+ * estimate at the deal's rate. This single source is what a buyer "saves" and a
+ * broker "earns", so the dashboard, history and deal detail all agree.
+ */
+export function dealCommission(d: Deal): number {
+  if (d.commission_amount_aed != null) return d.commission_amount_aed;
+  const base = d.deal_value_aed ?? d.budget_aed ?? null;
+  return estimateCommission(d.deal_type, base)?.amount ?? 0;
 }
 
 export function computeStats(deals: Deal[]): DashboardStats {
-  const stats: DashboardStats = { active: 0, closedCount: 0, closedValue: 0, commissionEarned: 0, commissionPending: 0 };
+  const stats: DashboardStats = { active: 0, closedCount: 0, closedValue: 0, commissionEarned: 0, commissionPending: 0, commissionSaved: 0 };
   for (const d of deals) {
     if (d.status === 'submitted' || d.status === 'in_discussion') stats.active += 1;
     if (d.status === 'closed_won') {
       stats.closedCount += 1;
       stats.closedValue += d.deal_value_aed ?? 0;
+      // Buyer savings / broker commission on a closed deal — same source everywhere.
+      stats.commissionSaved += dealCommission(d);
     }
     if (d.commission_status === 'paid') stats.commissionEarned += d.commission_amount_aed ?? 0;
     if (d.commission_status === 'pending' && d.status === 'closed_won') stats.commissionPending += d.commission_amount_aed ?? 0;

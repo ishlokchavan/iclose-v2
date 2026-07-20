@@ -4,8 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, Trash2 } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth';
-import { getDeal, getDealEvents, withdrawDeal, estimateCommission, COMMISSION_RATE, type Deal, type DealEvent } from '@/lib/deals';
-import { useAppSettings, marketCommission } from '@/lib/settings';
+import { getDeal, getDealEvents, withdrawDeal, dealCommission, COMMISSION_RATE, type Deal, type DealEvent } from '@/lib/deals';
 import { GlassBg } from '@/components/Glass';
 import { Press, FadeIn } from '@/components/Press';
 import { StatusBadge, CommissionBadge } from '@/components/DealUI';
@@ -34,14 +33,11 @@ export default function DealDetail() {
     ]);
   }
 
-  const settings = useAppSettings();
   const isBuyer = profile?.role === 'buyer';
   const base = deal ? deal.deal_value_aed ?? deal.budget_aed ?? null : null;
   const rate = deal ? deal.commission_pct ?? (deal.deal_type ? COMMISSION_RATE[deal.deal_type] : COMMISSION_RATE.secondary) : 0;
-  const est = deal ? estimateCommission(deal.deal_type, base) : null;
-  // Buyer saving ≈ commission they'd otherwise pay a brokerage, minus our flat fee.
-  const buyerEst = deal && base ? { net: Math.max(0, marketCommission(settings, base) - settings.buyer_fee_aed) } : null;
-  const commissionAmt = deal?.commission_amount_aed ?? (isBuyer ? buyerEst?.net ?? null : est?.amount ?? null);
+  // Single source of truth — same value the dashboard & history show.
+  const commissionAmt = deal ? dealCommission(deal) : null;
   const isEstimate = deal?.commission_amount_aed == null;
 
   return (
